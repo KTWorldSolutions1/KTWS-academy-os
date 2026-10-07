@@ -4,7 +4,19 @@ export const relationshipStages=['Prospect','Contacted','Meeting scheduled','Pro
 export const partnerTypes=['Employer','Workforce agency','Community referral','Training customer','Vendor','Other'];
 export const referralStages=['Received','Contact attempted','Connected to lead','Closed'];
 export function validGrowthDate(v:any){return typeof v==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(v)&&!Number.isNaN(Date.parse(v+'T12:00:00Z'))&&new Date(v+'T12:00:00Z').toISOString().slice(0,10)===v;}
+export function contactAvailability(r:R,day:string){
+ const away=!!(r.awayFrom&&r.awayThrough&&r.awayFrom<=day&&day<=r.awayThrough);
+ return {away,label:away?'Out of office through '+r.awayThrough:r.awayFrom&&r.awayFrom>day?'Away '+r.awayFrom+' through '+r.awayThrough:'No current absence recorded'};
+}
+export function partnershipQueue(records:R[],day:string){return records.filter(r=>r.kind==='partners'&&r.status!=='Inactive'&&!['Closed','Paused'].includes(r.relationshipStage)).map(r=>({record:r,availability:contactAvailability(r,day),state:!r.owner?'Unassigned':!r.nextContact?'Date needed':r.nextContact<=day?'Due':'Upcoming'})).sort((a,b)=>(a.record.nextContact||'0000').localeCompare(b.record.nextContact||'0000')||a.record.name.localeCompare(b.record.name));}
 export function validateGrowth(r:R){
+ if(r.kind==='partners'){
+  for(const key of ['awayFrom','awayThrough'])if(r[key]&&!validGrowthDate(r[key]))return 'Choose valid contact absence dates.';
+  if(!!r.awayFrom!==!!r.awayThrough||r.awayFrom&&r.awayFrom>r.awayThrough)return 'Contact absence needs a start and end date in order.';
+  for(const key of ['backupContact','backupEmail','backupPhone','contactAvailabilityNote','relationshipNotes'])if(r[key]!=null&&(typeof r[key]!=='string'||r[key].length>(['relationshipNotes','contactAvailabilityNote'].includes(key)?4000:200)))return 'Contact and relationship notes exceed the field limit.';
+  if(r.backupEmail&&!/^\S+@\S+\.\S+$/.test(r.backupEmail))return 'Enter a valid backup contact email.';
+ }
+
  if(r.kind==='leads'&&r.referralIds!=null&&(!Array.isArray(r.referralIds)||r.referralIds.length>500||r.referralIds.some((id:any)=>typeof id!=='string')))return 'Invalid linked referrals.';
  if(r.kind==='partners'&&r.relationshipStage){
   if(!relationshipStages.includes(r.relationshipStage))return 'Choose a valid partnership stage.';

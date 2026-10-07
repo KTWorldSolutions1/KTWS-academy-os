@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {validateGrowth,preserveGrowth,referralBundle,linkReferralBundle,growthLinkProblem,sourcePerformance,possibleDuplicate,dueGrowth} from '../lib/growth.ts';
+import {validateGrowth,preserveGrowth,referralBundle,linkReferralBundle,growthLinkProblem,sourcePerformance,possibleDuplicate,dueGrowth,contactAvailability,partnershipQueue} from '../lib/growth.ts';
 import {studentPlan} from '../lib/operations.ts';
 const day='2026-10-07',partner={id:'p',kind:'partners',name:'Fictional employer',status:'Prospect',campusId:'a',owner:'Admissions',relationshipStage:'Contacted',nextContact:day,touchpoints:[]};
 const referral={id:'r',kind:'referrals',name:'Referred applicant',status:'Received',campusId:'a',partnerId:'p',owner:'Admissions',followUp:day,contactPermission:true,permissionNote:'Applicant approved a school contact.',email:'applicant@example.test',preferredClassId:'c'};
@@ -21,3 +21,9 @@ assert.equal(dueGrowth([partner,referral,event],day).length,3);assert.equal(dueG
 const session={id:'session',date:day,phase:'Classroom',attendance:'Present',hours:2,instructor:'Trainer',skill:'Vehicle systems',mood:'yellow'},future={...session,id:'future',date:'2026-10-08',hours:5},booking={id:'b',kind:'appointments',name:'Orientation',status:'Scheduled',date:'2026-10-08',start:'09:00',personId:'l'},task={id:'case',kind:'tasks',name:'Orientation follow-up',status:'Open',personId:'l',due:day};
 const plan=studentPlan({...enrolled,sessions:[session,future]},[cls,booking,task],day);assert.equal(plan.areas[0].hours,2);assert.equal(plan.areas[0].latest.id,'session');assert.equal(plan.bookings[0].id,'b');assert.equal(plan.tasks[0].id,'case');assert.equal(plan.cls.id,'c');
 console.log('PASS: referral permission/atomic handoff, original-source preservation, duplicate matching, campus links, immutable contacts, event outcomes/costs, source attribution and connected student plans.');
+
+const away={...partner,awayFrom:'2026-10-05',awayThrough:'2026-10-09',backupContact:'Backup rep',backupEmail:'backup@example.test',relationshipNotes:'Review funding paperwork.'};
+assert.equal(validateGrowth(away),null);assert.equal(contactAvailability(away,day).away,true);assert.equal(contactAvailability(away,'2026-10-09').away,true);assert.equal(contactAvailability(away,'2026-10-10').away,false);assert.equal(contactAvailability(away,'2026-10-04').away,false);
+assert.match(validateGrowth({...away,awayThrough:''}),/start and end/);assert.match(validateGrowth({...away,awayFrom:'2026-10-10'}),/in order/);assert.match(validateGrowth({...away,awayFrom:'2026-02-30'}),/valid contact absence/);assert.match(validateGrowth({...away,backupEmail:'bad'}),/backup contact email/);
+assert.equal(partnershipQueue([away],day)[0].state,'Due');assert.equal(dueGrowth([away],day).length,1);assert.equal(partnershipQueue([{...away,nextContact:''}],day)[0].state,'Date needed');assert.equal(partnershipQueue([{...away,relationshipStage:'Closed'}],day).length,0);
+console.log('PASS: inclusive contact absence dates, backup contacts and visible overdue relationship queue.');
