@@ -12,7 +12,7 @@
     "setup-owner": "node dist-server/setup-owner.js",
     "test": "node tests/training.test.mjs && node tests/independent.test.mjs",
     "build:cloudflare": "node scripts/build-cloudflare.mjs",
-    "deploy:cloudflare": "wrangler deploy --config cloudflare/wrangler.jsonc",
+    "deploy:cloudflare": "wrangler d1 execute ktws-academy-school --remote --config cloudflare/wrangler.jsonc --file cloudflare/schema.sql && wrangler deploy --config cloudflare/wrangler.jsonc",
     "setup-owner:cloudflare": "node scripts/setup-cloudflare-owner.mjs"
   },
   "dependencies": {
