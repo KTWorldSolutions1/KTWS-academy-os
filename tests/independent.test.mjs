@@ -26,6 +26,19 @@ try{
  const list=await json(await send('/api/records',null,emp.cookie));assert.ok(list.body.records.some(r=>r.id===sa.id));assert.ok(!list.body.records.some(r=>r.id===sb.id));
  assert.equal((await send('/api/accounts/invite',{staffId:employee.id},emp.cookie)).status,403);
  const ps=list.body.records.find(r=>r.id===sa.id);assert.equal((await send('/api/records',{records:[{...ps,status:'Yard'}]},emp.cookie)).status,200);
+
+ const currentStudent=(await json(await send('/api/records',null,cookie))).body.records.find(r=>r.id===sa.id);
+ const careerRecord={...currentStudent,career:{stage:'Placed',employer:'Test employer',startDate:'2026-10-07',notes:'Student confirmed start date.'}};
+ assert.equal((await send('/api/records',{records:[careerRecord]},cookie)).status,200);
+ const projected=(await json(await send('/api/records',null,emp.cookie))).body.records.find(r=>r.id===sa.id);assert.equal(projected.career,undefined);
+ const support={id:crypto.randomUUID(),kind:'tasks',name:'Training support',status:'Open',campusId:ca.id,studentId:sa.id,operationsCase:true,category:'Training support',owner:'Lead instructor',due:'2026-10-07',plan:'Review setup and mirror checks.',signalKey:sa.id+':progress:Yard'};
+ assert.equal((await send('/api/records',{records:[support]},emp.cookie)).status,403);
+ assert.equal((await send('/api/records',{records:[support]},cookie)).status,200);
+ assert.equal((await send('/api/records',{records:[{...support,id:crypto.randomUUID()}]},cookie)).status,409);
+ assert.equal((await send('/api/records',{records:[{...support,id:crypto.randomUUID(),signalKey:'another',campusId:cb.id}]},cookie)).status,400);
+ const currentCase=(await json(await send('/api/records',null,cookie))).body.records.find(r=>r.id===support.id);
+ assert.equal((await send('/api/records',{records:[{...currentCase,status:'Complete'}]},cookie)).status,400);
+ assert.equal((await send('/api/records',{records:[{...currentCase,status:'Complete',outcome:'Supervised practice completed.'}]},cookie)).status,200);
  const form=new FormData();form.set('studentId',sa.id);form.set('category','Signed contract');form.set('file',new File(['private test record'],'contract.txt',{type:'text/plain'}));
  const upload=await json(await handle(new Request('https://academy.test/api/files',{method:'POST',headers:{Origin:'https://academy.test',Cookie:cookie},body:form})));assert.equal(upload.status,200,JSON.stringify(upload.body));
  const cipher=readFileSync(join(process.env.ACADEMY_DATA_DIR,'files',upload.body.key));assert.equal(cipher.includes(Buffer.from('private test record')),false);
@@ -34,5 +47,5 @@ try{
  const staffCurrent=(await json(await send('/api/records',null,cookie))).body.records.find(r=>r.id===employee.id);assert.equal((await send('/api/records',{records:[{...staffCurrent,status:'Inactive'}]},cookie)).status,200);assert.equal((await send('/api/records',null,emp.cookie)).status,401);
  const cross=await handle(new Request('https://academy.test/api/records',{method:'POST',headers:{Origin:'https://attacker.test',Cookie:cookie,'Content-Type':'application/json'},body:'{}'}));assert.equal(cross.status,403);
  assert.equal((await send('/api/auth/logout',{},cookie)).status,200);assert.equal((await send('/api/records',null,cookie)).status,401);
- console.log('PASS: independent login, one-use activation, forged-header rejection, campus isolation, instructor transfer, encrypted files, contract attachment, inactive employee blocking, CSRF and logout.');
+ console.log('PASS: independent login, one-use activation, forged-header rejection, campus isolation, instructor transfer, encrypted files, contract attachment, inactive employee blocking, CSRF, logout, support case ownership/closure, duplicate protection and private career projection.');
 }finally{rmSync(process.env.ACADEMY_DATA_DIR,{recursive:true,force:true});}

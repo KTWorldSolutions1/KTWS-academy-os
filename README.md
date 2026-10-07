@@ -33,3 +33,18 @@ SMS requires Twilio secrets `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_F
 ## Current verification result (2026-10-07)
 
 Portable server build and functional tests: PASS. Training/admissions/attendance rule tests: PASS. Cloudflare frontend/Worker build and deployment dry run: PASS. Actual local Worker execution: BLOCKED by this environment's `uv_interface_addresses` system error before the Worker started; native password hashing inside workerd remains unverified here. Remote deployment and real-domain acceptance testing remain outstanding because Cloudflare account access is blocked. This package must not be represented as an employee-ready live service until those checks succeed.
+
+## Connected operations and student success
+
+The Operations & student success workspace adds six connected views to the independent Academy application:
+
+- Daily operations: location-specific attendance recording coverage, current evidence flags, renewal/vehicle deadlines, balance follow-ups and scheduled appointments. Missing marks do not count as absences.
+- Support cases: existing task records with a responsible person, support plan, due date, next review and completion outcome. Instructor-generated follow-ups can be managed without creating a duplicate. The API rejects duplicate open signal cases and mismatched campus links.
+- Skill matrix: current classroom, yard and road competency evidence, recorded instruction hours and graduation evidence gaps.
+- Capacity and campuses: enrolled seats, open seats, active students, saved ready-vehicle counts and overdue work. Vehicle deadline flags remain separate from its readiness status.
+- Career outcomes: staff-reported applications, interviews, offers, job starts, follow-up dates and 30/90-day retention responses. Private career fields are excluded from instructor/front-desk student projections.
+- Progress reports: reviewed text exports with period attendance, recorded hours, assessments, latest training focus and proficiency evidence. Identity numbers, screening results, uploaded files, payments and support case notes are excluded. Latest instructor notes are opt-in. Internal manager handoffs are separate exports for authorized school staff.
+
+These features use the existing records schema and optimistic concurrency/audit system. No database migration is needed beyond the existing schema. Managers, enrollment specialists and admin assistants can manage cases and career records; instructors can review daily operations, competencies and progress reports for their authorized campuses. Flags are explicit rules, not predictive AI, and never automatically make enrollment, fitness or graduation decisions. Exports are downloaded locally, not emailed or submitted to an agency. SMS/email/e-signature/direct TPR integrations remain separate provider setup work.
+
+Validation: `npm run build`, `npm run build:cloudflare`, `npm test`. The operations tests cover corrected attendance, latest/future evidence, duplicate case matching, campus capacity and report privacy. API integration tests cover role restrictions, duplicate open cases, linked-campus consistency, mandatory closure outcomes and private career projections.
