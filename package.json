@@ -1,0 +1,33 @@
+{
+  "name": "ktws-academy-independent",
+  "version": "0.1.0",
+  "private": true,
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "node scripts/build.mjs",
+    "start": "node dist-server/index.js",
+    "setup-owner": "node dist-server/setup-owner.js",
+    "test": "node tests/training.test.mjs && node tests/independent.test.mjs",
+    "build:cloudflare": "node scripts/build-cloudflare.mjs",
+    "deploy:cloudflare": "wrangler deploy --config cloudflare/wrangler.jsonc",
+    "setup-owner:cloudflare": "node scripts/setup-cloudflare-owner.mjs"
+  },
+  "dependencies": {
+    "react": "19.2.6",
+    "react-dom": "19.2.6",
+    "lucide-react": "1.31.0"
+  },
+  "devDependencies": {
+    "vite": "8.0.13",
+    "@vitejs/plugin-react": "6.0.2",
+    "typescript": "5.9.3",
+    "@types/node": "22.19.19",
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
+    "wrangler": "4.92.0"
+  },
+  "type": "module"
+}

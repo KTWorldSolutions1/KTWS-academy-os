@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1791340629482,
+      "tag": "0000_high_ravenous",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1791342130329,
+      "tag": "0001_smooth_shooting_star",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1791343006484,
+      "tag": "0002_parallel_grey_gargoyle",
+      "breakpoints": true
+    }
+  ]
+}

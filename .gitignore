@@ -1,0 +1,9 @@
+node_modules/
+data/
+.env*
+dist/
+dist-server/
+dist-worker/
+dist-setup/
+.wrangler/
+cloudflare/test.local.json
