@@ -39,6 +39,33 @@ try{
  const currentCase=(await json(await send('/api/records',null,cookie))).body.records.find(r=>r.id===support.id);
  assert.equal((await send('/api/records',{records:[{...currentCase,status:'Complete'}]},cookie)).status,400);
  assert.equal((await send('/api/records',{records:[{...currentCase,status:'Complete',outcome:'Supervised practice completed.'}]},cookie)).status,200);
+
+ const {referralBundle}=await import('../lib/growth.ts');
+ const partner={id:crypto.randomUUID(),kind:'partners',name:'Test employer',status:'Prospect',campusId:ca.id,owner:'Admissions',relationshipStage:'Contacted',nextContact:'2026-10-07',touchpoints:[]};
+ const referral={id:crypto.randomUUID(),kind:'referrals',name:'Referred applicant',status:'Received',campusId:ca.id,partnerId:partner.id,owner:'Admissions',followUp:'2026-10-07',email:'referral@example.test',contactPermission:true,permissionNote:'Applicant permission recorded.'};
+ assert.equal((await send('/api/records',{records:[partner,referral]},cookie)).status,200);
+ assert.equal((await send('/api/records',{records:[{...referral,id:crypto.randomUUID()}]},emp.cookie)).status,403);
+ const instructorList=(await json(await send('/api/records',null,emp.cookie))).body.records;assert.ok(!instructorList.some(r=>r.kind==='referrals'||r.id===partner.id));
+ assert.equal((await send('/api/records',{records:[{...referral,id:crypto.randomUUID(),campusId:cb.id}]},cookie)).status,400);
+ const beforeHandoff=(await json(await send('/api/records',null,cookie))).body.records.find(r=>r.id===referral.id);
+ const handoff=referralBundle(beforeHandoff,partner,'2026-10-07',[crypto.randomUUID(),crypto.randomUUID()]);
+ assert.equal((await send('/api/records',{records:handoff},cookie)).status,200);
+ assert.equal((await send('/api/records',{records:[{...handoff[1],id:crypto.randomUUID()}]},cookie)).status,400);
+ const afterHandoff=(await json(await send('/api/records',null,cookie))).body.records.find(r=>r.id===referral.id);
+ assert.equal((await send('/api/records',{records:[{...afterHandoff,status:'Received',leadId:''}]},cookie)).status,400);
+ const currentPartner=(await json(await send('/api/records',null,cookie))).body.records.find(r=>r.id===partner.id);
+ const loggedPartner={...currentPartner,touchpoints:[{id:crypto.randomUUID(),date:'2026-10-07',channel:'Call',summary:'Requested a training meeting.'}]};
+ assert.equal((await send('/api/records',{records:[loggedPartner]},cookie)).status,200);
+ const afterContact=(await json(await send('/api/records',null,cookie))).body.records.find(r=>r.id===partner.id);assert.equal(afterContact.touchpoints[0].actor,'owner@test.example');
+ assert.equal((await send('/api/records',{records:[{...afterContact,touchpoints:[]}]},cookie)).status,400);
+ const recruitingEvent={id:crypto.randomUUID(),kind:'appointments',name:'Test open house',status:'Scheduled',campusId:ca.id,type:'Recruiting event',outreachEvent:true,date:'2026-10-07',start:'16:00',end:'17:00',owner:'Events specialist',room:'Lobby',budget:300};
+ assert.equal((await send('/api/records',{records:[recruitingEvent]},cookie)).status,200);
+ const duplicateEvent={...recruitingEvent,id:crypto.randomUUID()};assert.equal((await send('/api/records',{records:[duplicateEvent]},cookie)).status,409);
+ const currentEvent=(await json(await send('/api/records',null,cookie))).body.records.find(r=>r.id===recruitingEvent.id);
+ assert.equal((await send('/api/records',{records:[{...currentEvent,status:'Completed'}]},cookie)).status,400);
+ assert.equal((await send('/api/records',{records:[{...currentEvent,status:'Completed',outcome:'Contacts collected for admissions.',followUp:'2026-10-08'}]},cookie)).status,200);
+ const eventTask=(await json(await send('/api/records',null,cookie))).body.records.find(r=>r.kind==='tasks'&&r.signalKey==='event:'+currentEvent.id);assert.ok(eventTask);assert.equal(eventTask.owner,'Events specialist');
+
  const form=new FormData();form.set('studentId',sa.id);form.set('category','Signed contract');form.set('file',new File(['private test record'],'contract.txt',{type:'text/plain'}));
  const upload=await json(await handle(new Request('https://academy.test/api/files',{method:'POST',headers:{Origin:'https://academy.test',Cookie:cookie},body:form})));assert.equal(upload.status,200,JSON.stringify(upload.body));
  const cipher=readFileSync(join(process.env.ACADEMY_DATA_DIR,'files',upload.body.key));assert.equal(cipher.includes(Buffer.from('private test record')),false);
@@ -47,5 +74,5 @@ try{
  const staffCurrent=(await json(await send('/api/records',null,cookie))).body.records.find(r=>r.id===employee.id);assert.equal((await send('/api/records',{records:[{...staffCurrent,status:'Inactive'}]},cookie)).status,200);assert.equal((await send('/api/records',null,emp.cookie)).status,401);
  const cross=await handle(new Request('https://academy.test/api/records',{method:'POST',headers:{Origin:'https://attacker.test',Cookie:cookie,'Content-Type':'application/json'},body:'{}'}));assert.equal(cross.status,403);
  assert.equal((await send('/api/auth/logout',{},cookie)).status,200);assert.equal((await send('/api/records',null,cookie)).status,401);
- console.log('PASS: independent login, one-use activation, forged-header rejection, campus isolation, instructor transfer, encrypted files, contract attachment, inactive employee blocking, CSRF, logout, support case ownership/closure, duplicate protection and private career projection.');
+ console.log('PASS: independent login, one-use activation, forged-header rejection, campus isolation, instructor transfer, encrypted files, contract attachment, inactive employee blocking, CSRF, logout, support case ownership/closure, duplicate protection and private career projection, referral handoffs, outreach history and recruiting event conflicts.');
 }finally{rmSync(process.env.ACADEMY_DATA_DIR,{recursive:true,force:true});}

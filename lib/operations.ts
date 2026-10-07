@@ -6,6 +6,12 @@ export const careerStages=['Not started','Career coaching','Applications submitt
 export const caseCategories=['Training support','Attendance support','Enrollment review','Funding follow-up','Vehicle service','Career support','General follow-up'];
 export type Signal={key:string;record:R;category:string;priority:string;title:string;detail:string;sourceEntry?:string};
 export const activeStudent=(s:R)=>s.kind==='students'&&!['Graduated','Withdrawn'].includes(s.status);
+export function studentPlan(s:R,records:R[],day:string){
+ const bounded={...s,sessions:activeSessions(s).filter((x:any)=>x.date<=day),assessments:(s.assessments||[]).filter((x:any)=>!x.date||x.date<=day),evaluations:(s.evaluations||[]).filter((x:any)=>!x.date||x.date<=day)};
+ const cls=records.find(r=>r.kind==='classes'&&r.id===s.classId),bookings=records.filter(r=>['appointments','schedules'].includes(r.kind)&&['Scheduled','Confirmed'].includes(r.status)&&r.date>=day&&(r.studentId===s.id||r.personId===s.id||(s.sourceLead&&r.personId===s.sourceLead))).sort((a,b)=>(a.date+a.start).localeCompare(b.date+b.start));
+ const tasks=records.filter(r=>r.kind==='tasks'&&r.status!=='Complete'&&(r.studentId===s.id||r.personId===s.id||(s.sourceLead&&r.personId===s.sourceLead))).sort((a,b)=>(a.due||'9999').localeCompare(b.due||'9999'));
+ return {student:s,cls,bookings,tasks,theory:theoryState(bounded),graduation:graduationReadiness(bounded),areas:phases.map(p=>({phase:p,latest:latestDaily(bounded,p),hours:instructionHours(bounded,p),target:s[p==='Classroom'?'targetTheory':p==='Yard'?'targetYard':'targetRoad']}))};
+}
 export function dayOffset(day:string,days:number){const d=new Date(day+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+days);return d.toISOString().slice(0,10);}
 export function attendanceEvidence(s:R,from:string,to:string){
  const sessions=activeSessions(s).filter((x:any)=>x.date>=from&&x.date<=to);

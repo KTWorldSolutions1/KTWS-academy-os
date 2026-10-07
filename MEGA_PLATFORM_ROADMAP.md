@@ -19,6 +19,17 @@ The differentiator is coordination with evidence: a rating becomes a follow-up, 
 
 These features extend the existing independent employee login, campus access, enrollment/calendar/cohort workflows, training records, document uploads, manual ledger, contracts, messaging drafts and TPR tracking. They use the existing audited record store. They are not predictive AI or automatic certification.
 
+## Second implemented expansion: growth and connected student plans
+
+- Organization partnership stages, relationship owners, contact history, next-contact dates and estimated seats.
+- Referral intake with source organization, contact-permission context, assigned admissions owner and preferred class.
+- Atomic referral-to-lead handoff with an assigned contact task, or linking to an existing lead without changing its original source.
+- Recruiting events in the shared school calendar, with budget/cost and attendance tracking, captured lead attribution, outcome notes and follow-up cases.
+- Growth reports using saved lead-to-student links, not projected revenue or assumed funded seats.
+- Connected student plans with current classroom/yard/road focus, upcoming bookings, assigned next steps and graduation evidence gaps.
+
+These additions do not send messages, book enrollment seats, charge payments, assess funding eligibility or provide a student portal.
+
 ## The next build waves
 
 The following are proposed additions, not shipped capabilities. Provider-dependent work becomes live only after the school connects and verifies the appropriate service.
