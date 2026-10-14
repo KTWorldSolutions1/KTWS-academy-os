@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';
+import {authorizedPartnerView} from '../lib/wioa-portal-access.ts';
+const student={id:'student-1',campusId:'greensboro',name:'Sample Student',status:'Road',ssnLast4:'1234',attendanceSummary:'On track'};
+const grant={partnerId:'agency-1',studentId:'student-1',campusId:'greensboro',consentAt:'2026-10-01',approvedBy:'manager-1',expiresAt:'2026-12-01',fields:['name','status','ssnLast4','attendanceSummary']};
+const req={partnerId:'agency-1',campusId:'greensboro',now:'2026-10-14'};
+assert.deepEqual(authorizedPartnerView(student,grant,req),{id:'student-1',name:'Sample Student',status:'Road',attendanceSummary:'On track'});
+assert.equal(authorizedPartnerView(student,grant,{...req,partnerId:'other'}),null);
+assert.equal(authorizedPartnerView(student,grant,{...req,campusId:'dallas'}),null);
+assert.equal(authorizedPartnerView(student,{...grant,revokedAt:'2026-10-10'},req),null);
+assert.equal(authorizedPartnerView(student,grant,{...req,now:'2026-12-02'}),null);
+assert.equal(authorizedPartnerView(student,{...grant,consentAt:''},req),null);
+console.log('WIOA disclosure policy tests passed');
