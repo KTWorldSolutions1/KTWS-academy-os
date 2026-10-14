@@ -16,8 +16,8 @@ jobs:
         with:
           node-version: '24'
       - run: npm install --no-package-lock --no-audit --no-fund
-      - run: npm test
       - run: npm run build
+      - run: npm test
       - run: npm run build:cloudflare
       - name: Check Cloudflare deployment credentials
         env:
