@@ -29,7 +29,7 @@ jobs:
           node --input-type=module -e '
             const token = process.env.CLOUDFLARE_API_TOKEN ?? "";
             const account = process.env.CLOUDFLARE_ACCOUNT_ID ?? "";
-            if (token !== token.trim() || /\\s|["']/.test(token) || /^(Bearer|curl|CLOUDFLARE_API_TOKEN=|\\{)/i.test(token)) {
+            if (token !== token.trim() || /\\s|"/.test(token) || /^(Bearer|curl|CLOUDFLARE_API_TOKEN=|\\{)/i.test(token)) {
               console.error("Malformed Cloudflare API token secret: save the raw token only, without prefixes, commands, quotes or spaces.");
               process.exit(1);
             }
@@ -39,6 +39,7 @@ jobs:
             }
             console.log("Credential format passed; validity will be verified by Cloudflare.");
           '
+
       - name: Apply idempotent D1 schema
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
