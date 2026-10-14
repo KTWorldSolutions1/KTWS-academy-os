@@ -1,0 +1,44 @@
+name: Academy OS production release
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: academy-os-production
+  cancel-in-progress: false
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+      - run: npm run build:cloudflare
+      - name: Check Cloudflare deployment credentials
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          test -n "$CLOUDFLARE_API_TOKEN" || { echo "Missing Cloudflare API token"; exit 1; }
+          test -n "$CLOUDFLARE_ACCOUNT_ID" || { echo "Missing Cloudflare account ID"; exit 1; }
+      - name: Apply idempotent D1 schema
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npx wrangler d1 execute ktws-academy-school --remote --config cloudflare/wrangler.jsonc --file cloudflare/schema.sql
+      - name: Deploy Cloudflare Worker and assets
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npx wrangler deploy --config cloudflare/wrangler.jsonc
+      - name: Public endpoint smoke check
+        run: |
+          curl --fail --silent --show-error --retry 5 --retry-delay 4 https://academy.ktworldsolutions.com/ > /dev/null
+          status=$(curl --silent --output /dev/null --write-out '%{http_code}' https://academy.ktworldsolutions.com/api/auth/me)
+          test "$status" = "401" || { echo "Expected unauthenticated API response 401, got $status"; exit 1; }
