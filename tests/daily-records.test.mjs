@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';
+import {createAttendance,createTrainingLog,summarizeDailyRecords,validateRecordScope} from '../shared/academy-daily-records.mjs';
+const base={campusId:'greensboro',studentId:'s1',date:'2026-10-19',actorId:'instructor1'};
+assert.equal(createAttendance({...base,status:'present'}).status,'present');
+assert.throws(()=>createAttendance({...base,status:''}));
+const log=createTrainingLog({...base,instructorId:'i1',category:'road_driving',start:'09:00',end:'10:30',studentOperatedVehicle:true});
+assert.equal(log.minutes,90);
+assert.throws(()=>createTrainingLog({...base,instructorId:'i1',category:'road_driving',start:'09:00',end:'10:30'}));
+assert.throws(()=>createTrainingLog({...base,instructorId:'i1',category:'observation',start:'09:00',end:'10:30',studentOperatedVehicle:true}));
+assert.equal(summarizeDailyRecords([{id:'s1',name:'Student'}],[],[log],base.date)[0].status,'not_recorded');
+assert.throws(()=>validateRecordScope(log,['other-campus']));
+console.log('Daily records domain tests passed');
