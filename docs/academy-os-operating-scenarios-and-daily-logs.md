@@ -51,3 +51,49 @@ Make Academy OS the operational source of truth for real-world campus workflows,
 - Never invent training hours, backdate logs, or auto-certify graduation/ELDT completion.
 - Flags support human review; they do not make automatic enrollment, fitness, testing-readiness, or graduation decisions.
 - Do not claim that the app is deployed or that integrations are live unless verified.
+
+
+## Implementation blueprint — daily attendance and driver-training logs
+
+### User workflow
+1. Staff opens Operations → Attendance & Training Logs and selects campus, cohort, date, session, and instructor.
+2. The roster loads scheduled students. Each student's status begins as **Not recorded**; the application must never infer absence from a blank mark.
+3. Authorized staff records Present, Absent, Tardy, Excused, or Partial, along with session start/end and relevant instructional category. A partial mark requires hours/minutes or a documented reason.
+4. Instructor creates one or more dated training entries per student/session: category, actual start/end, calculated duration, actual operation vs observation, lesson/skills, vehicle when relevant, proficiency evidence, deficiencies, and remediation.
+5. Save validates overlaps, negative duration, missing required fields, campus/cohort mismatches, duplicate records, and hours outside allowed policy. Errors are shown for correction; the system never silently adjusts hours.
+6. Instructor reviews and acknowledges the log. Authorized staff can print/export an individual student log and cohort attendance report.
+7. Manager dashboard shows missing attendance, unreviewed logs, curriculum-hour progress, unresolved deficiencies, and records needing correction.
+
+### Data and integrity rules
+- Use the existing records store and optimistic concurrency/audit infrastructure where appropriate; inspect the current record kinds and helpers before adding a parallel storage system.
+- Suggested record kinds: `attendance_session`, `attendance_mark`, `driver_training_log`, and `training_requirement_profile` only if equivalent existing kinds do not already exist.
+- Store stable IDs for campus, cohort, student, instructor, session, and vehicle; use ISO date and timestamp values consistently.
+- Store original entries and use the existing audit trail for edits: actor, timestamp, reason, old value, new value. Do not overwrite history or permit silent backdating.
+- Calculate duration from validated timestamps or a carefully validated manual duration when policy permits. Prevent duplicate/double-counted time within the same student and category; flag questionable overlap for review.
+- Totals are computed from approved, non-voided entries and grouped by configured curriculum category. Corrections/voids must retain history.
+- Keep classroom, field/range, student-operated highway driving, and highway observation separate. A student observation entry can never increment actual student-driving totals.
+- Role and campus checks must be enforced server-side, not only by hiding UI controls. Instructors may enter/review their authorized students; managers/admins may correct records according to permissions.
+- Exports are limited to necessary school records, respect campus permissions, and exclude unrelated sensitive data.
+- A printed report must state that it is a school training record and not a substitute for applicable FMCSA hours-of-service/ELD records or official driver logbooks.
+
+### Requirement profile and regulatory guardrails
+The existing project note lists a working curriculum reference of 160 hours (50 classroom, 50 field, 20 actual highway behind-the-wheel, 40 highway observation, plus a possible 3-hour dusk-to-dawn requirement). These are **unverified configuration candidates**, not hard-coded law. Before activation, an authorized school administrator must confirm the current approved curriculum, applicable NCDMV/TPR requirements, and any program-specific rules, then set a versioned requirement profile with effective date and approving person. Preserve the profile used for each student's calculation. Do not make eligibility, graduation, or regulatory-compliance decisions automatically from an unverified profile.
+
+### Acceptance tests
+- Blank roster marks display Not recorded and never count as absences.
+- All attendance statuses save, appear in student history, and report correctly.
+- An instructor cannot access or modify another campus's records without authorization.
+- Edits require a reason where policy requires it and create immutable audit evidence.
+- Invalid time ranges, negative durations, overlapping entries, mismatched student/cohort/campus, and missing required fields are rejected or clearly flagged for review.
+- Observation hours never count as actual driving hours; category totals recalculate correctly after approved corrections.
+- Print/export output is readable, dated, attributable, permission-checked, and privacy-minimized.
+- Unverified curriculum values are not silently enforced as legal requirements.
+- Automated tests cover empty rosters, populated rosters, correction history, permissions, totals, export privacy, and daylight/time-zone boundaries.
+
+## Delivery sequence
+- P0: inspect current data models, record kinds, API permission checks, audit helpers, and existing UI navigation; reuse rather than duplicate existing capabilities.
+- P1: implement attendance roster entry, missing-mark indicators, student attendance history, corrections/audit, and printable report.
+- P2: implement per-student daily training logs, category totals, instructor review, remediation notes, and printable report.
+- P3: implement configurable curriculum requirement profiles, progress dashboard, and missing-evidence alerts after administrator verification.
+- P4: connect funding-pending enrollment, CLP retest/remediation, cohort funnel, employer referrals, and weekly manager report.
+- P5: run unit, API authorization, populated/empty rendering, export privacy, and deployment build tests; document deployment status honestly.
