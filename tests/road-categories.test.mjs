@@ -6,7 +6,7 @@ const base={id:'student',kind:'students',name:'Fictional training student',statu
 const session=(id,mode,hours)=>({id,phase:'Road',date:'2026-10-14',attendance:'Present',mode,studentOperatedVehicle:mode==='Student driving',hours,instructor:'Instructor'});
 const entries=[session('d1','Student driving',10),session('d2','Student driving',10),...Array.from({length:4},(_,i)=>session('o'+i,'Observation',10))];
 const full={...base,sessions:entries};
-assert.deepEqual(drivingTimeSummary(full),{studentDrivingHours:20,observationHours:40,unclassifiedRoadHours:0});
+assert.deepEqual(drivingTimeSummary(full),{studentDrivingHours:20,nightDrivingHours:0,observationHours:40,unclassifiedRoadHours:0});
 const gaps=graduationReadiness(full).gaps.join('|');
 assert.doesNotMatch(gaps,/Actual student-operated road driving hours|Separate road observation hours|Road planned instruction hours/);
 const withoutDriving=graduationReadiness({...full,sessions:entries.slice(1)}).gaps.join('|');
@@ -17,4 +17,15 @@ const unclassified=graduationReadiness({...full,sessions:[...entries,session('mi
 assert.match(unclassified,/classification/);
 assert.match(validateRecord({...base,targetRoadDriving:-1}),/planning hours/);
 assert.match(validateRecord({...base,targetRoadObservation:201}),/planning hours/);
+const night={...session('night-session','Student driving',3),nightDrivingHours:2,nightDrivingEvidence:'Instructor verified dusk-to-dawn conditions on practice route.'};
+assert.equal(validateRecord({...base,sessions:[night]}),null);
+assert.equal(drivingTimeSummary({...base,sessions:[night]}).nightDrivingHours,2);
+assert.match(graduationReadiness({...base,targetNightDriving:3,sessions:[night]}).gaps.join('|'),/Instructor-attested night driving hours/);
+assert.doesNotMatch(graduationReadiness({...base,targetNightDriving:2,sessions:[night]}).gaps.join('|'),/Instructor-attested night driving hours/);
+assert.match(validateRecord({...base,sessions:[{...night,nightDrivingHours:4}]}),/cannot exceed/);
+assert.match(validateRecord({...base,sessions:[{...night,mode:'Observation',studentOperatedVehicle:false}]}),/student-operated/);
+assert.match(validateRecord({...base,sessions:[{...night,nightDrivingEvidence:''}]}),/instructor evidence/);
+assert.match(validateRecord({...base,targetNightDriving:-1}),/planning hours/);
+const correctedNight={...night,id:'night-session-correction',nightDrivingHours:1,correctionOf:'night-session'};
+assert.equal(drivingTimeSummary({...base,sessions:[night,correctedNight]}).nightDrivingHours,1);
 console.log('PASS: student-operated driving and observation hours remain distinct for graduation evidence; unclassified road hours flagged and plan targets validated.');
