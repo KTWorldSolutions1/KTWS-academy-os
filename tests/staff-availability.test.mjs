@@ -76,7 +76,8 @@ try{
  const outside={...train,id:crypto.randomUUID(),date:day,start:'11:00',end:'12:00',name:'Later lesson'};
  assert.equal((await send('/api/records',{records:[outside]},boss.cookie)).status,200,'Outside unavailable range is allowed');
  const restore={id:crypto.randomUUID(),kind:'staff-unavailability',name:'Availability restored',status:'Restored',employeeId:instructor.id,campusId:gso.id,date:day,restoresId:absence.id};
- assert.equal((await send('/api/records',{records:[{...absence,notes:'Rewrite original'}]},boss.cookie)).status,403,'Original unavailable entry is immutable');
+ assert.equal((await send('/api/records',{records:[{...absence,notes:'Rewrite original'}]},boss.cookie)).status,400,'Private notes are rejected even on an update');
+ assert.equal((await send('/api/records',{records:[{...absence,name:'Edited historical entry'}]},boss.cookie)).status,403,'Original unavailable entry is immutable');
  assert.equal((await send('/api/records',{records:[restore]},boss.cookie)).status,200,'Manager can append availability restoration');
  const reloaded=(await json(send('/api/records',null,owner.cookie))).body.records;
  const restored=reloaded.find(x=>x.id===restore.id);
