@@ -519,3 +519,7 @@ small,.muted{color:var(--school-secondary)}
 .practice-feedback.retry{border-color:#b79769;background:#453923}
 .practice-feedback button{font-size:12px;color:#dfd0ff;text-decoration:underline;margin-left:8px}
 @media(max-width:760px){.study-authoring,.study-practice-editor{padding:12px}.student-study-unit{padding:0 10px}}
+
+/* Career follow-ups supplement, but do not attest, graduate job outcomes. */
+.career-check-dates{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.career-check-dates>.badge{font-size:11px;line-height:1.5;white-space:normal}
