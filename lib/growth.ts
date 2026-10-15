@@ -1,5 +1,6 @@
 import type {RecordData as R} from './training.ts';
 import {campusOf} from './enterprise.ts';
+import {salesStages} from './admissions.ts';
 export const relationshipStages=['Prospect','Contacted','Meeting scheduled','Proposal sent','Agreement review','Active partnership','Paused','Closed'];
 export const partnerTypes=['Employer','Workforce agency','Community referral','Training customer','Vendor','Other'];
 export const referralStages=['Received','Contact attempted','Connected to lead','Closed'];
@@ -18,7 +19,7 @@ export function validateGrowth(r:R){
  }
 
  if(r.kind==='leads'&&r.eventIntake===true){
-  if(r.status!=='New inquiry'||typeof r.eventId!=='string'||!r.eventId||!r.campusId)return 'Event leads require a linked recruiting event and campus.';
+  if(!salesStages.includes(r.status)||typeof r.eventId!=='string'||!r.eventId||!r.campusId)return 'Event leads require a linked recruiting event and campus.';
   if(typeof r.contactConsent!== 'boolean'||r.contactConsent!==true)return 'Record the visitor’s explicit consent before collecting their contact details.';
   if(!r.emailConsent&&!r.smsConsent)return 'Select the visitor’s approved communication method.';
   if(r.emailConsent&&(!r.email||!/^\S+@\S+\.\S+$/.test(r.email)))return 'A valid email is required for email consent.';
@@ -53,6 +54,7 @@ export function validateGrowth(r:R){
 }
 export function preserveGrowth(old:R,next:R){if(old.outreachEvent&&!next.outreachEvent)return 'A saved recruiting event cannot be changed into another appointment type.';const before=old.touchpoints||[],after=next.touchpoints||[];if(before.length>after.length||before.some((t:any,i:number)=>JSON.stringify(t)!==JSON.stringify(after[i])))return 'Saved outreach history cannot be changed or deleted. Add another contact note.';
  if(old.kind==='referrals'&&old.leadId&&(next.leadId!==old.leadId||next.partnerId!==old.partnerId||next.campusId!==old.campusId||next.status!=='Connected to lead'))return 'A saved referral handoff cannot be reset or reassigned. Keep its linked admissions history.';
+ if(old.kind==='leads'&&old.eventIntake===true&&(['eventIntake','eventId','campusId','contactConsent','emailConsent','smsConsent','consentRecordedAt','consentRecordedBy'].some(key=>JSON.stringify(old[key])!==JSON.stringify(next[key]))))return 'Original event lead source and communication consent evidence are immutable. Record opt-outs and new permissions separately.';
  if(old.kind==='leads'&&((old.sourceReferral&&next.sourceReferral!==old.sourceReferral)||(old.referralIds||[]).some((id:string)=>!(next.referralIds||[]).includes(id))))return 'Saved referral links cannot be removed from an admissions lead.';
  return null;}
 export function possibleDuplicate(records:R[],person:R){const email=String(person.email||'').trim().toLowerCase(),phone=String(person.phone||'').replace(/\D/g,'');return records.filter(r=>['leads','students'].includes(r.kind)&&r.id!==person.leadId&&((email&&String(r.email||'').trim().toLowerCase()===email)||(phone.length>=7&&String(r.phone||'').replace(/\D/g,'')===phone)));}
