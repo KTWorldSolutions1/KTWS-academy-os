@@ -1,6 +1,6 @@
 import type {RecordData as R} from './training';
 export const employmentOfferStages=['Requested','Employer reviewing','Letter received','Verified contingent','Expired','Withdrawn'] as const;
-const validDate=(s:any)=>typeof s==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(s)&&new Date(s+'T12:00:00Z').toISOString().slice(0,10)===s;
+const validDate=(s:any)=>typeof s==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(s)&&!Number.isNaN(Date.parse(s+'T12:00:00Z'))&&new Date(s+'T12:00:00Z').toISOString().slice(0,10)===s;
 export function validateEmploymentOffer(r:R){
  if(r.kind!=='employment-offers')return null;
  if(!employmentOfferStages.includes(r.status))return 'Choose a valid employment offer status.';
