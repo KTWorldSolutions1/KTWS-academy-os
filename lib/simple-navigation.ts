@@ -13,7 +13,8 @@ export const schoolSections:SchoolSection[]=[
   {id:'intelligence',label:'Writing Help',help:'Create drafts; AI connection may be off'}
  ]},
  {id:'students',label:'Students',help:'Find students and check their records.',pages:[
-  {id:'students',label:'Student List',help:'Profiles, paperwork and progress'}
+  {id:'students',label:'Student List',help:'Profiles, paperwork and progress'},
+  {id:'student-access',label:'Student Portal Access',help:'Owner-approved private student logins'}
  ]},
  {id:'admissions',label:'Admissions',help:'Handle new inquiries and appointments.',pages:[
   {id:'leads',label:'New Inquiries',help:'Follow up with future students'},
