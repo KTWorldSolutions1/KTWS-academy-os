@@ -30,7 +30,7 @@ export function unresolvedVehicleDefects(all:R[],unitId:string):R[]{
 }
 export function dispatchOverlap(r:R,all:R[]){
  if(r.status==='Cancelled')return null;
- return all.find(x=>x.kind==='training-assignments'&&x.id!==r.id&&x.status!=='Cancelled'&&x.date===r.date&&r.start<x.end&&r.end>x.start&&(
+ return all.find(x=>['training-assignments','schedules'].includes(x.kind)&&x.id!==r.id&&['Planned','Confirmed','Completed','Scheduled'].includes(x.status)&&x.date===r.date&&r.start<x.end&&r.end>x.start&&(
   (!!r.employeeId&&x.employeeId===r.employeeId)|| (!!r.studentId&&x.studentId===r.studentId)||
   (!!r.unitId&&x.unitId===r.unitId)
  ))||null;
