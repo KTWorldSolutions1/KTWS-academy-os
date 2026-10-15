@@ -14,7 +14,8 @@
   },
   "vars": {
     "PUBLIC_ORIGIN": "https://academy.ktworldsolutions.com",
-    "STUDENT_PORTAL_ENABLED": "false"
+    "STUDENT_PORTAL_ENABLED": "false",
+    "SCHOOL_FILE_UPLOADS_ENABLED": "false"
   },
   "d1_databases": [
     {

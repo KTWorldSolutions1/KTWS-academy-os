@@ -10,6 +10,12 @@ Updated 2026-10-14 (Eastern). **Code exists**, **CI passed**, **public Worker de
 - The production Worker currently exposes owner-only randomized AES-GCM/R2 round-trip diagnostic under Employee launch setup → Production readiness. Its authenticated execution by the owner has **not been observed**.
 - CI tests cover student training history, hour corrections, attendance, role/campus isolation, restricted documents, agency disclosure consent/grants, staffing hours, WIOA privacy, secure session login, provider-mocked OpenAI drafting, and fake-document rejection. **CI passing does not prove real-world school licensure or production employee access.**
 
+## Fail-closed protected document deployment policy
+- New protected school file uploads are now explicitly **disabled by default in production** using `SCHOOL_FILE_UPLOADS_ENABLED=false`. Existing authorized downloads remain available. Tests use fictional data with a separate test-only bypass.
+- Driver-license scans, CLP scans and driving-record files are now restricted categories requiring owner or campus-manager access; ordinary admissions users cannot download their metadata or contents, and direct student profile permit/license numbers are redacted from nonmanagement API responses.
+- Before enabling uploads, the owner must approve recovery-key custody, a two-person restore procedure, an independent D1/R2 restore and actual employee-role tests with fake files. Explicit approval is required to change this flag to true; a green GitHub/Cloudflare release **does not imply backup or privacy acceptance**.
+- Student portal invitations remain independently disabled via `STUDENT_PORTAL_ENABLED=false`; activating uploads does not activate students or agency access.
+
 ## P0 — Must pass before using actual student personal information
 - [ ] Fictional student on **each** campus: create, reload, edit, class/phase transfer, correct a daily entry, retire test record according to an approved retention procedure.
 - [ ] Test all five Class A weeks (week 5 = testing) end to end: admissions/funding status, attendance, classroom, yard, student-operated road driving vs observation, manually attested qualifying night hours when school policy requires, evaluations, exam, graduation and placement outcome.
