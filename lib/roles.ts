@@ -1,5 +1,5 @@
 export const roleModules:Record<string,string[]>={
- 'Campus manager':['lesson-checkoffs','safety','credentials','sponsorships','dispatch','event-intake','employment-offers','agency','shifts','overview','intelligence','operations','growth','leads','calendar','classes','students','courses','tasks','fleet','finance','funding','partners','mous','tpr','compliance','audit'],
+ 'Campus manager':['insights','lesson-checkoffs','safety','credentials','sponsorships','dispatch','event-intake','employment-offers','agency','shifts','overview','intelligence','operations','growth','leads','calendar','classes','students','courses','tasks','fleet','finance','funding','partners','mous','tpr','compliance','audit'],
  'Enrollment specialist':['safety','sponsorships','event-intake','employment-offers','overview','intelligence','operations','growth','leads','calendar','classes','students','courses','tasks','finance','funding','partners','mous','tpr','compliance','audit'],
  'Admin assistant':['safety','event-intake','overview','intelligence','operations','growth','leads','calendar','classes','students','courses','tasks','finance','funding','partners','mous','tpr','compliance','audit'],
  'Front desk':['safety','event-intake','overview','intelligence','leads','calendar','classes','students','tasks'],
