@@ -38,6 +38,7 @@ export const schoolSections:SchoolSection[]=[
   {id:'partners',label:'Partner List',help:'Employers, agencies and contacts'},
   {id:'employment-offers',label:'Job Offer Letters',help:'Track conditional letters from employers'},
   {id:'funding',label:'Funding Agencies',help:'School funding contacts and requirements'},
+  {id:'sponsorships',label:'Funding Approvals',help:'Agency approvals, amounts and student progress drafts'},
   {id:'agency',label:'Agency Access',help:'Control what case managers may view'},
   {id:'mous',label:'Agreements',help:'Partnership documents and terms'}
  ]},
