@@ -2,7 +2,7 @@
 import {useMemo,useState} from 'react';
 import {AlertTriangle,CalendarDays,CheckCircle2,RotateCcw,UserRoundX} from 'lucide-react';
 import type {RecordData as R} from '../lib/training';
-import {activeUnavailability,affectedLessons,unavailableForLesson,validateStaffUnavailability} from '../lib/staff-availability';
+import {activeUnavailability,validateStaffUnavailability} from '../lib/staff-availability';
 
 type Props={records:R[];saveMany:(items:R[])=>Promise<boolean>;busy:boolean;demo:boolean};
 const localToday=()=>new Date().toLocaleDateString('en-CA',{timeZone:'America/New_York'});
@@ -14,8 +14,7 @@ export default function StaffAvailability({records,saveMany,busy,demo}:Props){
  const availableCampuses=campuses.filter(c=>employee?.campusIds?.includes(c.id));
  const campus=availableCampuses.find(c=>c.id===campusId)||availableCampuses[0];
  const absent=useMemo(()=>employee&&date?activeUnavailability(records,employee.id,date):[],[records,employee?.id,date]);
- const conflicts=useMemo(()=>employee?affectedLessons(records,employee.id,date):[],[records,employee?.id,date]);
- const affectedForNew=conflicts.filter(x=>allDay||x.start<end&&x.end>start);
+ const affectedForNew=records.filter(x=>x.kind==='training-assignments'&&x.employeeId===employee?.id&&x.date===date&&['Planned','Confirmed'].includes(x.status)&&(allDay||x.start<end&&x.end>start));
  async function create(status:'Unavailable'|'Restored',restoresId?:string){
   setError('');setSuccess('');
   if(demo){setError('Leave sample mode before changing a real employee schedule.');return;}
