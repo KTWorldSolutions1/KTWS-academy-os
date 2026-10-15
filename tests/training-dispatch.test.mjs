@@ -3,7 +3,7 @@ import {mkdtempSync,rmSync} from 'node:fs';
 import {join} from 'node:path';
 import {tmpdir} from 'node:os';
 import {spawnSync} from 'node:child_process';
-import {unresolvedVehicleDefects,dispatchOverlap,validateTrainingDispatch} from '../lib/training-dispatch.ts';
+import {unresolvedVehicleDefects,dispatchOverlap,dispatchRecordProblem,validateTrainingDispatch} from '../lib/training-dispatch.ts';
 process.env.ACADEMY_TEST='true';
 process.env.PUBLIC_ORIGIN='https://academy.test';
 process.env.RECORDS_ENCRYPTION_KEY='77'.repeat(32);
@@ -119,5 +119,7 @@ try{
  assert.equal((await send('/api/records',{records:[{...afterConfirm.find(x=>x.id===replacement.id),status:'Cancelled'}]},owner.cookie)).status,200,'Replacement can itself be cancelled and replaced again');
  const lessonStudent=afterConfirm.find(x=>x.id===student.id);
  assert.equal(lessonStudent.sessions.length,1,'Replacing schedules never credits training hours');
+ assert.equal(dispatchRecordProblem({...initialPlan,status:'Cancelled'},[], 'Owner',date),null,'Managers can remove lessons even after staff deactivation');
+ assert.equal((await send('/api/records',{records:[{...initialPlan,id:crypto.randomUUID(),status:'Cancelled'}]},owner.cookie)).status,403,'No fabricated cancelled records');
  console.log('PASS: instructor/truck dispatch, three-campus isolation, conflict blocking, signed defect holds, manager-only repair, and no auto credited hours.');
 }finally{rmSync(process.env.ACADEMY_DATA_DIR,{recursive:true,force:true});}
