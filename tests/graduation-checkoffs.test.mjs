@@ -1,0 +1,56 @@
+import assert from 'node:assert/strict';
+import {mkdtempSync,rmSync} from 'node:fs';
+import {join} from 'node:path';
+import {tmpdir} from 'node:os';
+import {spawnSync} from 'node:child_process';
+import {skills,criteria,validateRecord} from '../lib/training.ts';
+import {graduationReadiness,validateEnterprise} from '../lib/enterprise.ts';
+import {schoolLessonGraduationGaps} from '../lib/lesson-checkoffs.ts';
+process.env.ACADEMY_TEST='true';
+process.env.PUBLIC_ORIGIN='https://academy.test';
+process.env.RECORDS_ENCRYPTION_KEY='ba'.repeat(32);
+process.env.ACADEMY_DATA_DIR=mkdtempSync(join(tmpdir(),'academy-grad-'));
+const {handle}=await import('../dist-server/index.js');
+const send=(path,data,cookie)=>handle(new Request('https://academy.test'+path,{method:data?'POST':'GET',headers:{Origin:'https://academy.test','Content-Type':'application/json',...(cookie?{Cookie:cookie}:{})},...(data?{body:JSON.stringify(data)}:{})}));
+const read=async promise=>{const r=await promise;return {status:r.status,body:await r.json(),cookie:r.headers.get('set-cookie')?.split(';')[0]};};
+const date=new Date().toISOString().slice(0,10);
+try{
+ const setup=spawnSync(process.execPath,['dist-server/setup-owner.js','owner@test.example'],{env:process.env,encoding:'utf8'});
+ assert.equal(setup.status,0,setup.stderr);
+ const owner=await read(send('/api/auth/activate',{token:setup.stdout.split('#token=')[1].trim(),password:'unique strong owner graduation password'}));
+ assert.equal(owner.status,200);
+ const ca={id:crypto.randomUUID(),kind:'campuses',name:'Greensboro',status:'Active'};
+ const cb={id:crypto.randomUUID(),kind:'campuses',name:'Dallas',status:'Active'};
+ const session={id:'training-session',date,phase:'Classroom',attendance:'Present',hours:1,mode:'Instruction',instructor:'School instructor'};
+ const proficiency=['Yard','Road'].flatMap(phase=>skills[phase].map((skill,i)=>({id:phase+'-'+i,phase,skill,level:'Proficient',signed:true,criticalError:false,rubric:Object.fromEntries(criteria[phase].map(k=>[k,'Independent'])),instructor:'School instructor',date})));
+ const original={id:crypto.randomUUID(),kind:'students',name:'Fictional test graduate',status:'Road',campusId:ca.id,program:'Class A',sessions:[session],evaluations:proficiency,
+  targetTheory:0,targetYard:0,targetRoad:0,assessments:[{id:'final',name:'Theory final',type:'Theory final',score:90,correct:9,total:10,instructor:'School instructor'}],
+  theorySignoff:{assessmentId:'final',instructor:'School instructor'},testResult:'Passed',graduationReview:{instructor:'School instructor',date}};
+ assert.equal(validateRecord(original),null);
+ const graduated={...original,status:'Graduated'};
+ assert.equal(validateEnterprise(graduated),null,'Standard school graduation is otherwise ready');
+ const mainUnit={id:crypto.randomUUID(),kind:'curriculum-units',name:'School local pretrip safety unit',status:'Approved',campusId:ca.id,program:'Class A',code:'SAFE-01',version:1,sequence:1,phase:'Classroom',required:true,objective:'Identify major vehicle safety components and risks.'};
+ const optional={...mainUnit,id:crypto.randomUUID(),code:'OPT-01',name:'Optional student readiness discussion',required:false};
+ const otherCampus={...mainUnit,id:crypto.randomUUID(),campusId:cb.id,code:'TX-01',name:'Dallas local yard unit',phase:'Yard'};
+ const initial=await read(send('/api/records',{records:[ca,cb,original,mainUnit,optional,otherCampus]},owner.cookie));
+ assert.equal(initial.status,200,JSON.stringify(initial.body));
+ const current=(await read(send('/api/records',null,owner.cookie))).body.records;
+ assert.equal(schoolLessonGraduationGaps(original,current).length,1);
+ assert.match(graduationReadiness(original,current).gaps.join('|'),/School lesson checkoff/);
+ const fromDB=current.find(x=>x.id===original.id);
+ const denied=await read(send('/api/records',{records:[{...fromDB,status:'Graduated'}]},owner.cookie));
+ assert.equal(denied.status,400,JSON.stringify(denied.body));
+ assert.match(denied.body.error,/School lesson checkoff/);
+ const entry={id:crypto.randomUUID(),kind:'unit-evidence',name:'Fictional training completion',status:'Completed',campusId:ca.id,studentId:original.id,unitId:mainUnit.id,date,sourceType:'Daily attendance',sourceId:session.id,notes:'School instructor witnessed and reviewed the student training.'};
+ assert.equal((await send('/api/records',{records:[entry]},owner.cookie)).status,200);
+ const saved=(await read(send('/api/records',null,owner.cookie))).body.records;
+ assert.equal(schoolLessonGraduationGaps(original,saved).length,0);
+ const student=saved.find(x=>x.id===original.id);
+ const success=await read(send('/api/records',{records:[{...student,status:'Graduated'}]},owner.cookie));
+ assert.equal(success.status,200,JSON.stringify(success.body));
+ const final=(await read(send('/api/records',null,owner.cookie))).body.records.find(x=>x.id===original.id);
+ assert.equal(final.status,'Graduated');
+ assert.equal(final.sessions.length,1,'Checkoffs never manufacture training hours.');
+ assert.equal(graduationReadiness(original,[...saved.filter(x=>x.id!==entry.id)]).gaps.some(x=>x.startsWith('School lesson checkoff:')),true);
+ console.log('PASS: school-selected required lessons block premature graduation, optional/other-campus units ignored, and evidence-backed completion unlocks manager graduation.');
+}finally{rmSync(process.env.ACADEMY_DATA_DIR,{recursive:true,force:true});}
