@@ -33,7 +33,7 @@ export function dailyFocusItems(records:RecordData[],role:string,referenceDate:s
   }
  }
  if(show('fleet')){
-  for(const r of records.filter(x=>x.kind==='fleet'&&r.status==='Out of service')){
+  for(const r of records.filter(x=>x.kind==='fleet'&&x.status==='Out of service')){
    push({id:'fleet-'+r.id,title:r.name+' needs attention',detail:'Training vehicle recorded as out of service',page:'fleet',recordId:r.id,urgency:'now'});
   }
  }
