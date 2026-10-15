@@ -231,3 +231,16 @@ small,.muted{color:var(--school-secondary)}
  .metrics section{padding:15px!important}
 }
 @media(max-width:370px){.today-hero-pills span{font-size:10px}.today-action-badge{display:none}}
+
+/* Progressive disclosure keeps Home calm while preserving the full manager dashboard. */
+.home-more{margin:7px 0 32px;border:1px solid var(--school-border);border-radius:16px;background:rgba(18,28,48,.82);padding:0 17px 18px}
+.home-more>summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:15px;min-height:73px;padding:13px 7px;color:#e8eafb}
+.home-more>summary::-webkit-details-marker{display:none}
+.home-more>summary>span{display:flex;flex-direction:column;gap:6px}
+.home-more>summary strong{font-size:15px;font-weight:700}
+.home-more>summary small{font-size:12px;color:#aebfda}
+.home-more>summary svg{transition:transform .18s;color:#cbb5fd}
+.home-more[open]>summary svg{transform:rotate(90deg)}
+.home-more>.panel{margin-bottom:18px}
+.home-more>.dashboard,.home-more>.lowergrid{margin-top:17px}
+@media(max-width:760px){.home-more{padding:0 11px 12px}.home-more>summary{min-height:69px}.home-more>summary small{font-size:11px}}
