@@ -303,3 +303,15 @@ small,.muted{color:var(--school-secondary)}
 .s360-actions button{background:#373054;padding:11px 14px;border-radius:9px;border:1px solid #686087;font-size:12px}
 @media(max-width:950px){.dispatch-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:760px){.dispatch-entry{align-items:flex-start;flex-wrap:wrap}.dispatch-entry>div:nth-child(2){flex-basis:calc(100% - 119px)}.dispatch-entry .badge{margin-left:auto}.dispatch-buttons{width:100%;justify-content:flex-end}.s360-timeline{grid-template-columns:repeat(2,1fr)}.s360-mini-stats{grid-template-columns:1fr}.ops-dispatch .panel{padding:17px}}
+
+/* Staff-reviewed FMCSA evidence, not a regulatory certification badge. */
+.tpr-checks{display:flex;flex-direction:column;gap:9px;margin:15px 0 20px}
+.tpr-check{border:1px solid rgba(151,165,207,.29);border-radius:11px;background:rgba(24,36,62,.65);padding:0 15px}
+.tpr-check>summary{cursor:pointer;list-style:revert;font-size:13px;font-weight:680;padding:12px 0;line-height:1.5;color:#ddd3ff}
+.tpr-check>p{margin-top:8px}
+.tpr-check-row{display:flex;align-items:flex-start;gap:12px;border-top:1px solid rgba(166,177,201,.15);padding:11px 0}
+.tpr-check-row>div{display:flex;flex:1;flex-direction:column;gap:4px}
+.tpr-check-row b{font-size:13px}
+.tpr-check-row small{font-size:11px}
+.tpr-check-row .badge{min-width:75px;justify-content:center}
+@media(max-width:760px){.tpr-check{padding:0 11px}.tpr-check-row{gap:7px;flex-wrap:wrap}}
