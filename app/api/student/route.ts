@@ -21,7 +21,7 @@ async function self(){
  const campusRow:any=await db.prepare("SELECT payload FROM records WHERE id=? AND owner='academy-owner' AND kind='campuses'").bind(link.campus).first();
  if(!studentRow||!campusRow)return null;
  const student=JSON.parse(studentRow.payload),campus=JSON.parse(campusRow.payload);
- if(!allowedStudentAccount(student,link)||campus.status!=='Active'||student.campusId!==campus.id)return null;
+ if(!allowedStudentAccount(student,link)||campus.status!=='Active'||student.campusId!==campus.id||String(student.email||'').trim().toLowerCase()!==user.email.toLowerCase())return null;
  if(!(student.documents||[]).some((d:any)=>d.key===link.consent_key&&d.category==='Student portal authorization'&&d.verified===true))return null;
  const proof:any=await db.prepare("SELECT key FROM school_files WHERE key=? AND owner='academy-owner' AND student=? AND campus=? AND category='Student portal authorization'").bind(link.consent_key,student.id,campus.id).first();
  if(!proof)return null;
