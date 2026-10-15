@@ -33,6 +33,9 @@ try{
  const who=await json(send('/api/partner/me',null,agencyCookie));
  assert.equal(who.status,200);assert.equal(who.body.role,'Agency representative');
  assert.equal((await send('/api/records',null,agencyCookie)).status,401);
+ assert.equal((await send('/api/records',{records:[{id:crypto.randomUUID(),kind:'staff',name:'Same-email staff record',status:'Active',email:'rep@agency.example',accessRole:'Campus manager',campusIds:[ca.id]}]},owner.cookie)).status,200);
+ assert.equal((await send('/api/records',null,agencyCookie)).status,401);
+
  const empty=await json(send('/api/partner/portal',null,agencyCookie));
  assert.equal(empty.status,200);assert.equal(empty.body.students.length,0);
  const accounts=await json(send('/api/partner/admin',null,owner.cookie));
