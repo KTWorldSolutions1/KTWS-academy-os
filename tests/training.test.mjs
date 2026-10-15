@@ -34,6 +34,8 @@ assert.equal(classSeats([cls,{...student,classId:'class',status:'Withdrawn'}],cl
 const ap={id:'a',kind:'appointments',name:'Tour',status:'Scheduled',date:'2026-10-06',start:'09:00',end:'10:00',owner:'Admissions'};
 assert.ok(appointmentConflict([ap],{...ap,id:'b',start:'09:30',end:'10:30'}));
 assert.equal(appointmentConflict([ap],{...ap,id:'b',start:'10:00',end:'11:00'}),undefined);
+assert.equal(appointmentConflict([{...ap,campusId:'greensboro',owner:'Admissions'}],{...ap,id:'other-campus',campusId:'dallas',owner:'Admissions'}),undefined);
+assert.ok(appointmentConflict([{...ap,campusId:'greensboro',owner:'Admissions',ownerId:'staff-123'}],{...ap,id:'other-campus',campusId:'dallas',owner:'Admissions',ownerId:'staff-123'}));
 assert.match(validateAdmissions({...cls,endDate:'2026-10-01'}),/valid dates/);
 let n=0;assert.equal(trainingFollowUps(student,{...student,sessions:[{...old,mood:'red',notes:'Coaching'}],assessments:[final],evaluations:[{...e,criticalError:true,notes:'Safety'}]},'2026-10-06',()=>String(++n)).length,3);
 console.log('PASS: 80% boundary, final sign-off, retake blocking, history retention, corrected hours, observation exclusion, proficiency rubric, calendar conflicts, class capacity and automatic follow-ups.');
