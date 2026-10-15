@@ -38,6 +38,9 @@ try{
  assert.equal((await send('/api/records',{records:[{...lesson,id:crypto.randomUUID(),studentId:foreignStudent.id}]},owner.cookie)).status,400);
  assert.equal((await send('/api/records',{records:[{...lesson,id:crypto.randomUUID(),unitId:txVehicle.id}]},owner.cookie)).status,400);
  assert.equal((await send('/api/records',{records:[lesson]},owner.cookie)).status,200);
+ const legacy={id:crypto.randomUUID(),kind:'schedules',name:'Legacy instructor plan',status:'Scheduled',campusId:campusA.id,studentId:student.id,unitId:vehicle.id,date,start:'09:15',end:'10:15',instructor:'Instructor Green'};
+ assert.equal((await send('/api/records',{records:[legacy]},owner.cookie)).status,409,'Legacy calendars cannot book an already assigned truck or student');
+
  assert.equal((await send('/api/records',{records:[{...lesson,id:crypto.randomUUID(),start:'09:30',end:'10:30'}]},owner.cookie)).status,409);
  assert.equal(dispatchOverlap({...lesson,id:'other'},[lesson])?.id,lesson.id);
  const seen=(await json(send('/api/records',null,instructor.cookie))).body.records;
@@ -53,6 +56,7 @@ try{
  assert.equal(unresolvedVehicleDefects(saved,vehicle.id).length,1);
  const latest=saved.find(x=>x.id===lesson.id);
  assert.equal((await send('/api/records',{records:[{...latest,status:'Confirmed'}]},owner.cookie)).status,409);
+ assert.equal((await send('/api/records',{records:[{...legacy,id:crypto.randomUUID(),start:'11:00',end:'12:00'}]},owner.cookie)).status,409,'A defect hold blocks even legacy lesson booking');
  assert.equal((await send('/api/records',{records:[{...report,notes:'Change original report'}]},owner.cookie)).status,403);
  const deniedClear={id:crypto.randomUUID(),kind:'vehicle-checks',name:'Repair verified',status:'Cleared',campusId:campusA.id,unitId:vehicle.id,defectId:defect.id,date:today,notes:'Qualified manager reviewed and inspected the repair.'};
  assert.equal((await send('/api/records',{records:[deniedClear]},instructor.cookie)).status,403);
