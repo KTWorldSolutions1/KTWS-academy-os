@@ -23,7 +23,7 @@ export async function POST(req:Request){const access=await getWorkspaceAccess();
   for(const field of hidden)if(old[field]!==undefined)r[field]=old[field];
  }
  if(old){const p=preserveHistory(old,r)||preserveGrowth(old,r);if(p)return Response.json({error:p},{status:400});}
- for(const field of ['classId','studentId','personId','leadId','unitId','partnerId','sponsorId','eventId','preferredClassId','sourceReferral','referralId','employeeId']){if(r[field]){const linked=proposed.find(x=>x.id===r[field]);if(linked&&!campusAllowed(access.role,access.campusIds,linked,proposed))return Response.json({error:'Linked record is outside your campus access.'},{status:403});}}if(r.kind==='students'&&r.classId&&r.campusId){const cls=proposed.find(x=>x.id===r.classId);if(cls&&campusOf(cls,proposed)!==r.campusId)return Response.json({error:'Student campus must match the assigned class campus.'},{status:400});}
+ for(const field of ['classId','studentId','personId','leadId','unitId','partnerId','sponsorId','eventId','preferredClassId','sourceReferral','referralId','employeeId','staffId']){if(r[field]){const linked=proposed.find(x=>x.id===r[field]);if(linked&&!campusAllowed(access.role,access.campusIds,linked,proposed))return Response.json({error:'Linked record is outside your campus access.'},{status:403});}}if(r.kind==='students'&&r.classId&&r.campusId){const cls=proposed.find(x=>x.id===r.classId);if(cls&&campusOf(cls,proposed)!==r.campusId)return Response.json({error:'Student campus must match the assigned class campus.'},{status:400});}
  if(r.kind==='messages'&&!['Draft'].includes(r.status))return Response.json({error:'Use the communications send action to record provider status.'},{status:400});if(r.kind==='staff'&&r.accessRole&&!['Campus manager','Enrollment specialist','Admin assistant','Front desk','Instructor'].includes(r.accessRole))return Response.json({error:'Invalid school access role.'},{status:400});if(old&&['leads','students'].includes(r.kind)&&['emailOptOut','smsOptOut'].some(k=>old[k]===true&&r[k]!==true))return Response.json({error:'Communication opt-outs cannot be cleared without documenting a new permission.'},{status:403});
  if(r.kind==='leads'&&r.eventIntake===true){
   const event=proposed.find(x=>x.id===r.eventId&&x.kind==='appointments'&&x.outreachEvent===true&&x.type==='Recruiting event');
@@ -80,6 +80,11 @@ if(r.kind==='students'){
  if(r.kind==='training-assignments'||r.kind==='vehicle-checks'){
   const issue=dispatchRecordProblem(r,r.kind==='vehicle-checks'?current:merged(),access.role,today());
   if(issue)return Response.json({error:issue.error},{status:issue.status});
+ }
+ if(r.kind==='tasks'&&r.operationsCase&&r.staffId){
+  if(!['Owner','Campus manager'].includes(access.role))return Response.json({error:'Staff-assigned operations reviews require school management approval.'},{status:403});
+  const assignee=merged().find(x=>x.kind==='staff'&&x.id===r.staffId&&x.status==='Active');
+  if(!assignee||!assignee.campusIds?.includes(campusOf(r,merged()))||r.owner!==assignee.name)return Response.json({error:'Follow-up task must be assigned to an active staff member with access to that campus.'},{status:400});
  }
  if(r.kind==='shifts'){const employee=merged().find(x=>x.kind==='staff'&&x.id===r.employeeId);if(!employee||employee.status!=='Active'||!employee.campusIds?.includes(r.campusId))return Response.json({error:'Shift employee must be active and assigned to this campus.'},{status:400});if(staffShiftConflicts(r,merged()).length)return Response.json({error:'The employee already has an overlapping shift on this date.'},{status:409});}
  if(r.kind==='appointments'){const clash=appointmentConflict(merged(),r);if(clash)return Response.json({error:'Appointment conflict with '+clash.name},{status:409});}

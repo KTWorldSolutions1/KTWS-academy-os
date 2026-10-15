@@ -315,3 +315,37 @@ small,.muted{color:var(--school-secondary)}
 .tpr-check-row small{font-size:11px}
 .tpr-check-row .badge{min-width:75px;justify-content:center}
 @media(max-width:760px){.tpr-check{padding:0 11px}.tpr-check-row{gap:7px;flex-wrap:wrap}}
+
+/* School leaders see all three campuses without another navigation level. */
+.school-control-tower{display:flex;flex-direction:column;gap:16px;margin:0 0 24px}
+.school-control-tower .panel{margin:0}
+.campus-snapshot-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px;margin:10px 0 0}
+.campus-snapshot-card{display:flex;flex-direction:column;align-items:stretch;gap:13px;text-align:left;border:1px solid rgba(168,174,217,.3);border-radius:16px;background:linear-gradient(145deg,#1c2b49,#17243d);padding:18px;min-width:0;transition:transform .15s,border-color .15s}
+.campus-snapshot-card:hover{transform:translateY(-2px);border-color:#bea7ed}
+.campus-snapshot-card>strong{font-size:17px;color:#f2edff;font-weight:750;overflow-wrap:anywhere}
+.campus-snapshot-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+.campus-snapshot-stats span{display:flex;flex-direction:column;gap:5px}
+.campus-snapshot-stats b{font-size:24px;color:#f6f6ff}
+.campus-snapshot-stats small{font-size:11px;color:#bbcbdf}
+.campus-snapshot-card>.muted{font-size:11px;margin:0}
+.campus-view-link{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:#d2c3ff;font-weight:750;margin-top:auto}
+.school-followup-review{border:1px solid rgba(161,168,216,.32);background:linear-gradient(135deg,#1a2744,#141d33);border-radius:16px}
+.school-followup-review>summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:21px 23px}
+.school-followup-review>summary::-webkit-details-marker{display:none}
+.school-followup-review>summary>span{display:flex;flex-direction:column;gap:6px}
+.school-followup-review>summary strong{font-size:15px;color:#faf7ff}
+.school-followup-review>summary small{font-size:12px;color:#b6c5e0}
+.school-followup-review>summary svg{color:#c7b6ff}
+.school-followup-interior{padding:4px 22px 21px}
+.school-followup-interior>.muted{font-size:12px}
+.followup-choice{display:flex;align-items:center;gap:14px;flex-wrap:wrap;border-top:1px solid rgba(170,178,215,.21);padding:15px 0}
+.followup-choice>label:first-child{display:flex;align-items:flex-start;gap:10px;min-width:260px;flex:1;cursor:pointer}
+.followup-choice input[type=checkbox]{flex-shrink:0;width:18px;height:18px;accent-color:#b69df8}
+.followup-choice>label:first-child>span{display:flex;flex-direction:column;gap:5px}
+.followup-choice strong{font-size:13px}
+.followup-choice small{font-size:11px;color:#b9c8df}
+.followup-choice>label:last-child{font-size:11px;min-width:185px;display:flex;flex-direction:column;gap:8px}
+.followup-choice select{width:100%;min-height:40px;background:#1b2a46;border:1px solid #4c597b;border-radius:9px;color:#f2eeff;padding:8px}
+.school-followup-interior>button{margin:12px 8px 0 0}
+@media(max-width:1050px){.campus-snapshot-cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:760px){.campus-snapshot-cards{grid-template-columns:1fr}.campus-snapshot-card{padding:17px}.campus-snapshot-stats b{font-size:23px}.school-followup-review>summary{padding:18px}.school-followup-interior{padding:3px 16px 19px}.followup-choice>label:last-child{width:100%}}
