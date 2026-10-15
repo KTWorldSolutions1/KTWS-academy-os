@@ -17,6 +17,17 @@ export function validateGrowth(r:R){
   if(r.backupEmail&&!/^\S+@\S+\.\S+$/.test(r.backupEmail))return 'Enter a valid backup contact email.';
  }
 
+ if(r.kind==='leads'&&r.eventIntake===true){
+  if(r.status!=='New inquiry'||typeof r.eventId!=='string'||!r.eventId||!r.campusId)return 'Event leads require a linked recruiting event and campus.';
+  if(typeof r.contactConsent!== 'boolean'||r.contactConsent!==true)return 'Record the visitor’s explicit consent before collecting their contact details.';
+  if(!r.emailConsent&&!r.smsConsent)return 'Select the visitor’s approved communication method.';
+  if(r.emailConsent&&(!r.email||!/^\S+@\S+\.\S+$/.test(r.email)))return 'A valid email is required for email consent.';
+  if(r.smsConsent&&(!r.phone||!/^\+?[0-9 ()-]{10,20}$/.test(r.phone)))return 'A valid phone is required for SMS consent.';
+  if(!['Class A','Class B','Refresher','Class B to A upgrade','Other'].includes(r.program))return 'Select an offered program interest.';
+  if(!['Daytime','Evenings','Weekends','Flexible','Not sure'].includes(r.schedulePreference))return 'Choose a visitor schedule preference.';
+  if(!['Self-pay','Employer','WIOA / workforce assistance','Vocational Rehabilitation','Other','Not sure'].includes(r.fundingInterest))return 'Choose the visitor funding interest.';
+  if(typeof r.followUp!=='string'||!validGrowthDate(r.followUp))return 'Assign a valid admissions follow-up date.';
+ }
  if(r.kind==='leads'&&r.referralIds!=null&&(!Array.isArray(r.referralIds)||r.referralIds.length>500||r.referralIds.some((id:any)=>typeof id!=='string')))return 'Invalid linked referrals.';
  if(r.kind==='partners'&&r.relationshipStage){
   if(!relationshipStages.includes(r.relationshipStage))return 'Choose a valid partnership stage.';
