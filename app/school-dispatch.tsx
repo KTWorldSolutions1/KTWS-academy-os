@@ -27,7 +27,8 @@ export default function SchoolDispatch({records,role,saveMany,busy,demo,onStuden
   if(!manager)return;
   setError('');setMessage('');
   const alternative=instructors.find(i=>i.id!==lesson.employeeId);
-  setForm({...lesson,id:crypto.randomUUID(),name:'Replacement for '+lesson.name,status:'Planned',employeeId:alternative?.id||lesson.employeeId,replacesId:lesson.id});
+  const {revision,completedBy,completedAt,...copy}=lesson;
+  setForm({...copy,id:crypto.randomUUID(),name:'Replacement for '+lesson.name,status:'Planned',employeeId:alternative?.id||lesson.employeeId,replacesId:lesson.id});
  }
   async function submit(r:R,close:()=>void){
   setError('');setMessage('');
