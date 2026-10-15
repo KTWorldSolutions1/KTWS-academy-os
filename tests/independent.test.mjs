@@ -89,8 +89,8 @@ try{
  assert.equal((await send('/api/records',{records:[{...redacted,name:'Student A updated by office'}]},adminAccount.cookie)).status,200);
  const retained=(await json(await send('/api/records',null,cookie))).body.records.find(r=>r.id===sa.id);
  assert.equal(retained.documents.some(d=>d.key===ownerRestricted.body.key),true);
- const forged={...retained,documents:[...(retained.documents||[]),{key:'academy-owner/fake-file',name:'Fake',category:'Other'}]};
- assert.equal((await send('/api/records',{records:[forged]},cookie)).status,400);
+ const forgedDocument={...retained,documents:[...(retained.documents||[]),{key:'academy-owner/fake-file',name:'Fake',category:'Other'}]};
+ assert.equal((await send('/api/records',{records:[forgedDocument]},cookie)).status,400);
 
  const staffCurrent=(await json(await send('/api/records',null,cookie))).body.records.find(r=>r.id===employee.id);assert.equal((await send('/api/records',{records:[{...staffCurrent,status:'Inactive'}]},cookie)).status,200);assert.equal((await send('/api/records',null,emp.cookie)).status,401);
  const cross=await handle(new Request('https://academy.test/api/records',{method:'POST',headers:{Origin:'https://attacker.test',Cookie:cookie,'Content-Type':'application/json'},body:'{}'}));assert.equal(cross.status,403);
