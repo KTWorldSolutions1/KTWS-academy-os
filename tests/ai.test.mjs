@@ -38,6 +38,7 @@ try{
   assert.equal(opts.headers.Authorization,'Bearer TEST-NONSECRET');
   const body=JSON.parse(opts.body);
   assert.equal(body.store,false);
+  assert.equal(body.model,'gpt-5-mini');
   assert.ok(!JSON.stringify(body).includes('PRIVATE STUDENT SHOULD NOT BE SENT'));
   assert.ok(!JSON.stringify(body).includes('student@test.example'));
   providerCalls++;
