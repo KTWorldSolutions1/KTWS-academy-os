@@ -7,7 +7,7 @@ export const launchAreas=[
  {id:'staff',label:'Test employee access',scope:'campus',why:'Test each live staff role with fictional students, negative campus checks and proper sign-out.',proof:'Per-role test results, tester, sign-off and test date (no real student identities).'},
  {id:'students',label:'Practice the full student journey',scope:'campus',why:'Practice inquiry, enrollment, class, theory, yard, road, corrections, week-five test and graduation.',proof:'Fictional student test checklist and evaluator sign-off without actual student personal details.'},
  {id:'licensing',label:'Verify campus approvals',scope:'campus',why:'Review the correct state agency, classroom, yard, trucks, instructor qualifications, insurance and FMCSA location.',proof:'Official issuing agency, source identifier, date checked and license/site scope; a manager review alone is insufficient.'},
- {id:'training',label:'Approve the course and testing rules',scope:'campus',why:'Confirm the school's curriculum, instructional delivery, 80% theory assessment, documented driving and test handoff.',proof:'Versioned school curriculum and approved source references, instructor and testing sign-offs.'}
+ {id:'training',label:'Approve the course and testing rules',scope:'campus',why:'Confirm the school curriculum, instructional delivery, 80% theory assessment, documented driving and test handoff.',proof:'Versioned school curriculum and approved source references, instructor and testing sign-offs.'}
 ] as const;
 export type LaunchAreaId=typeof launchAreas[number]['id'];
 const validDate=(s:any)=>typeof s==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(s)&&!Number.isNaN(Date.parse(s+'T12:00:00Z'))&&new Date(s+'T12:00:00Z').toISOString().slice(0,10)===s;
