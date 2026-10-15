@@ -1,6 +1,6 @@
 export const roleModules:Record<string,string[]>={
- 'Campus manager':['agency','shifts','overview','intelligence','operations','growth','leads','calendar','classes','students','courses','tasks','fleet','finance','funding','partners','mous','tpr','compliance','audit'],
- 'Enrollment specialist':['overview','intelligence','operations','growth','leads','calendar','classes','students','courses','tasks','finance','funding','partners','mous','tpr','compliance','audit'],
+ 'Campus manager':['employment-offers','agency','shifts','overview','intelligence','operations','growth','leads','calendar','classes','students','courses','tasks','fleet','finance','funding','partners','mous','tpr','compliance','audit'],
+ 'Enrollment specialist':['employment-offers','overview','intelligence','operations','growth','leads','calendar','classes','students','courses','tasks','finance','funding','partners','mous','tpr','compliance','audit'],
  'Admin assistant':['overview','intelligence','operations','growth','leads','calendar','classes','students','courses','tasks','finance','funding','partners','mous','tpr','compliance','audit'],
  'Front desk':['overview','intelligence','leads','calendar','classes','students','tasks'],
  'Instructor':['overview','intelligence','operations','students','courses','classes','tasks']
