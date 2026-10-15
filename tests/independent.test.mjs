@@ -99,6 +99,11 @@ try{
  const forgedDocument={...retained,documents:[...(retained.documents||[]),{key:'academy-owner/fake-file',name:'Fake',category:'Other'}]};
  assert.equal((await send('/api/records',{records:[forgedDocument]},cookie)).status,400);
 
+ const shift={id:crypto.randomUUID(),kind:'shifts',name:'Test instructor Monday shift',status:'Approved',employeeId:employee.id,campusId:ca.id,date:'2026-10-19',start:'08:00',end:'17:00',breakMinutes:60};
+ assert.equal((await send('/api/records',{records:[shift]},cookie)).status,200);
+ assert.equal((await send('/api/records',{records:[{...shift,id:crypto.randomUUID(),date:'2026-10-20'}]},emp.cookie)).status,403);
+ assert.equal((await send('/api/records',{records:[{...shift,id:crypto.randomUUID(),start:'13:00'}]},cookie)).status,409);
+ assert.equal((await send('/api/records',{records:[{...shift,id:crypto.randomUUID(),campusId:cb.id,date:'2026-10-20'}]},cookie)).status,400);
  const staffCurrent=(await json(await send('/api/records',null,cookie))).body.records.find(r=>r.id===employee.id);assert.equal((await send('/api/records',{records:[{...staffCurrent,status:'Inactive'}]},cookie)).status,200);assert.equal((await send('/api/records',null,emp.cookie)).status,401);
  const cross=await handle(new Request('https://academy.test/api/records',{method:'POST',headers:{Origin:'https://attacker.test',Cookie:cookie,'Content-Type':'application/json'},body:'{}'}));assert.equal(cross.status,403);
  assert.equal((await send('/api/auth/logout',{},cookie)).status,200);assert.equal((await send('/api/records',null,cookie)).status,401);
