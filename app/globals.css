@@ -63,3 +63,171 @@
 .menu-preview{display:flex;align-items:center;gap:8px;color:#b6c4d9;font-size:11px;letter-spacing:0;white-space:nowrap}
 .menu-preview .viewpicker{max-width:145px}
 @media(max-width:760px){.menu-preview{font-size:0;gap:0}.menu-preview .viewpicker{max-width:112px;font-size:11px}}
+
+/* Academy OS premium cross-device skin. Original Lone Star branding remains.
+   Inspired by modern OS clarity, not a copy of Apple product trade dress. */
+:root{
+  --school-ink:#f6f6ff;
+  --school-secondary:#b9c7e0;
+  --school-surface:rgba(21,30,53,.88);
+  --school-raised:#172540;
+  --school-border:rgba(151,171,220,.20);
+  --school-primary:#b7a0ff;
+  --school-active:#cbbaff;
+  --school-glow:rgba(147,107,244,.17);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",sans-serif;
+  font-variant-numeric:tabular-nums;
+}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",sans-serif;
+  background:#090d18;color:var(--school-ink);
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+h1,h2,h3,.brand{font-family:inherit;letter-spacing:-.028em}
+h1{font-weight:750;letter-spacing:-.042em}
+h2{font-weight:720}
+button,input,select,textarea{font-family:inherit}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #b8a2ff;outline-offset:3px}
+button:active:not(:disabled){transform:translateY(1px)}
+.shell>main{background:
+ radial-gradient(ellipse at 70% -4%,rgba(95,74,168,.18),transparent 38%),
+ radial-gradient(ellipse at 1% 50%,rgba(28,73,105,.16),transparent 45%),
+ #090d18}
+.sidebar{background:linear-gradient(165deg,rgba(21,25,45,.98),rgba(11,16,32,.98));border-color:var(--school-border)}
+.sidebar nav button{border-radius:13px;transition:background .16s,border-color .16s,color .16s}
+.sidebar nav button:hover,.sidebar nav button:focus-visible{background:#29324d;color:#fff}
+.sidebar nav button.active{background:linear-gradient(100deg,#43315d,#282748);box-shadow:inset 3px 0 #b79aff;color:#f7efff}
+.sidebar .brand .brandmark{box-shadow:0 4px 24px rgba(155,102,225,.26)}
+.academy-topbar{position:sticky;top:0;z-index:14;min-height:72px;height:auto;gap:20px;backdrop-filter:blur(24px) saturate(140%);-webkit-backdrop-filter:blur(24px) saturate(140%);background:rgba(9,14,28,.82);border-color:var(--school-border)}
+.academy-topbar .top-search{display:flex;gap:12px;align-items:center;border:1px solid rgba(170,179,223,.27);border-radius:12px;background:rgba(27,38,66,.65);padding:9px 12px;color:#e4e8f8;font-size:13px;letter-spacing:0;white-space:nowrap}
+.academy-topbar .top-search:hover{background:#2a3b62;border-color:#b5a2ea}
+.academy-topbar .top-search kbd{border:1px solid #4e5d77;border-radius:5px;padding:3px 6px;color:#a2b1d2;font-size:11px}
+.titlebar h1{font-size:clamp(26px,3vw,38px);font-weight:750;line-height:1.16}
+.titlebar .eyebrow,.eyebrow{letter-spacing:1.2px}
+.panel{background:linear-gradient(160deg,rgba(26,36,61,.96),rgba(16,24,43,.97));border:1px solid var(--school-border);border-radius:18px;box-shadow:0 13px 35px rgba(2,6,17,.14)}
+.section-chooser{background:rgba(23,33,58,.82);border:1px solid var(--school-border);border-radius:17px}
+.section-pages button{border-radius:13px;border:1px solid rgba(130,158,206,.23);transition:background .15s,border-color .15s}
+.section-pages button.selected{background:linear-gradient(110deg,rgba(87,62,128,.65),rgba(42,49,85,.83));border-color:#ad90ec}
+.primary{background:linear-gradient(125deg,#8b66ed,#6b75e6);box-shadow:0 5px 22px rgba(107,85,225,.20);border-radius:11px;border:1px solid rgba(189,175,255,.45)}
+.primary:hover{filter:brightness(1.08);color:white}
+.metrics{gap:14px;border:0;background:transparent}
+.metrics section{border:1px solid var(--school-border)!important;border-radius:15px!important;background:linear-gradient(145deg,#192845,#132038);box-shadow:0 8px 30px rgba(4,8,21,.13);padding:22px!important}
+.metrics strong{color:#f4efff;font-family:inherit;font-weight:750}
+.metrics p{color:#c3cde0;font-size:13px}
+small,.muted{color:var(--school-secondary)}
+.modebar{border-radius:11px;background:rgba(20,33,55,.85);border-color:var(--school-border);letter-spacing:0}
+.sectionhead h2,.sectionhead h3{font-weight:730}
+.campusbar select,.formgrid select,.formgrid input,.formgrid textarea{border-radius:10px}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+
+/* The new Home: polished, useful live campus information — not decorative fake metrics. */
+.today-product{display:flex;flex-direction:column;gap:15px;margin:2px 0 29px}
+.today-product-hero{position:relative;isolation:isolate;overflow:hidden;min-height:245px;padding:34px 36px;border-radius:23px;border:1px solid rgba(189,175,243,.37);
+ background:radial-gradient(circle at 90% 20%,rgba(189,129,245,.32),transparent 34%),
+ radial-gradient(circle at 20% 120%,rgba(34,151,185,.18),transparent 52%),
+ linear-gradient(115deg,#23264d,#152342 67%,#171e38);
+ box-shadow:0 18px 52px rgba(6,10,28,.24),inset 0 1px 0 rgba(255,255,255,.12)}
+.today-hero-content{position:relative;z-index:1;max-width:660px}
+.today-eyebrow{display:flex;align-items:center;gap:8px;font-size:11px;color:#e0d8ff;font-weight:750;letter-spacing:1.15px;text-transform:uppercase}
+.today-live-dot{display:inline-block;width:8px;height:8px;background:#79dfbd;border-radius:50%;box-shadow:0 0 13px rgba(100,235,177,.5)}
+.today-eyebrow-line{height:1px;width:14px;background:rgba(233,221,255,.5)}
+.today-product-hero h2{font-size:clamp(31px,4vw,45px);font-weight:780;line-height:1.12;letter-spacing:-.045em;margin:28px 0 9px;color:#fff}
+.today-product-hero p{font-size:15px;color:#cdd7e9;line-height:1.65;margin:0}
+.today-hero-pills{display:flex;gap:9px;flex-wrap:wrap;margin-top:25px}
+.today-hero-pills span{display:inline-flex;gap:8px;align-items:center;background:rgba(15,19,48,.42);border:1px solid rgba(181,178,228,.26);border-radius:40px;padding:9px 13px;font-size:12px;color:#e6e9f8}
+.today-hero-pills strong{color:#fff;font-size:14px}
+.today-hero-decoration{position:absolute;inset:0 0 auto auto;display:flex;justify-content:center;align-items:center;width:250px;height:100%;opacity:.78;pointer-events:none}
+.today-hero-decoration>div{width:158px;height:158px;border:1px solid rgba(217,202,254,.35);border-radius:42px;transform:rotate(-13deg);display:grid;place-items:center;background:linear-gradient(145deg,rgba(197,157,242,.18),rgba(17,55,101,.05));box-shadow:inset 0 0 30px rgba(214,170,246,.09)}
+.today-hero-decoration>div svg{transform:rotate(13deg);color:#e7cfff}
+.today-hero-decoration>svg{position:absolute;right:29px;top:42px;color:#d9bafc}
+.today-shortcuts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.today-shortcuts button{display:flex;align-items:center;gap:12px;padding:16px 14px;border-radius:16px;background:var(--school-surface);border:1px solid var(--school-border);min-height:76px;text-align:left;font-size:13px;font-weight:700;color:#f2f2ff;transition:background .2s,border-color .2s,transform .2s}
+.today-shortcuts button:hover{background:#293556;border-color:#9b84d7;transform:translateY(-2px)}
+.today-shortcut-icon{width:40px;height:40px;flex-shrink:0;border-radius:13px;background:rgba(150,125,239,.16);color:#d1bfff;display:grid;place-items:center}
+.today-shortcut-arrow{margin-left:auto;color:#9cb1d3;flex-shrink:0}
+.today-action-panel{border:1px solid var(--school-border);background:linear-gradient(145deg,#18233b,#121b2f);border-radius:19px;padding:24px 24px 12px;box-shadow:0 11px 36px rgba(5,10,27,.15)}
+.today-section-header{display:flex;justify-content:space-between;gap:14px;align-items:center;margin-bottom:15px}
+.today-mini-label{font-size:10px;font-weight:750;letter-spacing:1.4px;color:#b69cf7;margin-bottom:8px}
+.today-section-header h3{font-size:21px;font-weight:730;margin:0}
+.today-count{border:1px solid rgba(175,167,213,.28);border-radius:22px;padding:6px 11px;color:#d6d6ee;font-size:12px}
+.today-action-list{display:flex;flex-direction:column}
+.today-action{width:100%;display:flex;align-items:center;gap:12px;border-top:1px solid rgba(156,174,211,.17);padding:15px 2px;text-align:left;border-radius:0}
+.today-action:hover{background:rgba(142,156,228,.06)}
+.today-status-dot{width:8px;height:8px;border-radius:50%;background:#9baedd;flex-shrink:0}
+.today-status-dot.now{background:#f6b2ab}.today-status-dot.soon{background:#f4d690}.today-status-dot.review{background:#9abfec}
+.today-action-icon{width:39px;height:39px;flex-shrink:0;display:grid;place-items:center;border-radius:12px;color:#ccbcff;background:#2a3251}
+.today-action-description{min-width:0;flex:1;display:flex;flex-direction:column;gap:5px}
+.today-action-description strong{font-size:14px;font-weight:690;line-height:1.4;overflow-wrap:anywhere}
+.today-action-description small{font-size:12px;line-height:1.5;color:#b2bfda}
+.today-action-badge{font-size:11px;border-radius:20px;padding:5px 9px;border:1px solid #485372;color:#d8dff6;white-space:nowrap}
+.today-action-badge.now{border-color:#875b65;color:#ffcecb;background:#4d2d3855}
+.today-action-badge.soon{border-color:#857157;color:#f4dba4;background:#42392355}
+.today-action-arrow{color:#a5b4d2;flex-shrink:0}
+.today-show-all{display:flex;justify-content:center;width:100%;padding:14px;color:#c9b6ff;font-size:13px;font-weight:650;border-top:1px solid var(--school-border)}
+.today-data-notice{font-size:11px;color:#98a8c4;line-height:1.6;border-top:1px solid rgba(165,181,220,.16);padding:13px 0 0;margin:8px 0 0}
+.today-empty{display:flex;align-items:flex-start;gap:16px;padding:20px;border-top:1px solid var(--school-border);color:#b9e3ce}
+.today-empty strong{font-size:14px;color:#eef6f3}
+.today-empty p{font-size:12px;color:#b4c3d9;line-height:1.6;margin:6px 0 0}
+
+/* iOS-style dock on phones, desktop keyboard command search everywhere. */
+.phone-dock{display:none}
+.academy-topbar .top-search{margin-right:4px}
+.quick-find-backdrop{position:fixed;inset:0;background:rgba(4,7,16,.76);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);z-index:100;display:flex;justify-content:center;align-items:flex-start;padding:max(9vh,32px) 15px 20px}
+.quick-find-sheet{width:min(620px,100%);max-height:min(77vh,730px);border:1px solid rgba(189,181,228,.36);background:#151e33;border-radius:20px;box-shadow:0 35px 90px rgba(0,0,0,.53);overflow:hidden;display:flex;flex-direction:column}
+.quick-find-top{display:flex;align-items:center;gap:14px;padding:15px 19px;border-bottom:1px solid var(--school-border);color:#c7baff}
+.quick-find-top input{flex:1;min-width:0;border:0;background:transparent;color:white;outline:none;font-size:17px;padding:9px 0}
+.quick-find-top input:focus-visible{outline:none}
+.quick-find-top button{padding:8px;border-radius:10px;color:#c7d1e5}
+.quick-find-results{overflow-y:auto;overscroll-behavior:contain;padding:13px}
+.quick-find-results>p{font-size:10px;color:#b6a3df;font-weight:700;letter-spacing:1.2px;margin:6px 9px 10px}
+.quick-find-results>button{width:100%;padding:12px 10px;display:flex;align-items:center;gap:12px;text-align:left;border-radius:11px}
+.quick-find-results>button:hover,.quick-find-results>button:focus-visible{background:#283956}
+.quick-find-results>button>span:nth-child(2){display:flex;flex:1;flex-direction:column;gap:4px;min-width:0}
+.quick-find-results strong{font-size:14px;line-height:1.35}
+.quick-find-results small{font-size:12px}
+.quick-find-icon{display:grid;place-items:center;flex-shrink:0;width:39px;height:39px;border-radius:10px;background:#2d3257;color:#d3c5ff}
+.quick-find-footer{border-top:1px solid var(--school-border);padding:13px 18px;color:#adbdd6;font-size:11px;line-height:1.6}
+.quick-find-footer kbd{background:#293752;border:1px solid #526383;border-radius:4px;padding:2px 6px}
+.quick-find-none{padding:20px 9px;font-size:13px;color:#a9b9d4}
+.sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
+@media(max-width:1100px){.today-hero-decoration{opacity:.35;width:185px}.today-shortcuts{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:760px){
+ .academy-topbar{min-height:66px;padding:8px 15px;height:auto}
+ .academy-topbar>span{font-weight:750;letter-spacing:0}
+ .academy-topbar .top-search{padding:10px;margin-right:0}
+ .academy-topbar .top-search span,.academy-topbar .top-search kbd{display:none}
+ .academy-topbar>div{gap:8px}
+ .shell>main{padding-bottom:calc(80px + env(safe-area-inset-bottom))}
+ .phone-dock{position:fixed;bottom:0;left:0;right:0;z-index:16;display:flex;align-items:stretch;justify-content:space-around;gap:0;min-height:67px;padding:7px 8px calc(5px + env(safe-area-inset-bottom));border-top:1px solid rgba(166,170,222,.26);background:rgba(15,20,36,.93);backdrop-filter:blur(23px) saturate(140%);-webkit-backdrop-filter:blur(23px) saturate(140%)}
+ .phone-dock button{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:5px 2px;color:#9baac6;border-radius:11px;min-height:49px}
+ .phone-dock button span{font-size:10px;font-weight:650;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+ .phone-dock button.selected{color:#d5c4ff;background:rgba(143,113,224,.13)}
+ .phone-dock button:focus-visible{outline-offset:-3px}
+ .today-product{margin-top:1px}
+ .today-product-hero{min-height:210px;padding:25px 21px;border-radius:19px}
+ .today-product-hero h2{font-size:33px;margin:20px 0 7px}
+ .today-product-hero p{font-size:13px}
+ .today-eyebrow{font-size:10px;line-height:1.5}
+ .today-hero-decoration{display:none}
+ .today-hero-pills{gap:7px;margin-top:18px}
+ .today-hero-pills span{font-size:10px;padding:7px 10px}
+ .today-shortcuts{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+ .today-shortcuts button{min-height:68px;padding:12px 10px;font-size:12px;gap:8px}
+ .today-shortcut-icon{width:35px;height:35px;border-radius:11px}
+ .today-shortcut-arrow{display:none}
+ .today-action-panel{padding:19px 15px 11px;border-radius:17px}
+ .today-section-header h3{font-size:18px}
+ .today-action{gap:8px;padding:13px 1px}
+ .today-action-icon{width:34px;height:34px}
+ .today-action-description strong{font-size:13px}
+ .today-action-badge{font-size:10px;padding:4px 7px}
+ .today-action-arrow{display:none}
+ .quick-find-backdrop{padding:max(11vh,54px) 10px 15px}
+ .quick-find-sheet{border-radius:16px}
+ .quick-find-top{padding:12px}
+ .quick-find-top input{font-size:16px}
+ .metrics{gap:9px}
+ .metrics section{padding:15px!important}
+}
+@media(max-width:370px){.today-hero-pills span{font-size:10px}.today-action-badge{display:none}}
