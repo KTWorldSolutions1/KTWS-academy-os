@@ -8,3 +8,6 @@ export const roleModules:Record<string,string[]>={
 export function moduleAllowed(role:string,module:string){return role==='Owner'||!!roleModules[role]?.includes(module);}
 export function trainingWriter(role:string){return ['Owner','Campus manager','Instructor'].includes(role);}
 export function startModule(role:string){return role==='Instructor'?'courses':role==='Enrollment specialist'?'leads':role==='Front desk'?'calendar':'overview';}
+
+// Bulk export remains a management capability; individual training reports have separate, scoped workflows.
+export function bulkExportAllowed(role:string){return role==='Owner'||role==='Campus manager';}

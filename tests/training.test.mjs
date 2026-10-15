@@ -49,7 +49,7 @@ assert.equal(attendancePhase(pending,'All students'),'');
 assert.equal(attendancePhase(pending,'All students','Classroom'),'Classroom');
 console.log('PASS: location rosters, status transfer, retained classroom history, all-student per-location attendance and pending-location selection.');
 
-const {moduleAllowed,trainingWriter,startModule}=await import('../lib/roles.ts');
+const {moduleAllowed,trainingWriter,startModule,bulkExportAllowed}=await import('../lib/roles.ts');
 assert.equal(moduleAllowed('Owner','setup'),true);
 assert.equal(moduleAllowed('Instructor','finance'),false);
 assert.equal(moduleAllowed('Instructor','tasks'),true);
@@ -58,4 +58,7 @@ assert.equal(moduleAllowed('Enrollment specialist','students'),true);
 assert.equal(trainingWriter('Enrollment specialist'),false);
 assert.equal(trainingWriter('Campus manager'),true);
 assert.equal(startModule('Front desk'),'calendar');
+assert.equal(bulkExportAllowed('Owner'),true);
+assert.equal(bulkExportAllowed('Campus manager'),true);
+for(const role of ['Instructor','Front desk','Enrollment specialist','Admin assistant'])assert.equal(bulkExportAllowed(role),false);
 console.log('PASS: employee navigation, training review permissions and role start pages.');
