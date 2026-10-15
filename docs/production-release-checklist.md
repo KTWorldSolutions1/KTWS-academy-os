@@ -19,7 +19,7 @@ Updated: 2026-10-14 (Eastern). This record distinguishes **code merged**, **CI v
 - **Staffing:** Weekly proposed/approved scheduling with 40-hour paid planning and break deduction, campus manager/owner role scopes and overlap detection. This is **not** Sling timesheets or payroll.
 - **Leadership:** Weekly manager briefs generated from scoped records and labeled drafts; no claims of automated employer acceptance or legal approvals.
 - **AI:** OpenAI-based privacy-confirmed business drafting backend and Studio UI implemented, with server-side campus scope, request caps, `store:false`, and mocked-provider tests. **NOT active until a valid OPENAI_API_KEY secret and API billing are provided; a real provider call has not been verified.** No student data retrieval is wired into AI.
-- **Third parties:** Twilio/Resend messaging paths are provider-dependent, electronic signatures require an external service, WIOA caseworker portal is disabled, FMCSA TPR is a manual tracked workflow rather than verified submission.
+- **Third parties:** Twilio/Resend messaging paths are provider-dependent, electronic signatures require an external service, WIOA representative portal now has separate authenticated case-manager access and consent/revocation code, with automated integration tests. Live account provisioning, authorized releases and external-agency acceptance have **not** been performed. FMCSA TPR is a manual tracked workflow rather than verified submission.
 
 ## Release blockers for confidential student records
 1. [ ] Verify the secret `RECORDS_ENCRYPTION_KEY` is correctly configured in Cloudflare (without exposing or copying its value); verify actual authenticated encrypted R2 file upload/download.
@@ -29,7 +29,7 @@ Updated: 2026-10-14 (Eastern). This record distinguishes **code merged**, **CI v
 5. [ ] Verify NC/TX school/yard/instructor licenses, student training records, drug-screen policies, CLP and testing/TPR processes with appropriate authorities. Do not imply approval from website screenshots.
 6. [ ] Document school's privacy/data governance, lawful collection, student consent, retention, incident handling and approved external disclosures; confirm Lone Star business-data ownership separate from KTWS domain and repository operations.
 7. [ ] Connect and test optional OpenAI, SMS, email and e-signature providers only once the relevant account owner approves credentials and billing; never commit secrets.
-8. [ ] Build independent external WIOA authentication and caseworker-specific consent/grants/audit/revocation before exposing any partner portal.
+8. [ ] Verify the implemented WIOA representative sign-in, school-approved per-student verified information-release documents, grant expiry, restricted fields, per-campus access, revocation and audit in the live environment using fictional participants. Do not invite external agency representatives until the consent process, credentials and governance are signed off.
 9. [ ] Owner acceptance record: date/time, campus, tester, scenario, evidence of pass/fail and signoff.
 
 ## How to perform owner review
