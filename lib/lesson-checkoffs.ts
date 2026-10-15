@@ -40,7 +40,9 @@ export function lessonProgress(all:R[],student:R,includeDrafts=false){
  const units=all.filter(x=>x.kind==='curriculum-units'&&x.campusId===student.campusId&&x.program===student.program&&(x.status==='Approved'||includeDrafts&&x.status==='Draft')).sort((a,b)=>Number(a.sequence)-Number(b.sequence)||a.name.localeCompare(b.name));
  return units.map(u=>{
   const active=activeLessonCheckoffs(all,student.id,u.id)[0];
-  return {unitId:u.id,name:u.name,phase:u.phase,sequence:u.sequence,version:u.version,status:active?.status||'Not started',completedOn:active?.status==='Completed'?active.date:null,reviewedAt:active?.recordedAt||null};
+  const sourceStillValid=active?.status==='Completed'&&!validateLessonLinks(active,all,'Instructor','9999-12-31');
+  const status=active?.status==='Completed'&&!sourceStillValid?'Needs review':active?.status||'Not started';
+  return {unitId:u.id,name:u.name,phase:u.phase,sequence:u.sequence,version:u.version,status,completedOn:status==='Completed'?active!.date:null,reviewedAt:active?.recordedAt||null};
  });
 }
 export function validateLessonLinks(r:R,all:R[],role:string,today:string):{status:number;error:string}|null{
@@ -50,6 +52,7 @@ export function validateLessonLinks(r:R,all:R[],role:string,today:string):{statu
   const duplicate=all.find(x=>x.kind==='curriculum-units'&&x.id!==r.id&&x.campusId===r.campusId&&x.program===r.program&&x.code===r.code&&Number(x.version)===Number(r.version));
   if(duplicate)return {status:409,error:'A lesson with this program, code and version already exists at the campus.'};
   if(r.status==='Retired'&&!r.approvedBy)return {status:400,error:'Only an already approved lesson may be retired.'};
+  if(r.status==='Approved'&&all.some(x=>x.kind==='curriculum-units'&&x.id!==r.id&&x.campusId===r.campusId&&x.program===r.program&&x.code===r.code&&x.status==='Approved'))return {status:409,error:'Retire the previously approved version before approving a replacement lesson.'};
   return null;
  }
  if(r.kind!=='unit-evidence')return null;
