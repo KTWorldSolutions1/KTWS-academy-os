@@ -8,6 +8,7 @@ const phases=['Classroom','Yard','Road'];
 export function validateTrainingDispatch(r:R){
  if(r.kind==='training-assignments'){
   if(!statuses.includes(r.status))return 'Select Planned, Confirmed, Completed or Cancelled.';
+  if(r.replacesId!=null&&(typeof r.replacesId!=='string'||!r.replacesId))return 'A replacement lesson must link to an original cancelled lesson.';
   if(!validDate(r.date)||!validTime(r.start)||!validTime(r.end)||r.start>=r.end)return 'Use a valid date and start/end time on the same day.';
   if(!phases.includes(r.phase))return 'Select classroom, yard or road.';
   if(!r.campusId||!r.studentId||!r.employeeId)return 'Select a campus, student and instructor.';
@@ -66,6 +67,7 @@ export function dispatchRecordProblem(r:R,all:R[],role:string,date:string){
   return null;
  }
  if(r.kind!=='training-assignments')return null;
+ if(r.status==='Cancelled')return null; // Always let authorized managers take an existing lesson off the schedule, including after an instructor leaves.
  const student=all.find(x=>x.kind==='students'&&x.id===r.studentId);
  const instructor=all.find(x=>x.kind==='staff'&&x.id===r.employeeId);
  if(!student||student.campusId!==r.campusId||['Withdrawn','Graduated'].includes(student.status))return {status:400,error:'Choose an active student from this campus.'};

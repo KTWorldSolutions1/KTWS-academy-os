@@ -49,6 +49,8 @@ export async function POST(req:Request){const access=await getWorkspaceAccess();
   if(old&&['actor','createdAt','draftBy'].some(key=>JSON.stringify(r[key])!==JSON.stringify(old[key])))return Response.json({error:'Original message author and creation time are protected.'},{status:403});
  }
  if(r.kind==='training-assignments'){
+  if(!old&&r.status==='Cancelled')return Response.json({error:'Only an existing scheduled lesson may be cancelled.'},{status:403});
+  if(old&&r.replacesId!==old.replacesId)return Response.json({error:'The original replacement link is immutable.'},{status:403});
   if(old&&['Completed','Cancelled'].includes(old.status))return Response.json({error:'Completed and cancelled lessons are permanent school history. Record a new plan instead of rewriting the original.'},{status:403});
   if(r.status==='Completed'&&(!old||old.status!=='Confirmed'))return Response.json({error:'Only a previously confirmed lesson can be completed after attendance and truck checks are recorded.'},{status:403});
   if(old&&old.status==='Confirmed'&&['campusId','studentId','employeeId','unitId','date','start','end','phase'].some(key=>JSON.stringify(old[key])!==JSON.stringify(r[key])))return Response.json({error:'A confirmed lesson cannot change student, instructor, truck or time. Cancel it and create a new one.'},{status:403});
@@ -197,6 +199,14 @@ if(r.kind==='students'){
    if(!['Owner','Campus manager'].includes(access.role))return Response.json({error:'Only school management may attest to an external FMCSA submission.'},{status:403});
    if(r.completionDate>today())return Response.json({error:'Future completion dates cannot be reported as already submitted to FMCSA.'},{status:400});
   }
+ }
+ if(r.kind==='training-assignments'&&r.replacesId&&!current.some(x=>x.id===r.id)){
+  if(r.status!=='Planned')return Response.json({error:'A new replacement starts as Planned and must be reviewed again.'},{status:400});
+  const source=current.find(x=>x.kind==='training-assignments'&&x.id===r.replacesId);
+  const nowSource=merged().find(x=>x.id===r.replacesId);
+  if(!source||!['Planned','Confirmed'].includes(source.status)||!nowSource||nowSource.status!=='Cancelled'||!updates.some(x=>x.id===source.id&&x.status==='Cancelled'))return Response.json({error:'A replacement must cancel one existing active lesson in the same save.'},{status:409});
+  if(source.campusId!==r.campusId||source.studentId!==r.studentId||source.phase!==r.phase)return Response.json({error:'A replacement must keep the same student, campus and training area.'},{status:400});
+  if(merged().some(x=>x.kind==='training-assignments'&&x.id!==r.id&&x.replacesId===source.id))return Response.json({error:'This lesson already has a recorded replacement.'},{status:409});
  }
  if(r.kind==='training-assignments'||r.kind==='vehicle-checks'){
   const issue=dispatchRecordProblem(r,r.kind==='vehicle-checks'?current:merged(),access.role,today());
