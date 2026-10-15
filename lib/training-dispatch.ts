@@ -8,7 +8,7 @@ const phases=['Classroom','Yard','Road'];
 export function validateTrainingDispatch(r:R){
  if(r.kind==='training-assignments'){
   if(!statuses.includes(r.status))return 'Select Planned, Confirmed, Completed or Cancelled.';
-  if(r.replacesId!=null&&(typeof r.replacesId!=='string'||!r.replacesId||r.status!=='Planned'))return 'A replacement lesson must begin as Planned and link to the original cancelled lesson.';
+  if(r.replacesId!=null&&(typeof r.replacesId!=='string'||!r.replacesId))return 'A replacement lesson must link to an original cancelled lesson.';
   if(!validDate(r.date)||!validTime(r.start)||!validTime(r.end)||r.start>=r.end)return 'Use a valid date and start/end time on the same day.';
   if(!phases.includes(r.phase))return 'Select classroom, yard or road.';
   if(!r.campusId||!r.studentId||!r.employeeId)return 'Select a campus, student and instructor.';
