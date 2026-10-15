@@ -6,7 +6,7 @@ assert.equal(schoolSections.length,8,'Exactly eight top-level navigation choices
 assert.deepEqual(schoolSections.map(s=>s.label),['Home','Students','Admissions','Training','Team','Partners','Payments','School Setup']);
 const everyPage=schoolSections.flatMap(s=>s.pages.map(p=>p.id));
 assert.equal(everyPage.length,new Set(everyPage).size,'Each previous workspace route must appear exactly once');
-assert.equal(everyPage.length,28,'Do not remove any existing school workflow');
+assert.equal(everyPage.length,29,'Do not remove any existing school workflow');
 for(const page of everyPage){
  assert.ok(sectionForPage(page),'Page '+page+' belongs to a discoverable section');
  assert.ok(displayNameForPage(page).length>2,'Every page has a short readable title');
@@ -32,4 +32,4 @@ assert.equal(sectionForPage('event-intake')?.label,'Admissions');
 assert.equal(sectionForPage('employment-offers')?.label,'Partners');
 assert.equal(sectionForPage('manager-brief')?.label,'Home');
 assert.equal(sectionForPage('campuses')?.label,'School Setup');
-console.log('PASS: 28 existing tasks are preserved in eight human-friendly sections; role and campus security navigation unchanged.');
+console.log('PASS: 28 existing tasks plus Daily Training Plan are preserved in eight human-friendly sections; role and campus security navigation unchanged.');

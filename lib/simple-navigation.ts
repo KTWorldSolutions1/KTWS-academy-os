@@ -21,6 +21,7 @@ export const schoolSections:SchoolSection[]=[
   {id:'event-intake',label:'Event Signups',help:'Save contacts from fairs and events'}
  ]},
  {id:'training',label:'Training',help:'Classes, attendance, trucks and training records.',pages:[
+  {id:'dispatch',label:'Daily Training Plan',help:'Assign students, instructors, trucks and training areas'},
   {id:'courses',label:'Take Attendance',help:'Daily training, driving hours and tests'},
   {id:'classes',label:'Classes & Dates',help:'Start dates, schedules and class lists'},
   {id:'fleet',label:'Trucks & Equipment',help:'Training vehicles and maintenance'},

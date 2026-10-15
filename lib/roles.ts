@@ -1,9 +1,9 @@
 export const roleModules:Record<string,string[]>={
- 'Campus manager':['event-intake','employment-offers','agency','shifts','overview','intelligence','operations','growth','leads','calendar','classes','students','courses','tasks','fleet','finance','funding','partners','mous','tpr','compliance','audit'],
+ 'Campus manager':['dispatch','event-intake','employment-offers','agency','shifts','overview','intelligence','operations','growth','leads','calendar','classes','students','courses','tasks','fleet','finance','funding','partners','mous','tpr','compliance','audit'],
  'Enrollment specialist':['event-intake','employment-offers','overview','intelligence','operations','growth','leads','calendar','classes','students','courses','tasks','finance','funding','partners','mous','tpr','compliance','audit'],
  'Admin assistant':['event-intake','overview','intelligence','operations','growth','leads','calendar','classes','students','courses','tasks','finance','funding','partners','mous','tpr','compliance','audit'],
  'Front desk':['event-intake','overview','intelligence','leads','calendar','classes','students','tasks'],
- 'Instructor':['overview','intelligence','operations','students','courses','classes','tasks']
+ 'Instructor':['dispatch','overview','intelligence','operations','students','courses','classes','tasks']
 };
 export function moduleAllowed(role:string,module:string){return role==='Owner'||!!roleModules[role]?.includes(module);}
 export function trainingWriter(role:string){return ['Owner','Campus manager','Instructor'].includes(role);}
