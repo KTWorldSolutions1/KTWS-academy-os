@@ -199,7 +199,8 @@ if(r.kind==='students'){
    if(r.completionDate>today())return Response.json({error:'Future completion dates cannot be reported as already submitted to FMCSA.'},{status:400});
   }
  }
- if(r.kind==='training-assignments'&&r.replacesId){
+ if(r.kind==='training-assignments'&&r.replacesId&&!current.some(x=>x.id===r.id)){
+  if(r.status!=='Planned')return Response.json({error:'A new replacement starts as Planned and must be reviewed again.'},{status:400});
   const source=current.find(x=>x.kind==='training-assignments'&&x.id===r.replacesId);
   const nowSource=merged().find(x=>x.id===r.replacesId);
   if(!source||!['Planned','Confirmed'].includes(source.status)||!nowSource||nowSource.status!=='Cancelled'||!updates.some(x=>x.id===source.id&&x.status==='Cancelled'))return Response.json({error:'A replacement must cancel one existing active lesson in the same save.'},{status:409});
