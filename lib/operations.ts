@@ -39,6 +39,19 @@ export function operationsSignals(records:R[],day:string):Signal[]{
   }
   if(['mous','funding','staff'].includes(r.kind)){const expiry=r.expiry||r.renewal;if(expiry&&expiry<=dayOffset(day,30)&&r.status!=='Inactive')add(r,'renewal','General follow-up',expiry<day?'High':'Normal','Agreement / credential renewal',expiry+' • '+r.status);}
   if(r.kind==='students'&&r.status!=='Withdrawn'&&r.career?.followUp&&r.career.followUp<=day)add(r,'career','Career support','Normal','Career follow-up due',r.career.followUp+' • '+(r.career.stage||'Not started'));
+  // Salesforce-style post-placement care without claiming employment was independently verified.
+  // Dates are calendar-day reminders, not automatic placement/retention proof.
+  if(r.kind==='students'&&r.status!=='Withdrawn'&&r.career?.stage==='Placed'&&/^\d{4}-\d{2}-\d{2}$/.test(r.career.startDate||'')&&r.career.employer?.trim()){
+   for(const milestone of [30,90]){
+    const field=milestone===30?'retention30':'retention90';
+    const due=dayOffset(r.career.startDate,milestone);
+    if(due<=day&&(!r.career[field]||r.career[field]==='Not checked')){
+     add(r,'retention:'+milestone,'Career support',due<dayOffset(day,-14)?'High':'Normal',
+      milestone+'-day graduate employment check due',
+      'Recorded employer: '+r.career.employer+' • Follow up on '+due+' and document what the graduate actually confirms. No placement or retention status is inferred.');
+    }
+   }
+  }
  }
  return out.sort((a,b)=>(a.priority==='High'?0:1)-(b.priority==='High'?0:1)||a.record.name.localeCompare(b.record.name));
 }
