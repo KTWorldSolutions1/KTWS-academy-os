@@ -67,6 +67,7 @@ export function dispatchRecordProblem(r:R,all:R[],role:string,date:string){
   return null;
  }
  if(r.kind!=='training-assignments')return null;
+ if(r.status==='Cancelled')return null; // Always let authorized managers take an existing lesson off the schedule, including after an instructor leaves.
  const student=all.find(x=>x.kind==='students'&&x.id===r.studentId);
  const instructor=all.find(x=>x.kind==='staff'&&x.id===r.employeeId);
  if(!student||student.campusId!==r.campusId||['Withdrawn','Graduated'].includes(student.status))return {status:400,error:'Choose an active student from this campus.'};
