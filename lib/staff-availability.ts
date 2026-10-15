@@ -32,7 +32,7 @@ export function availabilityRecordProblem(r:R,all:R[],today:string){
  if(!employee)return {status:400,error:'Choose an active employee assigned to this campus.'};
  if(r.date<today)return {status:400,error:'Record schedule changes when they happen; do not backdate a new availability entry.'};
  if(r.status==='Unavailable'){
-  const overlaps=activeUnavailability(all,r.employeeId,r.date).some(x=>!x.start||!r.start||minutes(x.start)<minutes(r.end)&&minutes(r.start)<minutes(x.end));
+  const overlaps=activeUnavailability(all,r.employeeId,r.date).some(x=>x.id!==r.id&&(!x.start||!r.start||minutes(x.start)<minutes(r.end)&&minutes(r.start)<minutes(x.end)));
   if(overlaps)return {status:409,error:'The employee already has an overlapping unavailable period. Restore the old entry before replacing it.'};
  }else{
   const original=all.find(x=>x.kind==='staff-unavailability'&&x.id===r.restoresId&&x.status==='Unavailable');
