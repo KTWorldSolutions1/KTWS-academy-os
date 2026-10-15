@@ -396,3 +396,26 @@ small,.muted{color:var(--school-secondary)}
 .campus-review-editor>label{display:flex;flex-direction:column;gap:8px}
 .campus-review-editor textarea{border:1px solid #5a688d;border-radius:10px;padding:10px;background:#17243b;color:white}
 @media(max-width:760px){.readiness-overview{grid-template-columns:1fr;gap:8px}.readiness-overview button{padding:13px}.readiness-category{flex-wrap:wrap}.readiness-category>div{flex-basis:calc(100% - 52px)}.readiness-category button{margin-left:auto}}
+
+/* Staff qualifications stay under Team; no sensitive medical details shown. */
+.credential-screen{display:flex;flex-direction:column;gap:20px}
+.credential-screen .panel{margin:0}
+.credential-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:18px 0}
+.credential-summary button{border:1px solid rgba(164,171,223,.26);border-radius:14px;padding:16px;background:rgba(24,34,57,.83);text-align:left;display:flex;flex-direction:column;gap:7px}
+.credential-summary button.selected{border-color:#b0a0ed;background:rgba(75,59,117,.5)}
+.credential-summary b{font-size:14px}
+.credential-summary strong{font-size:25px;color:#f1eaff}
+.credential-summary span{font-size:11px;color:#c4d0e2}
+.credential-list{display:flex;flex-direction:column;margin-top:12px}
+.credential-row{display:flex;align-items:center;gap:11px;border-bottom:1px solid rgba(160,179,221,.19);padding:13px 2px}
+.credential-row>div{display:flex;flex:1;flex-direction:column;gap:6px;min-width:0}
+.credential-row b{font-size:13px}
+.credential-row small{font-size:11px}
+.credential-row button{padding:9px 11px;border-radius:9px;border:1px solid rgba(179,181,217,.35);font-size:12px;color:#e3d6ff}
+.credential-indicator{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;flex-shrink:0}
+.credential-indicator.complete{background:#28493e;color:#adddc3}
+.credential-indicator.attention{background:#644247;color:#ffbbbd}
+.credential-indicator.pending{background:#2c3b58;color:#aac8f4}
+.credential-screen label:has(textarea){display:flex;flex-direction:column;gap:7px;margin-bottom:15px}
+.credential-screen textarea{border-radius:10px;border:1px solid #526181;padding:11px;background:#17243b;color:white}
+@media(max-width:760px){.credential-summary{grid-template-columns:1fr}.credential-summary button{padding:12px}}
