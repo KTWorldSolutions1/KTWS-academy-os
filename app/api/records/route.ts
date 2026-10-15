@@ -4,6 +4,7 @@ import {validateRecord,preserveHistory,today,RecordData as R} from '../../../lib
 import {validateAdmissions,appointmentConflict,classRoster,enrollmentChecks} from '../../../lib/admissions';
 export const dynamic='force-dynamic';
 import {campusAllowed,campusOf,validateEnterprise,restrictedCategories} from '../../../lib/enterprise';
+import {graduationReadiness} from '../../../lib/enterprise';
 import {trainingFollowUps} from '../../../lib/actions';
 import {validateStaffShift,staffShiftConflicts} from '../../../lib/staff-scheduling';
 import {validateTrainingDispatch,dispatchRecordProblem,unresolvedVehicleDefects} from '../../../lib/training-dispatch';
@@ -20,6 +21,10 @@ export async function GET(){const access=await getWorkspaceAccess();if(!access)r
 export async function POST(req:Request){const access=await getWorkspaceAccess();if(!access)return Response.json({error:'Sign in required'},{status:401});if(req.headers.get('origin')&&req.headers.get('origin')!==new URL(req.url).origin)return Response.json({error:'Invalid origin'},{status:403});
  try{const body:any=await req.json(),list:R[]=body.records;if(!Array.isArray(list)||!list.length||list.length>60||new Set(list.map(r=>r.id)).size!==list.length)return Response.json({error:'Invalid record batch'},{status:400});const db=database(),now=new Date().toISOString();const guard:any=await db.prepare("SELECT MAX(revision) AS revision FROM audit WHERE owner = ? AND record_id = '__workspace__'").bind(access.scope).first();const guardRevision=Number(guard?.revision||0)+1;const rows=await db.prepare('SELECT * FROM records WHERE owner = ?').bind(access.scope).all();const current:R[]=rows.results.map((r:any)=>({...JSON.parse(r.payload),id:r.id,kind:r.kind,revision:r.revision}));const updates:R[]=[];const proposed=[...current.filter(x=>!list.some(r=>r.id===x.id)),...list];
  for(let r of list){if(!canWrite(access.role,r.kind))return Response.json({error:'Your school role cannot change this record.'},{status:403});if(!r||!kinds.includes(r.kind)||JSON.stringify(r).length>300000)return Response.json({error:'Invalid record'},{status:400});const problem=validateRecord(r)||validateAdmissions(r)||validateEnterprise(r)||validateGrowth(r)||validateStaffShift(r)||validateEmploymentOffer(r)||validateTrainingDispatch(r)||validateTprTracking(r)||validateSponsorship(r)||validateCampusReadiness(r)||validateStaffCredential(r)||validateSafetyRecord(r)||validateLessonRecord(r);if(problem)return Response.json({error:problem},{status:400});const old=current.find(x=>x.id===r.id);
+ if(r.kind==='students'&&r.status==='Graduated'&&old?.status!=='Graduated'){
+  const missing=graduationReadiness(r,proposed).gaps.filter(x=>x.startsWith('School lesson checkoff:'));
+  if(missing.length)return Response.json({error:'Complete the campus-approved lesson checkoffs before recording graduation. Missing: '+missing.slice(0,3).join('; ')+(missing.length>3?' and '+(missing.length-3)+' more':'')},{status:400});
+ }
  if(old&&r.kind==='unit-evidence')return Response.json({error:'Signed lesson checkoffs cannot be overwritten. Add a correction linked to the earlier entry.'},{status:403});
  if(r.kind==='unit-evidence'&&['recordedBy','recordedAt','reviewedBy','reviewedAt'].some(k=>r[k]!==undefined))return Response.json({error:'Lesson reviewer and date are recorded by the school server.'},{status:403});
  if(old&&r.kind==='curriculum-units'){
