@@ -16,3 +16,38 @@
 
 /* Connected growth and student plans. */
 .growthcol{min-height:250px}.growthactions{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:15px 0}.growthactions button{border:1px solid #645881;border-radius:7px;padding:10px 13px;font-size:13px}.growthactions button.primary{border-color:#ac7df5}.growthform{z-index:60}.growthcenter .modal label{display:block;margin:14px 0}.growthcenter .modal label input,.growthcenter .modal label select,.growthcenter .modal label textarea{display:block;width:100%;margin-top:8px}.growthcenter .modal .checkboxlabel input{width:20px}.growthcenter .modal .note{overflow-wrap:anywhere}.studentplan{border-top:1px solid #3d4e6c;padding:26px 0}.studentplan>.sectionhead h3{font-size:22px;margin-bottom:7px}.studentplan .opscard p{font-size:14px;color:#b7c5db;line-height:1.7;overflow-wrap:anywhere}.planrows{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin:24px 0}.planrows>div{background:#14223b;border:1px solid #3c4e70;border-radius:8px;padding:20px}.planrows p{font-size:14px;line-height:1.8;color:#b6c5df;padding-bottom:15px;border-bottom:1px solid #344362;overflow-wrap:anywhere}.planrows p b{color:#d4dff1}@media(max-width:700px){.planrows{grid-template-columns:1fr}.growthcenter .sectionhead{align-items:flex-start}.growthactions>button{flex:1;justify-content:center}.growthform .formgrid{grid-template-columns:1fr}.studentplan>.sectionhead{flex-direction:column;align-items:flex-start}}
+
+/* Simple Academy navigation: eight familiar sections with short, task-based labels. */
+.sidebar .nav-brand-row{display:flex;align-items:center;gap:5px;min-height:52px}
+.sidebar .nav-brand-button{border:0;background:none;box-shadow:none;text-align:left;min-width:0;flex:1;cursor:pointer;padding:0 4px;display:flex;gap:10px;align-items:center;font-weight:700}
+.sidebar .nav-brand-button>div{font-size:20px;white-space:nowrap}
+.sidebar .nav-brand-button .brandmark{width:38px;height:42px}
+.sidebar .navlabel{line-height:1.5;margin-top:30px;margin-bottom:12px;letter-spacing:1px}
+.sidebar nav button{display:flex;align-items:center;gap:14px;min-height:51px;padding:12px 13px;font-size:15px;font-weight:600}
+.sidebar nav button>span{flex:1}
+.sidebar nav button svg{flex-shrink:0}
+.sidebar .nav-close{display:none;border:0;background:transparent;color:#e9e3fa;padding:8px;min-width:42px;min-height:42px;align-items:center;justify-content:center}
+.nav-backdrop{display:none}
+.section-chooser{background:#111c31;border:1px solid #304364;border-radius:14px;padding:18px;margin:0 0 23px}
+.section-chooser-heading{display:flex;justify-content:space-between;align-items:center;gap:15px;padding:0 2px;margin-bottom:12px}
+.section-chooser-heading strong{font-size:17px;font-weight:700;color:#f0eaff}
+.section-chooser-heading p{font-size:13px;color:#b7c5dc;line-height:1.5;margin:0}
+.section-pages{display:grid;grid-template-columns:repeat(auto-fit,minmax(185px,1fr));gap:10px}
+.section-pages button{background:#172743;color:#e3e9f5;border:1px solid #3b4d69;padding:14px 15px;text-align:left;border-radius:10px;min-height:81px;display:flex;flex-direction:column;justify-content:center;gap:5px}
+.section-pages button>span{font-size:15px;font-weight:700}
+.section-pages button>small{font-size:12px;color:#aabbda;line-height:1.45}
+.section-pages button.selected{border-color:#b99cff;background:#322947;box-shadow:inset 4px 0 #ae8bfc}
+.section-pages button.selected>small{color:#d5c9f0}
+.section-pages button:hover,.section-pages button:focus-visible{border-color:#b9a5ef}
+@media(max-width:760px){
+ .sidebar .nav-close{display:flex}
+ .nav-backdrop{display:block;position:fixed;inset:0;border:0;background:#020611ba;z-index:19}
+ .section-chooser{padding:15px;margin-bottom:18px}
+ .section-chooser-heading{display:block}
+ .section-chooser-heading p{margin-top:5px}
+ .section-pages{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+ .section-pages button{padding:12px;min-height:84px}
+ .section-pages button>span{font-size:14px}
+ .section-pages button>small{font-size:11px}
+}
+@media(max-width:370px){.section-pages{grid-template-columns:1fr}.section-pages button{min-height:65px}}
