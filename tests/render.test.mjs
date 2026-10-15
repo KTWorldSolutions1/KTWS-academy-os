@@ -31,7 +31,7 @@ try{
  assert.match(federal,/does not submit it to FMCSA/);
  const workspace=renderWorkspace();
  assert.match(workspace,/Main sections/);
- assert.match(workspace,/What do you need to do/);
+ assert.match(workspace,/Find student/);
  assert.match(workspace,/School Setup/);
  assert.match(workspace,/Take attendance/);
  assert.match(workspace,/Your school, in focus/);
