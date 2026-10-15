@@ -1,6 +1,10 @@
 name: Academy OS production release
 on:
   workflow_dispatch:
+  workflow_run:
+    workflows: ['Academy OS quality gate']
+    types: [completed]
+    branches: [main]
 permissions:
   contents: read
 concurrency:
@@ -8,10 +12,13 @@ concurrency:
   cancel-in-progress: false
 jobs:
   deploy:
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_repository.full_name == github.repository) }}
     runs-on: ubuntu-latest
     environment: production
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
