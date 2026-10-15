@@ -1,4 +1,5 @@
 import {activeSessions,type RecordData as R} from './training.ts';
+import {validateStudentStudyContent} from './student-study.ts';
 
 export const lessonPhases=['Classroom','Yard','Road'] as const;
 export const lessonStates=['Draft','Approved','Retired'] as const;
@@ -9,6 +10,7 @@ const validDate=(v:any)=>typeof v==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(v)&&!Nu
 /** A school-approved curriculum map and separate, signed progress events.
  * This does not implement FMCSA certification or award additional BTW hours. */
 export function validateLessonRecord(r:R):string|null {
+ const studentContentIssue=validateStudentStudyContent(r);if(studentContentIssue)return studentContentIssue;
  if(r.kind==='curriculum-units'){
   if(!lessonStates.includes(r.status))return 'Choose Draft, Approved, or Retired.';
   if(!r.campusId||!lessonPhases.includes(r.phase))return 'Select a campus and classroom, yard or road.';
