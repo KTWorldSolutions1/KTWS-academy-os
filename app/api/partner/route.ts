@@ -41,6 +41,7 @@ export async function GET(req:Request){
    if(!row)continue;
    const s=JSON.parse(row.payload);
    if(s.campusId!==link.campus)continue;
+   if(!(s.documents||[]).some((d:any)=>d.key===grant.consent_key&&d.category==='Information release authorization'&&d.verified===true))continue;
    const sessions=activeSessions(s);
    const attend=sessions.filter((x:any)=>x.attendance==='Present'||x.attendance==='Late'||x.attendance==='Left early').length;
    const enriched={...s,attendanceSummary:{recordedSessions:sessions.length,attendedSessions:attend,unrecordedSessions:'Not automatically inferred'},trainingProgress:{classroomHours:instructionHours(s,'Classroom'),yardHours:instructionHours(s,'Yard'),roadInstructionHours:instructionHours(s,'Road'),phase:s.status}};
