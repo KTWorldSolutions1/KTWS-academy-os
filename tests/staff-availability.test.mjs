@@ -59,10 +59,24 @@ try{
  const boss=await json(send('/api/auth/activate',{token:managerInvite.body.link.split('#token=')[1],password:'long unique manager password'}));assert.equal(boss.status,200);
  const train={id:crypto.randomUUID(),kind:'training-assignments',name:'Future Yard Practice',status:'Planned',campusId:gso.id,studentId:student.id,employeeId:instructor.id,unitId:vehicle.id,date:day,start:'09:00',end:'10:00',phase:'Yard',lessonObjective:'Practice straight and offset backing'};
  assert.equal((await send('/api/records',{records:[train]},boss.cookie)).status,200);
- const absence={id:crypto.randomUUID(),kind:'staff-unavailability',name:'Instructor unavailable',status:'Unavailable',employeeId:instructor.id,campusId:gso.id,date:day,start:'08:00',end:'11:00'};
+ const shift={id:crypto.randomUUID(),kind:'shifts',name:'Approved Greensboro shift',status:'Approved',employeeId:instructor.id,campusId:gso.id,date:day,start:'08:00',end:'11:00',breakMinutes:0};
+ assert.equal((await send('/api/records',{records:[shift]},boss.cookie)).status,200,'Managers may approve working shifts');
+ assert.equal((await send('/api/records',{records:[{...shift,id:crypto.randomUUID(),status:'Completed'}]},boss.cookie)).status,403,'Schedule cannot fabricate work time');
+  const absence={id:crypto.randomUUID(),kind:'staff-unavailability',name:'Instructor unavailable',status:'Unavailable',employeeId:instructor.id,campusId:gso.id,date:day,start:'08:00',end:'11:00'};
  assert.equal((await send('/api/records',{records:[absence]},teacher.cookie)).status,403,'Instructors cannot change manager approvals');
  assert.equal((await send('/api/records',{records:[{...absence,reason:'Private medical note'}]},boss.cookie)).status,400,'Health reasons must not be recorded');
  assert.equal((await send('/api/records',{records:[absence]},boss.cookie)).status,200,'Manager can set availability');
+ const snapshot=(await json(send('/api/records',null,owner.cookie))).body.records;
+ const approvedShift=snapshot.find(x=>x.id===shift.id);
+ assert.equal((await send('/api/records',{records:[{...approvedShift,start:'07:00'}]},boss.cookie)).status,403,'Approved shift times are immutable');
+ assert.equal((await send('/api/records',{records:[{...shift,id:crypto.randomUUID()}]},boss.cookie)).status,409,'New approved shifts cannot overlap unavailable time');
+ assert.equal((await send('/api/records',{records:[{...approvedShift,status:'Cancelled'}]},teacher.cookie)).status,403,'Instructors cannot cancel manager work schedule');
+ assert.equal((await send('/api/records',{records:[{...approvedShift,status:'Cancelled'}]},boss.cookie)).status,200,'Managers can cancel the affected published shift');
+ const cancelledShift=(await json(send('/api/records',null,owner.cookie))).body.records.find(x=>x.id===shift.id);
+ assert.equal(cancelledShift.cancelledBy,'manager@school.test');
+ assert.ok(cancelledShift.cancelledAt);
+ assert.equal((await send('/api/records',{records:[{...cancelledShift,status:'Approved'}]},boss.cookie)).status,403,'Cancelled shift cannot be rewritten');
+ 
  const managerView=(await json(send('/api/records',null,boss.cookie))).body.records;
  assert.equal(managerView.filter(x=>x.kind==='staff-unavailability').length,1);
  const instructorView=(await json(send('/api/records',null,teacher.cookie))).body.records;
