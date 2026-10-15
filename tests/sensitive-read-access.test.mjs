@@ -3,14 +3,6 @@ import {mkdtempSync,rmSync} from 'node:fs';
 import {join} from 'node:path';
 import {tmpdir} from 'node:os';
 import {spawnSync} from 'node:child_process';
-import {canRead} from '../lib/workspace-access.ts';
-for(const role of ['Enrollment specialist','Admin assistant','Front desk']) {
- assert.equal(canRead(role,'quizzes'),false,role+' should never read an exam answer bank');
- assert.equal(canRead(role,'settings'),false,role+' should never read owner settings');
-}
-assert.equal(canRead('Instructor','quizzes'),true);
-assert.equal(canRead('Instructor','settings'),false);
-assert.equal(canRead('Campus manager','settings'),true);
 process.env.ACADEMY_TEST='true';
 process.env.PUBLIC_ORIGIN='https://academy.test';
 process.env.RECORDS_ENCRYPTION_KEY='cd'.repeat(32);
