@@ -25,7 +25,7 @@ jobs:
       - run: npm install --no-package-lock --no-audit --no-fund
       - run: npm run build
       - run: npm test
-      - run: npm run build:cloudflare
+      - run: ACADEMY_RELEASE_SHA="$(git rev-parse HEAD)" npm run build:cloudflare
       - name: Check Cloudflare credentials safely
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -78,5 +78,19 @@ jobs:
           curl --fail --silent --show-error --retry 5 --retry-delay 4 https://academy.ktworldsolutions.com/ > /dev/null
           health=$(curl --silent --output /dev/null --write-out '%{http_code}' https://academy.ktworldsolutions.com/api/health)
           test "$health" = "200" || { echo "Expected healthy API response 200, got $health"; exit 1; }
+          expected=$(git rev-parse HEAD)
+          # Wait for the deployed Worker to serve the reviewed build; a successful upload alone is insufficient.
+          for attempt in 1 2 3 4 5 6; do
+            body=$(curl --silent --show-error --fail https://academy.ktworldsolutions.com/api/health || true)
+            if node -e 'try { const value=JSON.parse(process.argv[1]);process.exit(value.ok&&value.release===process.argv[2]?0:1) } catch { process.exit(1) }' "$body" "$expected"; then
+              echo "Public deployment verified for commit $expected"
+              break
+            fi
+            if [ "$attempt" -eq 6 ]; then
+              echo "Deployment version mismatch: the public health endpoint does not report the reviewed commit $expected"
+              exit 1
+            fi
+            sleep 5
+          done
           status=$(curl --silent --output /dev/null --write-out '%{http_code}' https://academy.ktworldsolutions.com/api/auth/me)
           test "$status" = "401" || { echo "Expected unauthenticated API response 401, got $status"; exit 1; }
