@@ -30,6 +30,13 @@ try{
  assert.ok(ownerReadiness.body.checks.some(c=>c.code==='BACKUP'&&c.state==='manual'));
  assert.equal(JSON.stringify(ownerReadiness.body).includes('Student A'),false);
  assert.equal((await send('/api/readiness',null,emp.cookie)).status,403);
+ const storageCheck=await json(await send('/api/diagnostics',{},cookie));
+ assert.equal(storageCheck.status,200,JSON.stringify(storageCheck.body));
+ assert.equal(storageCheck.body.ok,true);
+ assert.equal(storageCheck.body.encryptedRoundTrip,true);
+ assert.equal(storageCheck.body.bucketRoundTrip,true);
+ assert.equal(storageCheck.body.temporaryObjectRemoved,true);
+ assert.equal((await send('/api/diagnostics',{},emp.cookie)).status,403);
  const list=await json(await send('/api/records',null,emp.cookie));assert.ok(list.body.records.some(r=>r.id===sa.id));assert.ok(!list.body.records.some(r=>r.id===sb.id));
  assert.equal((await send('/api/accounts/invite',{staffId:employee.id},emp.cookie)).status,403);
  const ps=list.body.records.find(r=>r.id===sa.id);assert.equal((await send('/api/records',{records:[{...ps,status:'Yard'}]},emp.cookie)).status,200);
