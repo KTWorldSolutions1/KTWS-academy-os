@@ -49,6 +49,7 @@ export async function POST(req:Request){const access=await getWorkspaceAccess();
   if(old&&['actor','createdAt','draftBy'].some(key=>JSON.stringify(r[key])!==JSON.stringify(old[key])))return Response.json({error:'Original message author and creation time are protected.'},{status:403});
  }
  if(r.kind==='training-assignments'){
+  if(!old&&r.status==='Cancelled')return Response.json({error:'Only an existing scheduled lesson may be cancelled.'},{status:403});
   if(old&&r.replacesId!==old.replacesId)return Response.json({error:'The original replacement link is immutable.'},{status:403});
   if(old&&['Completed','Cancelled'].includes(old.status))return Response.json({error:'Completed and cancelled lessons are permanent school history. Record a new plan instead of rewriting the original.'},{status:403});
   if(r.status==='Completed'&&(!old||old.status!=='Confirmed'))return Response.json({error:'Only a previously confirmed lesson can be completed after attendance and truck checks are recorded.'},{status:403});
