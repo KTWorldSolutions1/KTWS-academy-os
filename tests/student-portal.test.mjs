@@ -24,6 +24,14 @@ try{
  const sb={...demo,id:crypto.randomUUID(),name:'Foreign Texas Student',email:'texas@test.example',campusId:b.id,classId:'',sessions:[],documents:[]};
  const sc={...demo,id:crypto.randomUUID(),name:'Dallas Student',email:'dallas@test.example',campusId:c.id,classId:'',sessions:[],documents:[]};
  const init=await json(send('/api/records',{records:[a,b,c,sa,sb,sc]},owner.cookie));assert.equal(init.status,200,JSON.stringify(init.body));
+ const approved={id:crypto.randomUUID(),kind:'curriculum-units',name:'Home study: brake safety',status:'Approved',campusId:a.id,program:'Class A',phase:'Classroom',code:'SAFE-BRAKE-01',version:1,sequence:1,required:false,objective:'Explain brake safety principles before a supervised practical class.',notes:'SECRET STAFF NOTES - NEVER SHARE',shareWithStudent:true,studentGuide:'SUPPLEMENTAL CAMPUS READING ABOUT SAFE BRAKES',practiceQuestions:[{id:'p1',prompt:'What should you do if the brakes need repair?',options:['Tell the instructor and do not drive','Drive immediately'],correctIndex:0,explanation:'Reported safety defects must be resolved before using the truck.'}]};
+ const draft={...approved,id:crypto.randomUUID(),name:'DRAFT NEVER PUBLISH',status:'Draft',code:'SAFE-DRAFT-01',studentGuide:'DRAFT PRIVATE CLASS NOTES'};
+ const texas={...approved,id:crypto.randomUUID(),name:'PRIVATE MANSFIELD STUDY',campusId:b.id,code:'SAFE-TEXAS-01',studentGuide:'OTHER CAMPUS READING'};
+ const wrongProgram={...approved,id:crypto.randomUUID(),name:'CLASS B PRIVATE NOTES',program:'Class B',code:'SAFE-B-01',studentGuide:'OTHER PROGRAM READING'};
+ const noShare={...approved,id:crypto.randomUUID(),name:'UNPUBLISHED CAMPUS NOTES',code:'SAFE-HIDDEN-01',shareWithStudent:false,studentGuide:'NOT PUBLISHED NOTES'};
+ const schoolBooks=await json(send('/api/records',{records:[approved,draft,texas,wrongProgram,noShare]},owner.cookie));
+ assert.equal(schoolBooks.status,200,JSON.stringify(schoolBooks.body));
+
  assert.equal((await send('/api/student/portal')).status,401);
  assert.equal((await send('/api/student/admin',{action:'invite',studentId:sa.id,approvedAuthorization:true},owner.cookie)).status,403);
  assert.equal((await send('/api/student/admin',{action:'invite',studentId:sa.id,approvedAuthorization:true},undefined)).status,403);
@@ -51,10 +59,15 @@ try{
  assert.equal((await send('/api/student/admin',{action:'deactivate',accountId:'whatever'},active.cookie)).status,403);
  const portal=await json(send('/api/student/portal',null,active.cookie));assert.equal(portal.status,200,JSON.stringify(portal.body));
  assert.equal(portal.body.student.name,'Fictional learner');
+ assert.equal(portal.body.student.studyLibrary?.length,1,'Only authorized campus and program approved reading is visible');
+ assert.equal(portal.body.student.studyLibrary[0].name,'Home study: brake safety');
+ assert.equal(portal.body.student.studyLibrary[0].practiceQuestions[0].correctIndex,0,'Practice choices are ungraded by design');
+
  const serialized=JSON.stringify(portal.body);
  assert.ok(!serialized.includes('Foreign Texas Student'));
  assert.ok(!serialized.includes('Dallas Student'));
- for(const term of ['LICENSE-PRIVATE','4321','5550011000','drugScreen','private instructor','PII-KEY'])assert.ok(!serialized.includes(term),'No private field '+term);
+ for(const phrase of ['SECRET STAFF NOTES','DRAFT PRIVATE CLASS NOTES','OTHER CAMPUS READING','OTHER PROGRAM READING','NOT PUBLISHED NOTES'])assert.ok(!serialized.includes(phrase),'No unauthorized curriculum materials: '+phrase);
+  for(const term of ['LICENSE-PRIVATE','4321','5550011000','drugScreen','private instructor','PII-KEY'])assert.ok(!serialized.includes(term),'No private field '+term);
  const list=await json(send('/api/student/admin',null,owner.cookie));assert.equal(list.status,200);
  assert.equal(list.body.accounts.length,1);
  const staff={id:crypto.randomUUID(),kind:'staff',name:'Forged staff role',email:sa.email,status:'Active',accessRole:'Campus manager',campusIds:[a.id]};

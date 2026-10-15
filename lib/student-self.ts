@@ -1,6 +1,7 @@
 import {activeSessions,instructionHours,latestSkill,skills,theoryState,type RecordData as R} from './training.ts';
 import {drivingTimeSummary} from './attendance.ts';
 import {lessonProgress} from './lesson-checkoffs.ts';
+import {studentStudyLibrary} from './student-study.ts';
 
 /** Privacy-minimized, student-owned training view. Never expose enrollment
  * identifiers, financial information, private staff notes, R2 metadata, raw
@@ -18,6 +19,7 @@ export function studentSelfView(s:R,records:R[]){
   targets:{classroom:Number(s.targetTheory||0),yard:Number(s.targetYard||0),road:Number(s.targetRoad||0)},
   theory:{label:theory.label,finalScore:theory.final?Number(theory.final.score):null},
   lessonProgress:lessonProgress(records,s).map(x=>({name:x.name,phase:x.phase,status:x.status,completedOn:x.completedOn})),
+  studyLibrary:studentStudyLibrary(s,records),
    skillCounts:{yardProficient:skills.Yard.filter(name=>latestSkill(s,name)?.level==='Proficient').length,yardTotal:skills.Yard.length,roadProficient:skills.Road.filter(name=>latestSkill(s,name)?.level==='Proficient').length,roadTotal:skills.Road.length},
   attendance:latest.map(x=>({date:x.date,phase:x.phase,attendance:x.attendance,hours:Number(x.hours)||0,mode:x.mode||'Instruction'})),
   nextLessons:records.filter(x=>x.kind==='training-assignments'&&x.campusId===s.campusId&&x.studentId===s.id&&x.status!=='Cancelled'&&x.date>=new Date().toLocaleDateString('en-CA',{timeZone:'America/New_York'}))

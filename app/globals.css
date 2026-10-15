@@ -488,3 +488,34 @@ small,.muted{color:var(--school-secondary)}
 .insights-bottom small{line-height:1.6;font-size:11px}
 @media(max-width:1150px){.insights-campus-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:760px){.insights-stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.insight-tile{padding:13px;min-height:137px}.insight-tile>strong{font-size:25px}.insight-campus-grid{grid-template-columns:1fr}.insights-bottom{grid-template-columns:1fr}.insights-funnel{gap:6px}.insights-funnel>div{padding:9px}.insights-funnel>div strong{font-size:17px}.insights-funnel>svg{width:15px}.insight-campus-head{align-items:center}}
+
+/* School-approved student self-study is supplementary to instructor-led ELDT. */
+.study-authoring{padding:18px;border:1px solid rgba(160,149,220,.37);border-radius:14px;background:rgba(51,42,84,.35);display:flex;flex-direction:column;gap:14px}
+.study-authoring h3{font-size:17px;margin:0}
+.study-authoring h4{font-size:14px;margin:6px 0 0}
+.study-authoring>label,.study-practice-editor>label{display:flex;flex-direction:column;gap:8px}
+.study-authoring>label:has(input[type=checkbox]){display:block;font-size:13px;line-height:1.7}
+.study-practice-editor{background:rgba(24,34,59,.72);border:1px solid rgba(154,162,207,.28);border-radius:13px;padding:16px;display:flex;flex-direction:column;gap:11px}
+.study-practice-editor input,.study-practice-editor select,.study-practice-editor textarea,.study-authoring textarea{width:100%;color:#f4f2ff;background:#1b2a43;border:1px solid #576582;border-radius:9px;padding:10px}
+.student-study-library h2{font-size:21px}
+.student-study-unit{border:1px solid rgba(156,168,214,.32);border-radius:12px;padding:0 13px;margin:13px 0;background:rgba(23,34,57,.75)}
+.student-study-unit>summary{cursor:pointer;list-style:none;display:flex;align-items:center;min-height:67px;padding:13px 2px}
+.student-study-unit>summary::-webkit-details-marker{display:none}
+.student-study-unit>summary span{display:flex;flex-direction:column;gap:5px}
+.student-study-unit>summary b{font-size:14px;color:#f0eaff}
+.student-study-unit>summary small{font-size:12px}
+.student-study-unit[open]{border-color:rgba(190,166,249,.6)}
+.study-unit-body{padding:6px 2px 19px}
+.study-unit-body h3{font-size:15px;margin:19px 0 10px}
+.study-unit-body p{font-size:13px;line-height:1.7}
+.study-guide-text{white-space:pre-wrap;overflow-wrap:anywhere;color:#d5def1}
+.practice-question{border-top:1px solid #42506d;padding:14px 0}
+.practice-choices{display:grid;grid-template-columns:1fr;gap:9px}
+.practice-choices button{padding:12px;text-align:left;font-size:13px;color:#e9effd;border:1px solid #5b6482;border-radius:10px;background:#273653;min-height:44px}
+.practice-choices button.chosen{border-color:#baa6fc;background:#4a406c}
+.practice-choices button:disabled:not(.chosen){opacity:.6}
+.practice-feedback{padding:12px;border-radius:10px;border:1px solid #697993;background:#293951}
+.practice-feedback.right{border-color:#62aa91;background:#23423d}
+.practice-feedback.retry{border-color:#b79769;background:#453923}
+.practice-feedback button{font-size:12px;color:#dfd0ff;text-decoration:underline;margin-left:8px}
+@media(max-width:760px){.study-authoring,.study-practice-editor{padding:12px}.student-study-unit{padding:0 10px}}
