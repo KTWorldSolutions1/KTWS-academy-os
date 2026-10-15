@@ -71,6 +71,16 @@ try{
  const cipher=readFileSync(join(process.env.ACADEMY_DATA_DIR,'files',upload.body.key));assert.equal(cipher.includes(Buffer.from('private test record')),false);
  const opened=await send('/api/files?key='+upload.body.key,null,cookie);assert.equal(await opened.text(),'private test record');assert.equal((await send('/api/files?key='+upload.body.key,null,emp.cookie)).status,403);
  const contract={id:crypto.randomUUID(),kind:'contracts',name:'Test agreement',status:'Completed',studentId:sa.id,completedFile:upload.body};assert.equal((await send('/api/records',{records:[contract]},cookie)).status,200);
+ const adminStaff={id:crypto.randomUUID(),kind:'staff',name:'Office assistant',status:'Active',email:'assistant@test.example',accessRole:'Admin assistant',campusIds:[ca.id]};
+ assert.equal((await send('/api/records',{records:[adminStaff]},cookie)).status,200);
+ const adminInvite=await json(await send('/api/accounts/invite',{staffId:adminStaff.id},cookie));assert.equal(adminInvite.status,200);
+ const adminAccount=await json(await send('/api/auth/activate',{token:adminInvite.body.link.split('#token=')[1],password:'unique assistant password for tests'}));assert.equal(adminAccount.status,200);
+ assert.equal((await send('/api/files?key='+upload.body.key,null,adminAccount.cookie)).status,200);
+ const restricted=new FormData();restricted.set('studentId',sa.id);restricted.set('category','Drug screen result');restricted.set('file',new File(['sample record'],'restricted.txt',{type:'text/plain'}));
+ assert.equal((await handle(new Request('https://academy.test/api/files',{method:'POST',headers:{Origin:'https://academy.test',Cookie:adminAccount.cookie},body:restricted}))).status,403);
+ const ownerRestricted=await json(await handle(new Request('https://academy.test/api/files',{method:'POST',headers:{Origin:'https://academy.test',Cookie:cookie},body:restricted})));assert.equal(ownerRestricted.status,200);
+ assert.equal((await send('/api/files?key='+ownerRestricted.body.key,null,adminAccount.cookie)).status,403);
+ assert.equal((await send('/api/files?key='+ownerRestricted.body.key,null,cookie)).status,200);
  const staffCurrent=(await json(await send('/api/records',null,cookie))).body.records.find(r=>r.id===employee.id);assert.equal((await send('/api/records',{records:[{...staffCurrent,status:'Inactive'}]},cookie)).status,200);assert.equal((await send('/api/records',null,emp.cookie)).status,401);
  const cross=await handle(new Request('https://academy.test/api/records',{method:'POST',headers:{Origin:'https://attacker.test',Cookie:cookie,'Content-Type':'application/json'},body:'{}'}));assert.equal(cross.status,403);
  assert.equal((await send('/api/auth/logout',{},cookie)).status,200);assert.equal((await send('/api/records',null,cookie)).status,401);
