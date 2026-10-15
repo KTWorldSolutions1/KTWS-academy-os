@@ -1,0 +1,15 @@
+import assert from 'node:assert/strict';
+import {verifiedNightDrivingHours} from '../lib/attendance.ts';
+import {validateRecord} from '../lib/training.ts';
+import {graduationReadiness} from '../lib/enterprise.ts';
+const one={id:'first',date:'2026-10-14',phase:'Road',attendance:'Present',start:'20:00',end:'22:00',hours:2,breakMinutes:0,mode:'Student driving',studentOperatedVehicle:true,nightDrivingHours:1.5,instructor:'Fictional instructor'};
+const observation={...one,id:'observer',start:'18:00',end:'20:00',mode:'Observation',studentOperatedVehicle:false,nightDrivingHours:0};
+const student={id:'fictional',kind:'students',name:'Fictional student',status:'Road',sessions:[one,observation],targetNightRoadDriving:3,targetTheory:0,targetYard:0,assessments:[{id:'test',name:'Theory final',score:80,type:'Theory final',correct:80,total:100,instructor:'Instructor'}],theorySignoff:{assessmentId:'test',instructor:'Instructor'},evaluations:[],testResult:'Pending'};
+assert.equal(verifiedNightDrivingHours(student),1.5);
+assert.match(graduationReadiness(student).gaps.join(' | '),/Verified night student-operated driving hours/);
+assert.equal(validateRecord(student),null);
+assert.match(validateRecord({...student,sessions:[{...one,nightDrivingHours:3}]}),/cannot exceed/);
+assert.match(validateRecord({...student,sessions:[{...observation,nightDrivingHours:1}]}),/actual student-operated Road time/);
+const correction={...one,id:'second',nightDrivingHours:2,correctionOf:'first',correctionReason:'Instructor verified night time'};
+assert.equal(verifiedNightDrivingHours({...student,sessions:[one,correction]}),2);
+console.log('PASS: explicit night driving evidence is not inferred; observations excluded; limits validated; corrections supersede originals.');
