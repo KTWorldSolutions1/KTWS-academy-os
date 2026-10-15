@@ -1,8 +1,16 @@
 # KTWS Academy OS — independent deployment
 
-This is the separate Academy application prepared for the owner's Cloudflare account and `academy.ktworldsolutions.com`. It uses its own email/password sessions, D1 school database and encrypted R2 file storage. Base44 and ChatGPT authentication are not used. The existing preview has not been replaced and this package has not been deployed remotely.
+This is the separate Academy application prepared for the owner's Cloudflare account and `academy.ktworldsolutions.com`. It uses its own email/password sessions, D1 school database and encrypted R2 file storage. Base44 and ChatGPT authentication are not used. The application is deployed to Cloudflare under the Academy OS domain. Deployment, passing automated tests and signed-in owner access are **not equivalent to school approval for confidential student data**. New protected file uploads and student invitations are intentionally disabled by default pending key recovery, restore testing, policy review and actual three-campus acceptance.
 
-## Cloudflare deployment
+## Current school status
+
+For a plain-language completion plan, see [`docs/FOR-NOW-COMPLETION-CRITERIA.md`](docs/FOR-NOW-COMPLETION-CRITERIA.md) and the authenticated **School Setup → Get Started** owner acceptance board. The application implements campus-scoped admissions, student 360, CDL training logs, versioned lessons, safety and staff workflows, sponsor/WIOA reporting, employer records and management insights. Official FMCSA direct submission, payment processing and live provider delivery require separate authorized external integrations. **Do not put protected student data into an unaccepted environment.**
+
+The original production encryption key has already been provisioned. Its school-controlled recovery escrow is not independently verified; never rotate, delete or replace it to bypass the go-live check. Read [`docs/DISASTER-RECOVERY-AND-RESTORE-ACCEPTANCE.md`](docs/DISASTER-RECOVERY-AND-RESTORE-ACCEPTANCE.md) before altering storage. New student file uploads remain disabled with `SCHOOL_FILE_UPLOADS_ENABLED=false` and student invitations with `STUDENT_PORTAL_ENABLED=false` in production.
+
+## Cloudflare deployment (historical bootstrap instructions — do not rerun against the live school)
+
+**WARNING:** The steps below describe provisioning a completely new, separate test environment. The production Cloudflare account, D1 database, R2 bucket, Worker, domain and original encryption key already exist. The repository's tested main-branch GitHub Actions quality gate deploys the live Worker. Do not re-run owner setup, D1 creation, or encryption key bootstrap against existing production resources.
 
 Use Node 24 and an authenticated Wrangler session belonging to the school's Cloudflare account. Do not paste API tokens or passwords into chat.
 
@@ -30,9 +38,11 @@ SMS requires Twilio secrets `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_F
 
 `npm run build`, set `PUBLIC_ORIGIN`, `RECORDS_ENCRYPTION_KEY`, `ACADEMY_DATA_DIR`, and `NODE_ENV=production`; run `npm run setup-owner -- owner@example.com`, then `npm start`. The Dockerfile runs this adapter and needs a persistent `/data` volume. Cloudflare is the primary requested target.
 
-## Current verification result (2026-10-07)
+## Current verification approach (2026-10-15)
 
-Portable server build and functional tests: PASS. Training/admissions/attendance rule tests: PASS. Cloudflare frontend/Worker build and deployment dry run: PASS. Actual local Worker execution: BLOCKED by this environment's `uv_interface_addresses` system error before the Worker started; native password hashing inside workerd remains unverified here. Remote deployment and real-domain acceptance testing remain outstanding because Cloudflare account access is blocked. This package must not be represented as an employee-ready live service until those checks succeed.
+The latest merged production release is checked through automated GitHub Actions for the exact main SHA, followed by Cloudflare deployment and public revision/unauthenticated-access smoke tests. Review the current [GitHub Actions](https://github.com/KTWorldSolutions1/KTWS-academy-os/actions) run rather than assuming an earlier release remains current. The full test suite includes authorization, privacy, student and staff training, campus isolation, restricted documents and fictional backup restore tests. **Local fixture tests are not an actual Cloudflare D1/R2 restore.**
+
+Production acceptance remains incomplete until: original key custody can be recovered by authorized school custodians; an isolated D1/R2 restore and live fictional student-file access test passes; each staff role completes a verified three-campus walkthrough; school NC/TX licensing/training/consent policies are signed off. See [production acceptance](docs/PRODUCTION-ACCEPTANCE.md) and [owner completion criteria](docs/FOR-NOW-COMPLETION-CRITERIA.md).
 
 ## Connected operations and student success
 
