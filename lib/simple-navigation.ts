@@ -10,6 +10,7 @@ export const schoolSections:SchoolSection[]=[
   {id:'overview',label:'Today',help:'Your school at a glance'},
   {id:'operations',label:'Student Help',help:'Follow up when someone needs support'},
   {id:'manager-brief',label:'Weekly Report',help:'A summary for school leaders'},
+  {id:'insights',label:'School Numbers',help:'Compare student progress, inquiries, and campuses'},
   {id:'intelligence',label:'Writing Help',help:'Create drafts; AI connection may be off'}
  ]},
  {id:'students',label:'Students',help:'Find students and check their records.',pages:[
