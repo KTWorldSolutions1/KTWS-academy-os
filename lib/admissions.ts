@@ -3,5 +3,17 @@ export const salesStages=['New inquiry','Contacted','Tour scheduled','Applicatio
 export const enrollmentChecks=['Contact information verified','Application reviewed','Program eligibility reviewed','Enrollment agreement verified','Funding / payment plan reviewed'];
 export function classRoster(records:R[],classId:string){return records.filter(r=>r.kind==='students'&&r.classId===classId&&!['Withdrawn'].includes(r.status));}
 export function classSeats(records:R[],c:R){return Math.max(0,Number(c.capacity||0)-classRoster(records,c.id).length);}
-export function appointmentConflict(records:R[],r:R){return records.find(x=>['appointments','schedules'].includes(x.kind)&&x.id!==r.id&&['Scheduled','Confirmed'].includes(x.status)&&['Scheduled','Confirmed'].includes(r.status)&&x.date===r.date&&x.start<r.end&&x.end>r.start&&((((x.owner||x.instructor)&&(x.owner||x.instructor)===(r.owner||r.instructor)))||((x.personId||x.studentId)&&(x.personId||x.studentId)===(r.personId||r.studentId))||(x.room&&x.room===r.room)));}
+export function appointmentConflict(records:R[],r:R){
+ return records.find(x=>{
+  if(!['appointments','schedules'].includes(x.kind)||x.id===r.id||!['Scheduled','Confirmed'].includes(x.status)||!['Scheduled','Confirmed'].includes(r.status)||x.date!==r.date||x.start>=r.end||x.end<=r.start)return false;
+  const sameCampus=!x.campusId||!r.campusId||x.campusId===r.campusId;
+  // Named employee identity takes precedence across campuses. Generic display
+  // owners, classroom names and room labels only conflict inside one campus.
+  const sharedEmployee=!!(x.ownerId&&r.ownerId&&x.ownerId===r.ownerId);
+  const sameLabel=!!((x.owner||x.instructor)&&(x.owner||x.instructor)===(r.owner||r.instructor));
+  const sharedPerson=!!((x.personId||x.studentId)&&(x.personId||x.studentId)===(r.personId||r.studentId));
+  const sharedRoom=!!(x.room&&x.room===r.room);
+  return sharedEmployee||sharedPerson||(sameCampus&&(sameLabel||sharedRoom));
+ });
+}
 export function validateAdmissions(r:R){if(['appointments','schedules'].includes(r.kind)&&(!/^\d{4}-\d{2}-\d{2}$/.test(r.date||'')||!/^\d{2}:\d{2}$/.test(r.start||'')||!/^\d{2}:\d{2}$/.test(r.end||'')||r.end<=r.start))return 'Choose a valid date and end time after the start time.';if(r.kind==='appointments'&&!r.owner?.trim())return 'Appointment owner is required.';if(r.kind==='classes'&&(!r.startDate||!r.endDate||r.endDate<r.startDate||!r.program||!Number.isInteger(Number(r.capacity))||Number(r.capacity)<1))return 'Class needs a program, valid dates and a positive whole-number capacity.';return null;}
