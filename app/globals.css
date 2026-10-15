@@ -58,3 +58,8 @@
 .overviewlinks button{min-height:48px;font-size:14px;font-weight:600}
 @media(max-width:760px){.overviewlinks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.quick-actions-title{grid-column:1/-1}.overviewlinks button{padding:12px 10px;white-space:normal}}
 @media(max-width:370px){.overviewlinks{grid-template-columns:1fr}}
+
+/* The employee preview is for school owners only and never changes permissions. */
+.menu-preview{display:flex;align-items:center;gap:8px;color:#b6c4d9;font-size:11px;letter-spacing:0;white-space:nowrap}
+.menu-preview .viewpicker{max-width:145px}
+@media(max-width:760px){.menu-preview{font-size:0;gap:0}.menu-preview .viewpicker{max-width:112px;font-size:11px}}
