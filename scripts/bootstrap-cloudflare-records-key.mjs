@@ -19,6 +19,14 @@ try{
  if(existing.some(x=>x?.name===name)){
   console.log(name+': present. Preserved existing encryption key without rotation.');
  }else{
+  // Avoid silently making any preexisting encrypted student documents
+  // unreadable if their previous encryption key is missing from the Worker.
+  const inventoryText=wrangler(['d1','execute','ktws-academy-school','--remote','--command','SELECT COUNT(*) AS total FROM school_files','--json']);
+  const inventory=JSON.parse(inventoryText);
+  const rows=Array.isArray(inventory)?inventory[0]?.results:inventory?.results;
+  const total=Number(rows?.[0]?.total);
+  if(!Number.isSafeInteger(total)||total<0)throw Error('Could not confirm that existing encrypted file metadata is empty. Refusing key initialization.');
+  if(total>0)throw Error('Existing student file metadata is present but no encryption key is configured. Refusing to create a new key that would strand those files.');
   // Transmit generated cryptographic key by stdin only; no shell interpolation
   // or file storage. Never print the provider command output.
   const secret=randomBytes(32).toString('hex');
