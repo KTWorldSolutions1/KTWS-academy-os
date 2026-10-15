@@ -69,7 +69,7 @@ export async function POST(req:Request){const access=await getWorkspaceAccess();
    const lead=proposed.find(x=>x.kind==='leads'&&x.id===r.leadId);
    const klass=proposed.find(x=>x.kind==='classes'&&x.id===r.classId);
    if(!lead||!klass||!klass.campusId||campusOf(lead,proposed)!==klass.campusId||!campusAllowed(access.role,access.campusIds,klass,proposed))return Response.json({error:'A waitlist applicant and their class must belong to the same approved campus.'},{status:400});
-   if(proposed.some(x=>x.kind==='students'&&x.sourceLead===lead.id))return Response.json({error:'This applicant is already enrolled as a student. Review their existing record instead.'},{status:409});
+   if(r.status==='Waitlisted'&&proposed.some(x=>x.kind==='students'&&x.sourceLead===lead.id))return Response.json({error:'This applicant is already enrolled as a student. Review their existing record instead.'},{status:409});
    if(proposed.some(x=>x.kind==='enrollments'&&x.id!==r.id&&x.leadId===r.leadId&&x.status!=='Cancelled'))return Response.json({error:'This lead already has an active application or waitlist entry.'},{status:409});
    if(old?.status==='Waitlisted'&&['leadId','classId','campusId','waitlistedAt','waitlistedBy'].some(k=>JSON.stringify(r[k])!==JSON.stringify(old[k])))
     return Response.json({error:'Waitlist position and original class cannot be rewritten. Cancel and start a new application for a different class.'},{status:403});
