@@ -4,7 +4,7 @@ import {build} from 'vite';
 import {resolve} from 'node:path';
 import {pathToFileURL} from 'node:url';
 const entry=resolve('tests/.academy-render-check.mjs'),out=resolve('tests/.render-check');
-writeFileSync(entry,`import React from 'react';import {renderToStaticMarkup} from 'react-dom/server';import Growth from '../app/growth-center.tsx';import Operations from '../app/operations-center.tsx';import StaffScheduler from '../app/staff-scheduler.tsx';export const render=(kind,props)=>renderToStaticMarkup(React.createElement(kind==='growth'?Growth:kind==='shifts'?StaffScheduler:Operations,props));`);
+writeFileSync(entry,`import React from 'react';import {renderToStaticMarkup} from 'react-dom/server';import Growth from '../app/growth-center.tsx';import Operations from '../app/operations-center.tsx';import StaffScheduler from '../app/staff-scheduler.tsx';import EnterpriseCenter from '../app/enterprise-center.tsx';export const render=(kind,props)=>renderToStaticMarkup(React.createElement(kind==='enterprise'?EnterpriseCenter:kind==='growth'?Growth:kind==='shifts'?StaffScheduler:Operations,props));`);
 try{
  const result=await build({build:{ssr:entry,outDir:out,rollupOptions:{input:entry}}});
  const chunk=result.output.find(x=>x.type==='chunk'&&x.isEntry),{render}=await import(pathToFileURL(resolve(out,chunk.fileName)).href);
@@ -25,5 +25,9 @@ try{
  const plan=render('operations',{...base,initialView:'Student plans'});assert.match(plan,/Practice mirror checks/);assert.match(plan,/Saved student coaching plan/);assert.match(plan,/Sample recruiting open house/);
  assert.doesNotMatch(render('operations',{...base,role:'Instructor',initialView:'Career outcomes'}),/The journey continues after graduation|>Career outcomes</);
  const scheduling=render('shifts',{records:[...records,{id:'staff',kind:'staff',name:'Sample instructor',status:'Active',role:'Instructor',campusIds:['campus']}],reload:async()=>true});assert.match(scheduling,/Staff scheduling/);assert.match(scheduling,/40 paid hours/);assert.match(scheduling,/Save weekly staffing plan/);
+ const federal=render('enterprise',{...base,view:'tpr',demo:false});
+ assert.match(federal,/not required federally/);
+ assert.match(federal,/second business day/);
+ assert.match(federal,/does not submit it to FMCSA/);
  console.log('PASS: all growth/operations views render with populated and empty records, connected student plans and instructor-limited navigation.');
 }finally{rmSync(entry,{force:true});rmSync(out,{recursive:true,force:true});}
