@@ -33,8 +33,6 @@ export async function POST(req:Request){const access=await getWorkspaceAccess();
    const duplicate=current.some(x=>['leads','students'].includes(x.kind)&&campusOf(x,current)===r.campusId&&((email&&String(x.email||'').trim().toLowerCase()===email)||(phone.length>=10&&normalizePhone(x.phone)===phone)));
    if(duplicate)return Response.json({error:'Possible existing campus lead. Ask admissions to review before creating another entry.'},{status:409});
    r={...r,consentRecordedAt:now,consentRecordedBy:access.user.email,source:event.name,owner:r.owner||event.owner||'Admissions',emailOptOut:false,smsOptOut:false};
-  }else{
-   r={...r,consentRecordedAt:old.consentRecordedAt,consentRecordedBy:old.consentRecordedBy,source:old.source,eventId:old.eventId};
   }
  }
 if(r.kind==='employment-offers'){
