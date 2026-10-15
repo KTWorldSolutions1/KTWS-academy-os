@@ -37,7 +37,7 @@ export async function GET(req:Request){
  if(path==='/api/student/portal'){
   const found=await self();
   if(!found)return error('Student portal access unavailable',401);
-  const rows:any=await found.db.prepare("SELECT payload FROM records WHERE owner='academy-owner' AND kind IN ('campuses','classes','training-assignments')").all();
+  const rows:any=await found.db.prepare("SELECT payload FROM records WHERE owner='academy-owner' AND ((kind='campuses' AND id=?) OR (kind='classes' AND id=?) OR (kind='training-assignments' AND json_extract(payload,'$.studentId')=?) OR (kind='curriculum-units' AND json_extract(payload,'$.campusId')=? AND json_extract(payload,'$.program')=?) OR (kind='unit-evidence' AND json_extract(payload,'$.studentId')=?))").bind(found.student.campusId,found.student.classId||'__no_class__',found.student.id,found.student.campusId,found.student.program||'',found.student.id).all();
   const records=rows.results.map((r:any)=>JSON.parse(r.payload));
   const view=studentSelfView(found.student,records);
   await markAudit(found.db,found.student.id,'Own progress portal viewed',found.user.email,{account:found.link.account,fields:'limited student progress'});

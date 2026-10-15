@@ -24,6 +24,7 @@ export const schoolSections:SchoolSection[]=[
  {id:'training',label:'Training',help:'Classes, attendance, trucks and training records.',pages:[
   {id:'dispatch',label:'Daily Training Plan',help:'Assign students, instructors, trucks and training areas'},
   {id:'courses',label:'Take Attendance',help:'Daily training, driving hours and tests'},
+  {id:'lesson-checkoffs',label:'Lesson Checkoffs',help:'Approved lessons and student progress'},
   {id:'classes',label:'Classes & Dates',help:'Start dates, schedules and class lists'},
   {id:'fleet',label:'Trucks & Equipment',help:'Training vehicles and maintenance'},
   {id:'tpr',label:'Federal Training Records',help:'Track required reporting; verify submissions'}
