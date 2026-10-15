@@ -23,6 +23,7 @@ export const schoolSections:SchoolSection[]=[
   {id:'event-intake',label:'Event Signups',help:'Save contacts from fairs and events'}
  ]},
  {id:'training',label:'Training',help:'Classes, attendance, trucks and training records.',pages:[
+  {id:'closeout',label:'Daily Training Review',help:'Check lessons, logs and truck reports before going home'},
   {id:'dispatch',label:'Daily Training Plan',help:'Assign students, instructors, trucks and training areas'},
   {id:'courses',label:'Take Attendance',help:'Daily training, driving hours and tests'},
   {id:'lesson-checkoffs',label:'Lesson Checkoffs',help:'Approved lessons and student progress'},
