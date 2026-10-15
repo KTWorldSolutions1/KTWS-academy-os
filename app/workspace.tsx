@@ -25,7 +25,19 @@ type R={id:string;kind:string;name:string;status:string;revision?:number;[key:st
 const fields:any={leads:['campusId','email','phone','source','owner','program','followUp'],students:['campusId','email','phone','program','classId','cohort','owner','sponsor','tuition','targetTheory','targetYard','targetRoad','targetRoadDriving','targetRoadObservation','targetNightDriving'],tasks:['campusId','owner','due','priority','student'],fleet:['campusId','unit','plate','inspectionDue','maintenanceDue','instructor'],finance:['campusId','student','type','amount','due','reference'],funding:['campusId','contact','email','phone','program','renewal','requirements'],courses:['campusId','phase','hours','instructor','passingScore'],staff:['email','role','accessRole','credential','expiry'],settings:['schoolName','campus','program','hours'],campuses:['city','state','address','contact','phone']};
 const stages:any={leads:['New inquiry','Contacted','Tour scheduled','Funding pending','Ready to enroll','Enrolled','Closed'],students:['Enrollment pending','Classroom','Yard','Road','Test preparation','Graduated','Withdrawn'],tasks:['Open','In progress','Complete'],fleet:['Ready','Maintenance','Out of service'],finance:['Outstanding','Recorded paid','Refund recorded'],funding:['Prospect','Active','Renewal due'],courses:['Draft','Active','Complete'],staff:['Active','Pending credential','Inactive'],settings:['Active']};
 const money=(n:any)=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}).format(Number(n)||0);
-const label=(s:string)=>s.replace(/([A-Z])/g,' $1').replace(/^./,x=>x.toUpperCase());
+const friendlyFieldNames:Record<string,string>={
+ campusId:'Campus',classId:'Class',cohort:'Class group',owner:'Assigned employee',
+ sponsor:'Funding source',tuition:'Tuition amount',targetTheory:'Classroom hours goal',
+ targetYard:'Practice yard hours goal',targetRoad:'Road training hours goal',
+ targetRoadDriving:'Driving hours goal',targetRoadObservation:'Riding-along hours goal',
+ targetNightDriving:'Night driving hours goal',followUp:'Follow up by',
+ estimatedTuition:'Estimated tuition',unit:'Truck number',plate:'License plate',
+ inspectionDue:'Next truck inspection',maintenanceDue:'Next truck service',
+ credential:'Required license',expiry:'Expires on',phase:'Training area',
+ passingScore:'Passing grade',renewal:'Renewal date',schoolName:'School name',
+ program:'Training program',requirements:'What is required',accessRole:'Employee access level'
+};
+const label=(s:string)=>friendlyFieldNames[s]||s.replace(/([A-Z])/g,' $1').replace(/^./,x=>x.toUpperCase());
 const date=()=>new Date().toLocaleDateString('en-CA');
 const sample:R[]=[
 {id:'demo-1',kind:'students',name:'Jordan Ellis',status:'Road',program:'Class A',cohort:'October cohort',owner:'Lead instructor',sponsor:'Workforce partner',tuition:4500,targetTheory:50,targetYard:50,targetRoad:60,notes:[],documents:[{name:'Enrollment agreement',verified:true},{name:'CLP copy',verified:true}],sessions:[{date:'2026-10-05',phase:'Classroom',hours:50,attendance:'Present',score:88,skill:'Theory assessment',instructor:'Sample instructor'},{date:'2026-10-06',phase:'Yard',hours:38,attendance:'Present',skill:'Alley dock',instructor:'Sample instructor'},{date:'2026-10-06',phase:'Road',hours:18,attendance:'Present',skill:'Lane control',instructor:'Sample instructor'}]},
