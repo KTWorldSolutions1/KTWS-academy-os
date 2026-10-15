@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS attempts(key TEXT PRIMARY KEY,count INTEGER NOT NULL,
 CREATE TABLE IF NOT EXISTS partner_accounts(account TEXT PRIMARY KEY,partner TEXT NOT NULL,campus TEXT NOT NULL,active INTEGER NOT NULL DEFAULT 1);
 CREATE TABLE IF NOT EXISTS partner_grants(id TEXT PRIMARY KEY,account TEXT NOT NULL,partner TEXT NOT NULL,student TEXT NOT NULL,campus TEXT NOT NULL,fields TEXT NOT NULL,consent_key TEXT NOT NULL,expires INTEGER NOT NULL,approved_by TEXT NOT NULL,approved_at TEXT NOT NULL,revoked_at TEXT);
 CREATE INDEX IF NOT EXISTS idx_partner_grants_account ON partner_grants(account,expires);
-CREATE TABLE IF NOT EXISTS student_accounts(account TEXT PRIMARY KEY,student TEXT NOT NULL UNIQUE,campus TEXT NOT NULL,active INTEGER NOT NULL DEFAULT 1,invited_at TEXT NOT NULL,activated_at TEXT);
+CREATE TABLE IF NOT EXISTS student_accounts(account TEXT PRIMARY KEY,student TEXT NOT NULL UNIQUE,campus TEXT NOT NULL,consent_key TEXT NOT NULL,active INTEGER NOT NULL DEFAULT 1,invited_at TEXT NOT NULL,activated_at TEXT);
 CREATE INDEX IF NOT EXISTS idx_student_accounts_student ON student_accounts(student,campus);
 `);
 class Statement{query:string;values:any[]=[];constructor(query:string){this.query=query;}bind(...values:any[]){this.values=values.map(v=>v===undefined?null:v);return this;}async all(){return {results:sql.prepare(this.query).all(...this.values)};}async first(){return sql.prepare(this.query).get(...this.values)||null;}async run(){return sql.prepare(this.query).run(...this.values);}}
