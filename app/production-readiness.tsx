@@ -1,0 +1,9 @@
+'use client';
+import {useState} from 'react';
+type Check={code:string;label:string;state:string;detail:string};
+type Report={checkedAt:string;readyForStudentPII:boolean;blockers:number;manualChecks:number;checks:Check[];disclaimer:string};
+export default function ProductionReadiness(){
+ const [report,setReport]=useState<Report|null>(null),[error,setError]=useState(''),[loading,setLoading]=useState(false);
+ async function check(){setLoading(true);setError('');try{const response=await fetch('/api/readiness',{cache:'no-store'});const data:any=await response.json();if(!response.ok)throw Error(data.error||'Check unavailable');setReport(data);}catch(e:any){setError(e.message||'Check unavailable');}finally{setLoading(false);}}
+ return <section className="panel"><h2>Production readiness review</h2><p className="muted">Owner-only review of saved configuration and technical prerequisites. A green check is not proof of licensing, regulatory clearance or safe handling of real student information.</p><button className="primary" onClick={check} disabled={loading}>{loading?'Checking…':'Run school readiness checks'}</button>{error&&<p className="error" role="alert">{error}</p>}{report&&<><p className="notice" role="status">{report.readyForStudentPII?'Automated prerequisites cleared; complete authorized operational review before launch.':'Not cleared for real student personal information. '+report.blockers+' technical/configuration blocker(s), '+report.manualChecks+' manual verification item(s).'}</p><small>Checked: {new Date(report.checkedAt).toLocaleString()}</small>{report.checks.map(c=><div className="reportrow" key={c.code}><div><b>{c.label} — {c.state==='pass'?'Configured':c.state==='blocker'?'BLOCKER':c.state==='optional'?'Optional':'Verification needed'}</b><small>{c.detail}</small></div></div>)}<p className="footnote">{report.disclaimer}</p></>}</section>;
+}

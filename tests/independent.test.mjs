@@ -23,6 +23,13 @@ try{
  const saved=await json(await send('/api/records',{records:[ca,cb,sa,sb,employee]},cookie));assert.equal(saved.status,200,JSON.stringify(saved.body));
  const invite=await json(await send('/api/accounts/invite',{staffId:employee.id},cookie));assert.equal(invite.status,200);
  const empToken=invite.body.link.split('#token=')[1];const emp=await json(await send('/api/auth/activate',{token:empToken,password:'instructor unique school password'}));assert.equal(emp.status,200);
+ assert.equal((await send('/api/readiness')).status,401);
+ const ownerReadiness=await json(await send('/api/readiness',null,cookie));
+ assert.equal(ownerReadiness.status,200);
+ assert.equal(ownerReadiness.body.readyForStudentPII,false);
+ assert.ok(ownerReadiness.body.checks.some(c=>c.code==='BACKUP'&&c.state==='manual'));
+ assert.equal(JSON.stringify(ownerReadiness.body).includes('Student A'),false);
+ assert.equal((await send('/api/readiness',null,emp.cookie)).status,403);
  const list=await json(await send('/api/records',null,emp.cookie));assert.ok(list.body.records.some(r=>r.id===sa.id));assert.ok(!list.body.records.some(r=>r.id===sb.id));
  assert.equal((await send('/api/accounts/invite',{staffId:employee.id},emp.cookie)).status,403);
  const ps=list.body.records.find(r=>r.id===sa.id);assert.equal((await send('/api/records',{records:[{...ps,status:'Yard'}]},emp.cookie)).status,200);
