@@ -12,7 +12,7 @@ export default function SafetyDesk({records,role,saveMany,busy,demo}:Props){
  const trucks=records.filter(x=>x.kind==='fleet'&&x.campusId===campus?.id);
  const cases=campus?safetyCaseSummary(records,campus.id):[];
  function newConcern(){setMessage('');setError('');setReview(null);if(!campus){setError('Choose an active campus before submitting a report.');return;}setForm({id:crypto.randomUUID(),kind:'safety-incidents',name:'New school safety concern',status:'Reported',campusId:campus.id,date:today(),category:'Hazard',location:'Yard',unitId:'',urgent:false,description:''});}
- function newReview(incident:R){if(!manager)return;setError('');setMessage('');setForm(null);setReview({id:crypto.randomUUID(),kind:'safety-reviews',name:'Safety review — '+incident.name,status:'In review',campusId:incident.campusId,incidentId:incident.id,date:today(),notes:'',sourceReference:'',resolution:''});}
+ function newReview(incident:R){if(!manager)return;setError('');setMessage('');setForm(null);setReview({id:crypto.randomUUID(),kind:'safety-reviews',name:'Safety review — '+incident.name,status:cases.find(c=>c.incident.id===incident.id)?.lastReview?.status==='Resolved'?'Reopened':'In review',campusId:incident.campusId,incidentId:incident.id,date:today(),notes:'',sourceReference:'',resolution:''});}
  async function save(value:R,done:()=>void){
   setError('');setMessage('');
   if(demo){setError('Leave sample mode before creating a real school safety report.');return;}
