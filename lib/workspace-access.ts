@@ -23,7 +23,7 @@ export function projectRecord(r:any,role:string){
  }
  if(!['Owner','Campus manager'].includes(role)){
   const restricted=new Set(restrictedCategories);
-  const {ssn,ssnLast4,drugScreen,dob,medical,medicalQualification,licenseNumber,...safe}=r;
+  const {ssn,ssnLast4,drugScreen,dob,medical,medicalQualification,licenseNumber,clpNumber,driverRecordDate,...safe}=r;
   return {...safe,documents:(r.documents||[]).filter((d:any)=>!restricted.has(d.category))};
  }
  return r;
