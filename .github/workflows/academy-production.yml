@@ -145,3 +145,16 @@ jobs:
           done
           status=$(curl --silent --output /dev/null --write-out '%{http_code}' https://academy.ktworldsolutions.com/api/auth/me)
           test "$status" = "401" || { echo "Expected unauthenticated API response 401, got $status"; exit 1; }
+          # Verify default-deny on real deployed Worker routes. Use no real
+          # student records, credentials, sessions or external accounts.
+          for endpoint in /api/records /api/files /api/partner/me /api/partner/portal; do
+            status=$(curl --silent --output /dev/null --write-out '%{http_code}' "https://academy.ktworldsolutions.com$endpoint")
+            test "$status" = "401" || { echo "Unauthenticated route $endpoint expected 401; got $status"; exit 1; }
+          done
+          status=$(curl --silent --output /dev/null --write-out '%{http_code}' https://academy.ktworldsolutions.com/api/partner/admin)
+          test "$status" = "403" || { echo "External partner administration expected 403; got $status"; exit 1; }
+          status=$(curl --silent --output /dev/null --write-out '%{http_code}' --header 'Cookie: academy_session=invalid-test-session' https://academy.ktworldsolutions.com/api/auth/me)
+          test "$status" = "401" || { echo "Forged session expected 401; got $status"; exit 1; }
+          status=$(curl --silent --output /dev/null --write-out '%{http_code}' --request POST --header 'Origin: https://not-the-school.invalid' --header 'Content-Type: application/json' --data '{}' https://academy.ktworldsolutions.com/api/records)
+          test "$status" = "403" || { echo "Cross-site record update expected 403; got $status"; exit 1; }
+          echo 'Public access gates verified: protected routes deny anonymous sessions and cross-site writes.'
