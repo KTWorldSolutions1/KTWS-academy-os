@@ -149,6 +149,14 @@ if(r.kind==='students'){
   }
  }
  if(['students','leads'].includes(r.kind)&&r.smsConsent===true&&!old?.smsConsent&&(!r.consentNote||String(r.consentNote).trim().length<12)&&r.eventIntake!==true)return Response.json({error:'Record where and how the student expressly agreed to school text messages (at least 12 characters).'}, {status:400});
+ if(['curriculum-units','unit-evidence'].includes(r.kind)){
+   const issue=validateLessonLinks(r,r.kind==='unit-evidence'?current:proposed,access.role,today());
+   if(issue)return Response.json({error:issue.error},{status:issue.status});
+   if(r.kind==='curriculum-units'){
+    if(r.status==='Approved'&&old?.status!=='Approved')r={...r,approvedBy:access.user.email,approvedAt:now};
+    if(r.status==='Retired'&&old?.status==='Approved')r={...r,approvedBy:old.approvedBy,approvedAt:old.approvedAt,retiredBy:access.user.email,retiredAt:now};
+   }
+  }
  const next={...r};if(next.kind==='unit-evidence'){next.recordedBy=access.user.email;next.recordedAt=now;}if(next.kind==='safety-incidents'){next.reportedBy=access.user.email;next.reportedAt=now;}if(next.kind==='safety-reviews'){next.reviewedBy=access.user.email;next.reviewedAt=now;}if(next.kind==='training-assignments'&&next.status==='Completed'){next.completedBy=access.user.email;next.completedAt=now;}if(['students','leads'].includes(next.kind)&&['smsConsent','emailConsent','smsOptOut','emailOptOut'].some(field=>next[field]!==old?.[field])){
   next.consentRecordedAt=old?.consentRecordedAt||now;
   next.consentRecordedBy=old?.consentRecordedBy||access.user.email;
@@ -160,14 +168,6 @@ if(r.kind==='students'){
  const merged=()=>[...current.filter(r=>!updates.some(x=>x.id===r.id)),...updates];
  for(const r of updates){const growthProblem=growthLinkProblem(r,merged());if(growthProblem)return Response.json({error:growthProblem},{status:400});if(r.kind==='students'&&r.classId){const c=merged().find(x=>x.id===r.classId&&x.kind==='classes');if(!c)return Response.json({error:'Selected class does not exist.'},{status:400});if(classRoster(merged(),c.id).length>Number(c.capacity))return Response.json({error:'Class is full. Choose another class or waitlist the application.'},{status:409});if(r.sourceLead&&merged().filter(x=>x.kind==='students'&&x.sourceLead===r.sourceLead).length>1)return Response.json({error:'This lead is already enrolled.'},{status:409});if(!updates.some(x=>x.id===c.id))updates.push({...c});}
  if(r.kind==='classes'&&classRoster(merged(),r.id).length>Number(r.capacity))return Response.json({error:'Class capacity is below its enrolled roster.'},{status:400});
- if(['curriculum-units','unit-evidence'].includes(r.kind)){
-  const issue=validateLessonLinks(r,r.kind==='unit-evidence'?current:merged(),access.role,today());
-  if(issue)return Response.json({error:issue.error},{status:issue.status});
-  if(r.kind==='curriculum-units'){
-   if(r.status==='Approved'&&old?.status!=='Approved'){r={...r,approvedBy:access.user.email,approvedAt:now};}
-   if(r.status==='Retired'&&old?.status==='Approved'){r={...r,approvedBy:old.approvedBy,approvedAt:old.approvedAt,retiredBy:access.user.email,retiredAt:now};}
-  }
- }
  if(r.kind==='tpr'){
   const student=merged().find(x=>x.kind==='students'&&x.id===r.studentId&&x.campusId===r.campusId);
   const campus=merged().find(x=>x.kind==='campuses'&&x.id===r.campusId);
