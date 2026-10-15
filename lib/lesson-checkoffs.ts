@@ -17,6 +17,7 @@ export function validateLessonRecord(r:R):string|null {
   if(!Number.isInteger(Number(r.version))||Number(r.version)<1||Number(r.version)>99)return 'Lesson version must be between 1 and 99.';
   if(!Number.isInteger(Number(r.sequence))||Number(r.sequence)<1||Number(r.sequence)>9999)return 'Lesson order must be between 1 and 9999.';
   if(typeof r.objective!=='string'||r.objective.trim().length<12||r.objective.length>2000)return 'Describe the student learning goal in 12 to 2,000 characters.';
+  if(r.required!==undefined&&typeof r.required!=='boolean')return 'Choose Yes or No for required graduation lessons.';
   if(r.notes!=null&&(typeof r.notes!=='string'||r.notes.length>3000))return 'Keep optional instructor guidance under 3,000 characters.';
   return null;
  }
@@ -44,6 +45,16 @@ export function lessonProgress(all:R[],student:R,includeDrafts=false){
   const status=active?.status==='Completed'&&!sourceStillValid?'Needs review':active?.status||'Not started';
   return {unitId:u.id,name:u.name,phase:u.phase,sequence:u.sequence,version:u.version,status,completedOn:status==='Completed'?active!.date:null,reviewedAt:active?.recordedAt||null};
  });
+}
+/** Required means the campus manager approved this lesson as a local graduation prerequisite.
+ * This does NOT assert that the unit is federally mandated or TPR-submitted. */
+export function schoolLessonGraduationGaps(student:R,records:R[]):string[]{
+ const progress=lessonProgress(records,student);
+ const required=progress.filter(item=>{
+  const unit=records.find(x=>x.id===item.unitId&&x.kind==='curriculum-units');
+  return unit?.required!==false;
+ });
+ return required.filter(item=>item.status!=='Completed').map(item=>'School lesson checkoff: '+item.name+' ('+item.phase+', v'+item.version+')');
 }
 export function validateLessonLinks(r:R,all:R[],role:string,today:string):{status:number;error:string}|null{
  if(r.kind==='curriculum-units'){
