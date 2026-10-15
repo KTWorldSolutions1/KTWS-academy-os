@@ -119,7 +119,7 @@ try{
  const consentRetained=(await json(await send('/api/records',null,cookie))).body.records.find(r=>r.id===sa.id);
  assert.equal(consentRetained.documents.some(d=>d.key===uploadedRelease.body.key&&d.verified===false),true);
 
- const forgedDocument={...retained,documents:[...(retained.documents||[]),{key:'academy-owner/fake-file',name:'Fake',category:'Other'}]};
+ const forgedDocument={...consentRetained,documents:[...(consentRetained.documents||[]),{key:'academy-owner/fake-file',name:'Fake',category:'Other'}]};
  assert.equal((await send('/api/records',{records:[forgedDocument]},cookie)).status,400);
 
  const shift={id:crypto.randomUUID(),kind:'shifts',name:'Test instructor Monday shift',status:'Approved',employeeId:employee.id,campusId:ca.id,date:'2026-10-19',start:'08:00',end:'17:00',breakMinutes:60};
