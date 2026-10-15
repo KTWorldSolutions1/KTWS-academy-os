@@ -22,7 +22,20 @@ export async function POST(req:Request){const access=await getWorkspaceAccess();
  }
  if(old){const p=preserveHistory(old,r)||preserveGrowth(old,r);if(p)return Response.json({error:p},{status:400});}
  for(const field of ['classId','studentId','personId','leadId','unitId','partnerId','sponsorId','eventId','preferredClassId','sourceReferral','referralId','employeeId']){if(r[field]){const linked=proposed.find(x=>x.id===r[field]);if(linked&&!campusAllowed(access.role,access.campusIds,linked,proposed))return Response.json({error:'Linked record is outside your campus access.'},{status:403});}}if(r.kind==='students'&&r.classId&&r.campusId){const cls=proposed.find(x=>x.id===r.classId);if(cls&&campusOf(cls,proposed)!==r.campusId)return Response.json({error:'Student campus must match the assigned class campus.'},{status:400});}
- if(r.kind==='messages'&&!['Draft'].includes(r.status))return Response.json({error:'Use the communications send action to record provider status.'},{status:400});if(r.kind==='staff'&&r.accessRole&&!['Campus manager','Enrollment specialist','Admin assistant','Front desk','Instructor'].includes(r.accessRole))return Response.json({error:'Invalid school access role.'},{status:400});if(r.kind==='employment-offers'){
+ if(r.kind==='messages'&&!['Draft'].includes(r.status))return Response.json({error:'Use the communications send action to record provider status.'},{status:400});if(r.kind==='staff'&&r.accessRole&&!['Campus manager','Enrollment specialist','Admin assistant','Front desk','Instructor'].includes(r.accessRole))return Response.json({error:'Invalid school access role.'},{status:400});if(r.kind==='leads'&&r.eventIntake===true){
+  const event=proposed.find(x=>x.id===r.eventId&&x.kind==='appointments'&&x.outreachEvent===true&&x.type==='Recruiting event');
+  if(!event||event.campusId!==r.campusId||!campusAllowed(access.role,access.campusIds,event,proposed))return Response.json({error:'Choose a saved recruiting event in your assigned campus.'},{status:400});
+  if(!old){
+   const normalizePhone=(v:any)=>String(v||'').replace(/\D/g,'');
+   const email=String(r.email||'').trim().toLowerCase(),phone=normalizePhone(r.phone);
+   const duplicate=current.some(x=>['leads','students'].includes(x.kind)&&campusOf(x,current)===r.campusId&&((email&&String(x.email||'').trim().toLowerCase()===email)||(phone.length>=10&&normalizePhone(x.phone)===phone)));
+   if(duplicate)return Response.json({error:'Possible existing campus lead. Ask admissions to review before creating another entry.'},{status:409});
+   r={...r,consentRecordedAt:now,consentRecordedBy:access.user.email,source:event.name,owner:r.owner||event.owner||'Admissions'};
+  }else{
+   r={...r,consentRecordedAt:old.consentRecordedAt,consentRecordedBy:old.consentRecordedBy,source:old.source,eventId:old.eventId};
+  }
+ }
+if(r.kind==='employment-offers'){
   const student=proposed.find(x=>x.kind==='students'&&x.id===r.studentId);
   if(!student||student.campusId!==r.campusId||!campusAllowed(access.role,access.campusIds,student,proposed))return Response.json({error:'Offer must refer to an enrolled student in your campus.'},{status:400});
   if(r.partnerId){const p=proposed.find(x=>x.kind==='partners'&&x.id===r.partnerId);if(!p||campusOf(p,proposed)!==r.campusId)return Response.json({error:'Employer partner must belong to the same campus.'},{status:400});}
