@@ -559,3 +559,16 @@ small,.muted{color:var(--school-secondary)}
 
 /* End-of-day review reads existing lesson evidence; never credits scheduled hours. */
 .closeout-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:11px;margin:18px 0}.closeout-metrics>div{border:1px solid rgba(161,174,210,.28);border-radius:12px;padding:14px;background:#192540}.closeout-metrics strong{display:block;font-size:24px;font-weight:750;color:#f2edff}.closeout-metrics small{display:block;margin-top:4px;font-size:11px}.closeout-list{display:flex;flex-direction:column}.closeout-item{display:flex;align-items:center;gap:12px;border-top:1px solid rgba(165,184,221,.21);padding:13px 4px}.closeout-item>div{flex:1;min-width:0;display:flex;flex-direction:column;gap:5px}.closeout-item strong{font-size:14px}.closeout-item small{font-size:12px;line-height:1.5}.closeout-item button{white-space:nowrap;display:inline-flex;align-items:center;gap:6px;border-radius:9px;background:#383451;padding:9px 12px;color:#f0e9ff}.closeout-status{color:#b7c2db;flex-shrink:0}.closeout-status.attention{color:#f5c598}.closeout-status.recorded{color:#9be1bc}@media(max-width:750px){.closeout-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.closeout-item{gap:9px}.closeout-item button{padding:9px}}
+
+/* Manager-only availability, in existing Work Schedules — not another sidebar page. */
+.staff-availability{margin-top:22px}
+.staff-availability .sectionhead{align-items:flex-start}
+.staff-availability .availability-all-day{display:flex;align-items:center;gap:10px;margin:13px 0;font-size:14px}
+.staff-availability .availability-holds,.staff-availability .availability-impact{margin:16px 0;padding:13px 16px;border-radius:13px;border:1px solid rgba(155,164,218,.26);background:rgba(28,43,69,.62)}
+.staff-availability .availability-impact{border-color:rgba(233,180,113,.48);background:rgba(67,46,29,.35)}
+.staff-availability h3{display:flex;align-items:center;gap:8px;margin-bottom:10px;font-size:15px}
+.staff-availability .availability-impact>div{display:flex;flex-direction:column;gap:4px;border-top:1px solid rgba(214,189,146,.25);padding:9px 0}
+.staff-availability .availability-impact>div b{font-size:13px}
+.staff-availability .availability-impact>div small{font-size:12px}
+.staff-availability .availability-impact p{font-size:12px;line-height:1.6}
+.staff-availability .reportrow button{display:inline-flex;align-items:center;gap:7px}

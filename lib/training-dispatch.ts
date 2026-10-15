@@ -1,5 +1,6 @@
 import {activeSessions,type RecordData as R} from './training.ts';
 import {instructorCredentialWarnings} from './staff-credentials.ts';
+import {unavailableForLesson} from './staff-availability.ts';
 const validDate=(value:any)=>typeof value==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(value)&&!Number.isNaN(Date.parse(value+'T12:00:00Z'))&&new Date(value+'T12:00:00Z').toISOString().slice(0,10)===value;
 const validTime=(value:any)=>typeof value==='string'&&/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(value);
 const statuses=['Planned','Confirmed','Completed','Cancelled'];
@@ -69,6 +70,7 @@ export function dispatchRecordProblem(r:R,all:R[],role:string,date:string){
  const instructor=all.find(x=>x.kind==='staff'&&x.id===r.employeeId);
  if(!student||student.campusId!==r.campusId||['Withdrawn','Graduated'].includes(student.status))return {status:400,error:'Choose an active student from this campus.'};
  if(!instructor||instructor.status!=='Active'||!instructor.campusIds?.includes(r.campusId)||!['Instructor','Campus manager'].includes(instructor.accessRole))return {status:400,error:'Choose an active, campus-assigned instructor.'};
+ if(r.status!=='Cancelled'&&unavailableForLesson(all,instructor.id,r.date,r.start,r.end))return {status:409,error:'The instructor has approved unavailable time overlapping this lesson. Choose another instructor or time, or ask management to restore availability.'};
  if(instructor.expiry&&instructor.expiry<r.date)return {status:409,error:'Instructor credential expiration needs review before training is scheduled.'};
  const adverse=instructorCredentialWarnings(all,instructor.id,r.campusId,r.date);if(adverse.length&&r.status!=='Cancelled')return {status:409,error:'A recorded instructor qualification needs review before training: '+adverse.map(c=>c.name+' ('+c.state+')').join(', ')};
  if(r.unitId){
