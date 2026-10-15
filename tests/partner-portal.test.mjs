@@ -62,6 +62,6 @@ try{
  assert.equal((await json(send('/api/partner/portal',null,agencyCookie))).body.students.length,0);
  assert.equal((await send('/api/partner/admin',{action:'deactivate',partnerId:agency.id,campusId:ca.id,accountId:external.account},owner.cookie)).status,200);
  assert.equal((await send('/api/partner/me',null,agencyCookie)).status,401);
- assert.equal((await send('/api/auth/login',{email:'rep@agency.example',password:'unique representative password for testing'})).status,403);
+ assert.equal((await send('/api/auth/login',{email:'rep@agency.example',password:'unique representative password for testing'})).status,401);
  console.log('PASS: partner representative account activation, employee-record isolation, explicit verified consent, cross-campus deny, per-field privacy projection, audit grants, revocation and account deactivation.');
 }finally{rmSync(process.env.ACADEMY_DATA_DIR,{recursive:true,force:true});}
