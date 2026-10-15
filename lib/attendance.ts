@@ -16,3 +16,6 @@ export function drivingTimeSummary(student:RecordData){
  const active=(student.sessions||[]).filter((s:any)=>!superseded.has(s.id)&&s.phase==='Road'&&['Present','Late','Left early'].includes(s.attendance));
  return {studentDrivingHours:active.filter((s:any)=>s.mode==='Student driving'&&s.studentOperatedVehicle===true).reduce((n:number,s:any)=>n+Number(s.hours||0),0),observationHours:active.filter((s:any)=>s.mode==='Observation').reduce((n:number,s:any)=>n+Number(s.hours||0),0),unclassifiedRoadHours:active.filter((s:any)=>s.mode!=='Observation'&&!(s.mode==='Student driving'&&s.studentOperatedVehicle===true)).reduce((n:number,s:any)=>n+Number(s.hours||0),0)};
 }
+
+/** Staff-confirmed night behind-the-wheel hours; never inferred from clock time. */
+export function verifiedNightDrivingHours(student:RecordData){const replaced=new Set((student.sessions||[]).map((s:any)=>s.correctionOf).filter(Boolean));return Math.round((student.sessions||[]).filter((s:any)=>!replaced.has(s.id)&&s.phase==='Road'&&s.mode==='Student driving'&&s.studentOperatedVehicle===true&&['Present','Late','Left early'].includes(s.attendance)).reduce((n:number,s:any)=>n+Number(s.nightDrivingHours||0),0)*100)/100;}
