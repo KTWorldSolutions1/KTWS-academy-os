@@ -91,6 +91,32 @@ jobs:
               console.log(name+": "+(available.has(name)?"secret configured":"secret not configured")+" (presence only; validity not verified)");
             }
           ' "$tmp"
+      - name: Read-only data recovery and document inventory
+        if: steps.latest.outputs.deploy == 'true'
+        continue-on-error: true
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -eu
+          files=$(mktemp)
+          bookmark=$(mktemp)
+          trap 'rm -f "$files" "$bookmark"' EXIT
+          npx wrangler d1 execute ktws-academy-school --remote --json --config cloudflare/wrangler.jsonc --command="SELECT CASE WHEN COUNT(*)>0 THEN 'EXISTING' ELSE 'EMPTY' END AS evidence_state FROM school_files;" > "$files"
+          node --input-type=module -e '
+            import {readFileSync} from "node:fs";
+            const x=JSON.parse(readFileSync(process.argv[1],"utf8"));
+            const item=Array.isArray(x)?x[0]:x;
+            const state=item?.results?.[0]?.evidence_state||item?.result?.results?.[0]?.evidence_state;
+            console.log("Prior school document metadata: "+(state==="EXISTING"?"present — check recovery key before generating a replacement":state==="EMPTY"?"no records — no prior uploaded documents in this metadata table":"unknown — manual review required"));
+          ' "$files"
+          npx wrangler d1 time-travel info ktws-academy-school --json --config cloudflare/wrangler.jsonc > "$bookmark"
+          node --input-type=module -e '
+            import {readFileSync} from "node:fs";
+            const x=JSON.parse(readFileSync(process.argv[1],"utf8"));
+            const marker=x?.bookmark||x?.result?.bookmark;
+            console.log("D1 Time Travel current bookmark: "+(typeof marker==="string"&&marker.length>0?"available (recovery not tested)":"not verified"));
+          ' "$bookmark"
       - name: Public endpoint smoke check
         if: steps.latest.outputs.deploy == 'true'
         run: |
