@@ -1,7 +1,6 @@
 import type {RecordData as R} from './training.ts';
 import {attendanceEvidence} from './operations.ts';
-import {activeSessions,instructionHours} from './training.ts';
-import {drivingTimeSummary} from './attendance.ts';
+import {activeSessions} from './training.ts';
 
 export const fundingStages=['Draft','Awaiting authorization','Authorized','Closed','Denied','Expired'] as const;
 const validDate=(s:any)=>typeof s==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(s)&&!Number.isNaN(Date.parse(s+'T12:00:00Z'))&&new Date(s+'T12:00:00Z').toISOString().slice(0,10)===s;
@@ -11,7 +10,7 @@ export function validateSponsorship(r:R){
  if(!fundingStages.includes(r.status))return 'Choose a valid funding approval status.';
  if(!r.studentId||!r.campusId||!r.agencyId)return 'Choose a student, campus and sponsoring organization.';
  const amount=Number(r.authorizedAmount);
- if(!Number.isFinite(amount)||amount<0||amount>1_000_000||Math.round(amount*100)!==amount*100)return 'Enter a nonnegative authorized amount with no more than two decimal places (up to $1 million).';
+ if(!Number.isFinite(amount)||amount<0||amount>1_000_000||Math.abs(amount*100-Math.round(amount*100))>1e-6)return 'Enter a nonnegative authorized amount with no more than two decimal places (up to $1 million).';
  if(!r.approvalDate&&r.status==='Authorized')return 'Enter the date of the written funding authorization.';
  for(const date of ['requestDate','approvalDate','expiresAt','startDate','endDate'])if(r[date]&&!validDate(r[date]))return 'Enter valid funding dates.';
  if(r.expiresAt&&r.approvalDate&&r.expiresAt<r.approvalDate)return 'Authorization cannot expire before it was issued.';
