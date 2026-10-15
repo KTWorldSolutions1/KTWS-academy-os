@@ -6,6 +6,12 @@ export function canWrite(role:string,kind:string){if(role==='Owner')return true;
 export function canRead(role:string,kind:string){if(kind==='employment-offers')return ['Owner','Campus manager','Enrollment specialist'].includes(role);if(kind==='shifts')return ['Owner','Campus manager'].includes(role);if(role==='Instructor')return ['students','courses','quizzes','lessons','schedules','classes','tasks','campuses'].includes(kind);if(role==='Front desk')return ['students','leads','appointments','classes','tasks','campuses','templates'].includes(kind);return true;}
 /** Server-side projection is enforced on API reads, not just hidden in the UI. */
 export function projectRecord(r:any,role:string){
+ // Roles that may coordinate with staff require directory information, not
+ // private credential files, personal contact details or personnel notes.
+ if(r.kind==='staff'&&!['Owner','Campus manager'].includes(role)){
+  const {id,kind,name,status,revision,accessRole,campusIds,position,department}=r;
+  return {id,kind,name,status,revision,accessRole,campusIds,position,department};
+ }
  if(r.kind!=='students')return r;
  if(role==='Front desk'){
   const {id,kind,name,status,revision,campusId,classId,cohort,program,email,phone}=r;
