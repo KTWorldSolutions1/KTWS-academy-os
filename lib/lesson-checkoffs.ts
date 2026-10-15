@@ -71,7 +71,7 @@ export function validateLessonLinks(r:R,all:R[],role:string,today:string):{statu
  else if(r.sourceType==='Skill evaluation')source=(student.evaluations||[]).find((x:any)=>x.id===r.sourceId&&x.phase===unit.phase&&x.instructor?.trim());
  else source=(student.assessments||[]).find((x:any)=>x.id===r.sourceId&&unit.phase==='Classroom'&&x.instructor?.trim());
  if(!source)return {status:400,error:'Choose an actual existing instructor entry for this student and training area.'};
- if(r.sourceType==='Daily attendance'&&source.date&&r.date<source.date)return {status:400,error:'Completion cannot be dated before the recorded training.'};
+ if(source.date&&r.date<source.date)return {status:400,error:'Completion cannot be dated before the recorded training.'};
  if(r.status==='Completed'&&r.sourceType==='Skill evaluation'&&(source.level!=='Proficient'||source.signed!==true))return {status:400,error:'Skill completion requires the signed, proficient instructor evaluation.'};
  if(r.status==='Completed'&&r.sourceType==='Assessment'&&Number(source.score)<80)return {status:400,error:'A theory assessment below the school passing threshold needs additional practice, not completion.'};
  return null;
