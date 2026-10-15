@@ -81,6 +81,17 @@ try{
  const ownerRestricted=await json(await handle(new Request('https://academy.test/api/files',{method:'POST',headers:{Origin:'https://academy.test',Cookie:cookie},body:restricted})));assert.equal(ownerRestricted.status,200);
  assert.equal((await send('/api/files?key='+ownerRestricted.body.key,null,adminAccount.cookie)).status,403);
  assert.equal((await send('/api/files?key='+ownerRestricted.body.key,null,cookie)).status,200);
+ const latestStudent=(await json(await send('/api/records',null,cookie))).body.records.find(r=>r.id===sa.id);
+ const withRestricted={...latestStudent,documents:[...(latestStudent.documents||[]),{...ownerRestricted.body,verified:false}]};
+ assert.equal((await send('/api/records',{records:[withRestricted]},cookie)).status,200);
+ const redacted=(await json(await send('/api/records',null,adminAccount.cookie))).body.records.find(r=>r.id===sa.id);
+ assert.equal(redacted.documents.some(d=>d.key===ownerRestricted.body.key),false);
+ assert.equal((await send('/api/records',{records:[{...redacted,name:'Student A updated by office'}]},adminAccount.cookie)).status,200);
+ const retained=(await json(await send('/api/records',null,cookie))).body.records.find(r=>r.id===sa.id);
+ assert.equal(retained.documents.some(d=>d.key===ownerRestricted.body.key),true);
+ const forged={...retained,documents:[...(retained.documents||[]),{key:'academy-owner/fake-file',name:'Fake',category:'Other'}]};
+ assert.equal((await send('/api/records',{records:[forged]},cookie)).status,400);
+
  const staffCurrent=(await json(await send('/api/records',null,cookie))).body.records.find(r=>r.id===employee.id);assert.equal((await send('/api/records',{records:[{...staffCurrent,status:'Inactive'}]},cookie)).status,200);assert.equal((await send('/api/records',null,emp.cookie)).status,401);
  const cross=await handle(new Request('https://academy.test/api/records',{method:'POST',headers:{Origin:'https://attacker.test',Cookie:cookie,'Content-Type':'application/json'},body:'{}'}));assert.equal(cross.status,403);
  assert.equal((await send('/api/auth/logout',{},cookie)).status,200);assert.equal((await send('/api/records',null,cookie)).status,401);
