@@ -419,3 +419,15 @@ small,.muted{color:var(--school-secondary)}
 .credential-screen label:has(textarea){display:flex;flex-direction:column;gap:7px;margin-bottom:15px}
 .credential-screen textarea{border-radius:10px;border:1px solid #526181;padding:11px;background:#17243b;color:white}
 @media(max-width:760px){.credential-summary{grid-template-columns:1fr}.credential-summary button{padding:12px}}
+
+/* Campus incident reporting: calm, accessible and private by default. */
+.school-safety{display:flex;flex-direction:column;gap:18px}
+.school-safety>.panel{margin:0}
+.school-safety .safety-emergency{border:1px solid rgba(231,166,121,.45);background:rgba(112,66,40,.14);border-radius:14px;padding:15px 18px;margin:14px 0 20px}
+.school-safety .safety-emergency strong{display:flex;gap:8px;align-items:center;color:#ffdec2}
+.school-safety .safety-emergency p{color:#e4d2c7;font-size:13px;line-height:1.65;margin:9px 0 0}
+.school-safety>.panel>label{display:flex;flex-direction:column;gap:8px;margin:15px 0}
+.school-safety textarea,.school-safety input,.school-safety select{max-width:100%}
+.school-safety textarea{width:100%;background:#162239;color:#f4f3ff;border:1px solid #566587;border-radius:10px;padding:12px}
+.school-safety .reportrow small{display:block;line-height:1.65;margin-top:4px}
+@media(max-width:760px){.school-safety>.panel{padding:17px}.school-safety .reportrow{align-items:flex-start;flex-wrap:wrap}}
