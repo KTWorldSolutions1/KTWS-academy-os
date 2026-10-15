@@ -1,5 +1,5 @@
 import type {RecordData as R} from './training';
-import {studentOperationalFlags} from './academy-scenarios';
+import {studentOperationalFlags} from './academy-scenarios.ts';
 
 export function weeklyManagerBrief(records:R[],asOf:string){
  const date=/^\d{4}-\d{2}-\d{2}$/.test(asOf)?asOf:new Date().toISOString().slice(0,10);
