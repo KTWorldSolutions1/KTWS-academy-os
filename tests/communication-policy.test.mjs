@@ -46,7 +46,14 @@ try{
  assert.equal((await send('/api/records',{records:[{...saved,body:'Updated draft only.'}]},owner.cookie)).status,200);
  assert.equal((await send('/api/records',{records:[{...draft,id:crypto.randomUUID(),studentId:sb.id}]},owner.cookie)).status,403);
  assert.equal((await send('/api/records',{records:[{...draft,id:crypto.randomUUID(),status:'Delivered'}]},owner.cookie)).status,403);
- const unsub={...sa,emailOptOut:true};
+ const smsOptIn=(await json(send('/api/records',null,owner.cookie))).body.records.find(x=>x.id===sa.id);
+ assert.equal((await send('/api/records',{records:[{...smsOptIn,smsConsent:true,consentNote:'short'}]},owner.cookie)).status,400);
+ assert.equal((await send('/api/records',{records:[{...smsOptIn,smsConsent:true,consentNote:'Explicit permission signed at the school office.'}]},owner.cookie)).status,200);
+ const smsCurrent=(await json(send('/api/records',null,owner.cookie))).body.records.find(x=>x.id===sa.id);
+ assert.equal(smsCurrent.smsConsentSource,'Explicit permission signed at the school office.');
+ assert.equal(smsCurrent.consentRecordedBy,'owner@test.example');
+ assert.ok(smsCurrent.smsConsentAt);
+  const unsub={...sa,emailOptOut:true};
  const latest=(await json(send('/api/records',null,owner.cookie))).body.records.find(x=>x.id===sa.id);
  assert.equal((await send('/api/records',{records:[{...latest,emailOptOut:true}]},owner.cookie)).status,200);
  assert.equal((await send('/api/communications',{id:crypto.randomUUID(),studentId:sa.id,channel:'Email',body:'School update',confirmSend:true},owner.cookie)).status,403);
