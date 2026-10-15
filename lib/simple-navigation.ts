@@ -21,8 +21,8 @@ export const schoolSections:SchoolSection[]=[
   {id:'event-intake',label:'Event Signups',help:'Save contacts from fairs and events'}
  ]},
  {id:'training',label:'Training',help:'Classes, attendance, trucks and training records.',pages:[
-  {id:'classes',label:'Classes',help:'Start dates, schedules and class lists'},
-  {id:'courses',label:'Attendance & Lessons',help:'Daily attendance, driving hours and tests'},
+  {id:'courses',label:'Take Attendance',help:'Daily training, driving hours and tests'},
+  {id:'classes',label:'Classes & Dates',help:'Start dates, schedules and class lists'},
   {id:'fleet',label:'Trucks & Equipment',help:'Training vehicles and maintenance'},
   {id:'tpr',label:'Federal Training Records',help:'Track required reporting; verify submissions'}
  ]},
