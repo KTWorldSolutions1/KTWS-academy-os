@@ -12,7 +12,8 @@ const stepLabels=['Enrollment pending','Classroom','Yard','Road','Test preparati
 function percent(achieved:number,target:number){return target>0?Math.min(100,Math.max(0,Math.round(achieved/target*100))):0;}
 export default function Student360({student:s,records,role,onPage}:Props){
  const date=new Date().toLocaleDateString('en-CA',{timeZone:'America/New_York'});
- const plan=studentPlan(s,records,date),theory=theoryState(s),ready=graduationReadiness(s);
+ if(!moduleAllowed(role,'courses'))return <div className="student-360"><div className="s360-hero"><div className="s360-mark"><GraduationCap size={26}/></div><div><h3>Student at a glance</h3><p>{s.name} · {s.program||'Program not specified'} · {s.status}</p></div></div><div className="s360-block"><h3>Basic school information</h3><p>Class: {records.find(r=>r.id===s.classId)?.name||s.cohort||'Not assigned'}</p><p>Campus: {records.find(r=>r.id===s.campusId)?.name||'Assigned campus'}</p><small>Open the student's permitted contact details in Overview. Training, funding and restricted documents are available only to authorized school roles.</small></div></div>;
+  const plan=studentPlan(s,records,date),theory=theoryState(s),ready=graduationReadiness(s);
  const road=drivingTimeSummary(s),sessions=activeSessions(s);
  const assigned=scheduleForStudent(s.id,records).filter(x=>x.date>=date&&['Planned','Confirmed'].includes(x.status)).slice(0,5);
  const checklist=Array.isArray(s.documents)?s.documents:[];
