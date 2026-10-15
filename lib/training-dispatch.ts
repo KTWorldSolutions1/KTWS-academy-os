@@ -1,4 +1,4 @@
-import type {RecordData as R} from './training.ts';
+import {activeSessions,type RecordData as R} from './training.ts';
 const validDate=(value:any)=>typeof value==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(value)&&!Number.isNaN(Date.parse(value+'T12:00:00Z'))&&new Date(value+'T12:00:00Z').toISOString().slice(0,10)===value;
 const validTime=(value:any)=>typeof value==='string'&&/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(value);
 const statuses=['Planned','Confirmed','Completed','Cancelled'];
@@ -19,6 +19,7 @@ export function validateTrainingDispatch(r:R){
   if(!['Passed','Defect reported','Cleared'].includes(r.status))return 'Choose a valid truck check result.';
   if(!r.campusId||!r.unitId||!validDate(r.date))return 'Choose a campus, vehicle and valid check date.';
   if(r.status==='Defect reported'&&(!r.notes?.trim()||r.notes.trim().length<8))return 'Describe the defect and training safety concern.';
+  if(r.status==='Passed'&&(!r.notes?.trim()||r.notes.trim().length<10))return 'Describe which approved truck check was completed. Do not claim a government inspection was passed.';
   if(r.status==='Cleared'&&(!r.defectId||!r.notes?.trim()||r.notes.trim().length<8))return 'Identify the original defect and document the repairs and approval.';
   if(r.notes!=null&&(typeof r.notes!=='string'||r.notes.length>3000))return 'Keep safety notes under 3,000 characters.';
  }
@@ -34,6 +35,21 @@ export function dispatchOverlap(r:R,all:R[]){
   (!!r.employeeId&&x.employeeId===r.employeeId)|| (!!r.studentId&&x.studentId===r.studentId)||
   (!!r.unitId&&x.unitId===r.unitId)
  ))||null;
+}
+export function completedLessonEvidence(assignment:R,records:R[]){
+ const student=records.find(s=>s.kind==='students'&&s.id===assignment.studentId);
+ const instructor=records.find(s=>s.kind==='staff'&&s.id===assignment.employeeId);
+ if(!student||!instructor)return null;
+ const match=String(instructor.name||'').trim().toLowerCase();
+ return activeSessions(student).find(entry=>
+  entry.date===assignment.date&&entry.phase===assignment.phase&&
+  ['Present','Late','Left early'].includes(entry.attendance)&&Number(entry.hours)>0&&
+  String(entry.instructor||'').trim().toLowerCase()===match&&
+  (!entry.start||!entry.end||entry.start<assignment.end&&entry.end>assignment.start)
+ )||null;
+}
+export function sameDayVehicleCheck(r:R,all:R[]){
+ return all.find(x=>x.kind==='vehicle-checks'&&x.unitId===r.unitId&&x.campusId===r.campusId&&x.status==='Passed'&&x.date===r.date)||null;
 }
 export function dispatchRecordProblem(r:R,all:R[],role:string,date:string){
  if(r.kind==='vehicle-checks'){
@@ -60,7 +76,12 @@ export function dispatchRecordProblem(r:R,all:R[],role:string,date:string){
   if(r.status!=='Cancelled'&&unresolvedVehicleDefects(all,r.unitId).some(x=>x.date<=r.date))return {status:409,error:'Training vehicle has an unresolved safety defect. Campus management must record a repair clearance before scheduling.'};
  }
  if(r.status!=='Cancelled'&&r.date<date&&r.status==='Planned')return {status:400,error:'Past training must be documented from actual attendance, not newly planned.'};
- const conflict=dispatchOverlap(r,all);
+ if(r.status==='Completed'){
+  if(r.date>date)return {status:400,error:'A future lesson cannot be marked complete.'};
+  if(!completedLessonEvidence(r,all))return {status:409,error:'First record actual training attendance for this student, date, phase and assigned instructor. A planned lesson is not a driving-hours record.'};
+  if(r.unitId&&!sameDayVehicleCheck(r,all))return {status:409,error:'Before completing a yard or road lesson, record the school truck check for that same day. This is not a DOT or DMV inspection.'};
+ }
+  const conflict=dispatchOverlap(r,all);
  if(conflict)return {status:409,error:'Another training lesson overlaps for this instructor, student or vehicle: '+conflict.name};
  return null;
 }
