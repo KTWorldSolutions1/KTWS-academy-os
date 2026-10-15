@@ -31,6 +31,7 @@ export const schoolSections:SchoolSection[]=[
  {id:'team',label:'Team',help:'Give assignments and manage staff.',pages:[
   {id:'tasks',label:'To-Do List',help:'Work assigned to your team'},
   {id:'staff',label:'Employees',help:'Staff accounts and roles'},
+  {id:'credentials',label:'Staff Licenses',help:'Instructor approvals and renewal dates'},
   {id:'shifts',label:'Work Schedules',help:'Plan coverage and paid hours'}
  ]},
  {id:'partners',label:'Partners',help:'Work with employers and funding agencies.',pages:[
