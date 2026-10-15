@@ -127,7 +127,13 @@ try{
  assert.equal((await send('/api/records',{records:[{...shift,id:crypto.randomUUID(),date:'2026-10-20'}]},emp.cookie)).status,403);
  assert.equal((await send('/api/records',{records:[{...shift,id:crypto.randomUUID(),start:'13:00'}]},cookie)).status,409);
  assert.equal((await send('/api/records',{records:[{...shift,id:crypto.randomUUID(),campusId:cb.id,date:'2026-10-20'}]},cookie)).status,400);
- const staffCurrent=(await json(await send('/api/records',null,cookie))).body.records.find(r=>r.id===employee.id);assert.equal((await send('/api/records',{records:[{...staffCurrent,status:'Inactive'}]},cookie)).status,200);assert.equal((await send('/api/records',null,emp.cookie)).status,401);
+ const directory=(await json(await send('/api/records',null,adminAccount.cookie))).body.records.find(r=>r.id===employee.id);
+ assert.ok(directory);
+ assert.equal(directory.name,'Instructor');
+ assert.equal(directory.email,undefined);
+ assert.equal(directory.position,undefined);
+ assert.equal(directory.campusIds[0],ca.id);
+  const staffCurrent=(await json(await send('/api/records',null,cookie))).body.records.find(r=>r.id===employee.id);assert.equal((await send('/api/records',{records:[{...staffCurrent,status:'Inactive'}]},cookie)).status,200);assert.equal((await send('/api/records',null,emp.cookie)).status,401);
  const cross=await handle(new Request('https://academy.test/api/records',{method:'POST',headers:{Origin:'https://attacker.test',Cookie:cookie,'Content-Type':'application/json'},body:'{}'}));assert.equal(cross.status,403);
  assert.equal((await send('/api/auth/logout',{},cookie)).status,200);assert.equal((await send('/api/records',null,cookie)).status,401);
  console.log('PASS: independent login, one-use activation, forged-header rejection, campus isolation, instructor transfer, encrypted files, contract attachment, inactive employee blocking, CSRF, logout, support case ownership/closure, duplicate protection and private career projection, referral handoffs, outreach history and recruiting event conflicts.');
