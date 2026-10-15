@@ -103,6 +103,22 @@ try{
  assert.equal((await send('/api/records',{records:[{...redacted,name:'Student A updated by office'}]},adminAccount.cookie)).status,200);
  const retained=(await json(await send('/api/records',null,cookie))).body.records.find(r=>r.id===sa.id);
  assert.equal(retained.documents.some(d=>d.key===ownerRestricted.body.key),true);
+ // Consent-to-disclose records need the same management-only protection as other restricted evidence.
+ const consent=new FormData();consent.set('studentId',sa.id);consent.set('category','Information release authorization');consent.set('file',new File(['Fictional release document'],'release.txt',{type:'text/plain'}));
+ assert.equal((await handle(new Request('https://academy.test/api/files',{method:'POST',headers:{Origin:'https://academy.test',Cookie:adminAccount.cookie},body:consent}))).status,403);
+ const uploadedRelease=await json(await handle(new Request('https://academy.test/api/files',{method:'POST',headers:{Origin:'https://academy.test',Cookie:cookie},body:consent})));
+ assert.equal(uploadedRelease.status,200);
+ assert.equal((await send('/api/files?key='+uploadedRelease.body.key,null,adminAccount.cookie)).status,403);
+ const releaseStudent=(await json(await send('/api/records',null,cookie))).body.records.find(r=>r.id===sa.id);
+ assert.equal((await send('/api/records',{records:[{...releaseStudent,documents:[...(releaseStudent.documents||[]),{...uploadedRelease.body,verified:false}]}]},cookie)).status,200);
+ const officeView=(await json(await send('/api/records',null,adminAccount.cookie))).body.records.find(r=>r.id===sa.id);
+ assert.equal(officeView.documents.some(d=>d.key===uploadedRelease.body.key),false);
+ assert.equal((await send('/api/records',{records:[{...officeView,documents:[...(officeView.documents||[]),{...uploadedRelease.body,verified:true}]}]},adminAccount.cookie)).status,403);
+ const officeClean=(await json(await send('/api/records',null,adminAccount.cookie))).body.records.find(r=>r.id===sa.id);
+ assert.equal((await send('/api/records',{records:[{...officeClean,name:'Office safe edit'}]},adminAccount.cookie)).status,200);
+ const consentRetained=(await json(await send('/api/records',null,cookie))).body.records.find(r=>r.id===sa.id);
+ assert.equal(consentRetained.documents.some(d=>d.key===uploadedRelease.body.key&&d.verified===false),true);
+
  const forgedDocument={...retained,documents:[...(retained.documents||[]),{key:'academy-owner/fake-file',name:'Fake',category:'Other'}]};
  assert.equal((await send('/api/records',{records:[forgedDocument]},cookie)).status,400);
 
