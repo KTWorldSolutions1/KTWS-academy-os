@@ -431,3 +431,25 @@ small,.muted{color:var(--school-secondary)}
 .school-safety textarea{width:100%;background:#162239;color:#f4f3ff;border:1px solid #566587;border-radius:10px;padding:12px}
 .school-safety .reportrow small{display:block;line-height:1.65;margin-top:4px}
 @media(max-width:760px){.school-safety>.panel{padding:17px}.school-safety .reportrow{align-items:flex-start;flex-wrap:wrap}}
+
+/* Instructor-friendly CDL lesson checkoffs: quiet, source-linked progress. */
+.lesson-checkoffs{display:flex;flex-direction:column;gap:18px}
+.lesson-checkoffs .panel{margin:0}
+.lesson-checkoffs .subtabs{display:flex;gap:9px;flex-wrap:wrap;margin-top:18px}
+.lesson-checkoffs .subtabs button{min-height:44px;padding:10px 16px;border-radius:11px;border:1px solid rgba(148,164,205,.26);background:#1f2b49;color:#e2eafb;font-size:13px;font-weight:700}
+.lesson-checkoffs .subtabs button.active{background:linear-gradient(100deg,#55427f,#353760);border-color:#baa1fd;color:#fff}
+.lesson-progress-row{display:flex;align-items:center;gap:13px;padding:14px 2px;border-top:1px solid rgba(157,177,211,.18)}
+.lesson-progress-row>div:nth-child(2){display:flex;flex-direction:column;gap:6px;flex:1;min-width:0}
+.lesson-progress-row b{font-size:14px;font-weight:720;line-height:1.4}
+.lesson-progress-row small{font-size:12px;line-height:1.5;overflow-wrap:anywhere}
+.lesson-progress-row>button,.lesson-row-actions button{font-size:12px;white-space:nowrap;min-height:43px;border-radius:9px;padding:10px 13px;background:#323b61;border:1px solid #6372a0;color:#f2efff}
+.lesson-row-actions{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end}
+.lesson-marker{width:38px;height:38px;display:grid;place-items:center;flex-shrink:0;border-radius:11px;background:#303953;color:#bdc9e5}
+.lesson-marker.done{background:#264b46;color:#b4f7dc}
+.lesson-marker.attention{background:#5a452c;color:#ffe2b1}
+.lesson-editor{display:flex;flex-direction:column;gap:16px}
+.lesson-editor>label{display:flex;flex-direction:column;gap:8px}
+.lesson-editor>label textarea{width:100%;border:1px solid #637296;background:#1e2d4d;border-radius:10px;color:#f4f1ff;min-height:88px;padding:12px}
+.lesson-editor .formactions{display:flex;gap:10px;flex-wrap:wrap}
+.lesson-editor .formactions button{min-height:45px;padding:10px 15px;border-radius:10px}
+@media(max-width:760px){.lesson-progress-row{align-items:flex-start;flex-wrap:wrap}.lesson-progress-row>div:nth-child(2){flex-basis:calc(100% - 65px)}.lesson-row-actions{width:100%;justify-content:flex-end}.lesson-progress-row>button{margin-left:auto}.lesson-editor .formactions button{flex:1}}
