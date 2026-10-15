@@ -17,7 +17,7 @@ try{
  assert.equal(owner.status,200);
  const ca={id:crypto.randomUUID(),kind:'campuses',name:'Greensboro NC',status:'Active'};
  const cb={id:crypto.randomUUID(),kind:'campuses',name:'Mansfield TX',status:'Active'};
- const agency={id:crypto.randomUUID(),kind:'partners',name:'Community agency',campusId:ca.id,status:'Active',type:'WIOA agency',contact:'Case worker',relationshipStage:'Partner',owner:'Academy'};
+ const agency={id:crypto.randomUUID(),kind:'partners',name:'Community agency',campusId:ca.id,status:'Active',type:'Workforce agency',contact:'Case worker',relationshipStage:'Active partnership',owner:'Academy'};
  const student={id:crypto.randomUUID(),kind:'students',name:'STUDENT-TEST-001',status:'Classroom',campusId:ca.id,documents:[],sessions:[],email:'private-student@example.com'};
  const foreign={id:crypto.randomUUID(),kind:'students',name:'STUDENT-TEST-002',status:'Classroom',campusId:cb.id,documents:[]};
  const init=await json(send('/api/records',{records:[ca,cb,agency,student,foreign]},owner.cookie));
