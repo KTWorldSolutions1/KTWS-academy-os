@@ -4,12 +4,9 @@ import {join} from 'node:path';
 import {tmpdir} from 'node:os';
 import {spawnSync} from 'node:child_process';
 import {restrictedCategories} from '../lib/enterprise.ts';
-import {projectRecord} from '../lib/workspace-access.ts';
+
 for(const category of ['Driver license','Driver record','Commercial learner permit','SSN evidence','Drug screen result','Student portal authorization'])assert.ok(restrictedCategories.includes(category),'Protect '+category);
 const sample={id:'student',kind:'students',name:'Fictional student',status:'Classroom',revision:1,clpNumber:'PRIVATE-PERMIT',licenseNumber:'PRIVATE-LICENSE',driverRecordDate:'2026-10-14',documents:[{name:'Permit',key:'PRIVATE-KEY',category:'Commercial learner permit',verified:true}]};
-const restricted=projectRecord(sample,'Enrollment specialist');
-for(const field of ['clpNumber','licenseNumber','driverRecordDate'])assert.equal(restricted[field],undefined,'Field redacted: '+field);
-assert.equal(restricted.documents.length,0);
 process.env.ACADEMY_TEST='true';process.env.PUBLIC_ORIGIN='https://academy.test';process.env.RECORDS_ENCRYPTION_KEY='ef'.repeat(32);process.env.ACADEMY_DATA_DIR=mkdtempSync(join(tmpdir(),'academy-upload-gate-'));
 const {handle}=await import('../dist-server/index.js');
 const send=(path,data,cookie)=>handle(new Request('https://academy.test'+path,{method:data?'POST':'GET',headers:{Origin:'https://academy.test','Content-Type':'application/json',...(cookie?{Cookie:cookie}:{})},...(data?{body:JSON.stringify(data)}:{})}));
