@@ -45,6 +45,6 @@ try{
  assert.match(renderQuickFind('Instructor'),/Search your school|SEARCH YOUR SCHOOL/);
  assert.doesNotMatch(renderQuickFind('Instructor'),/PRIVATE STUDENT RECORD/); // Don't print student names until someone searches.
  
- assert.equal((workspace.match(/aria-current="page"/g)||[]).length,2,'Active sidebar and active Home task');
+ assert.equal((workspace.match(/aria-current="page"/g)||[]).length,3,'One active section, current page and matching phone dock item');
   console.log('PASS: all growth/operations views render with populated and empty records, connected student plans and instructor-limited navigation.');
 }finally{rmSync(entry,{force:true});rmSync(out,{recursive:true,force:true});}
