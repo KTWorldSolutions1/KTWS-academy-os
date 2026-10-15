@@ -1,0 +1,10 @@
+'use client';
+import {useMemo,useState} from 'react';
+import type {RecordData} from '../lib/training';
+import {weeklyManagerBrief} from '../lib/manager-brief';
+export default function ManagerBrief({records}:{records:RecordData[]}){
+ const [date,setDate]=useState(new Date().toISOString().slice(0,10)),[copied,setCopied]=useState(false);
+ const brief=useMemo(()=>weeklyManagerBrief(records,date),[records,date]);
+ function download(){const blob=new Blob([brief.text],{type:'text/plain;charset=utf-8'}),url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download='lone-star-manager-brief-'+date+'.txt';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+ return <section className="panel"><h2>Weekly manager brief</h2><p className="muted">A collaborative summary for Lone Star leadership, based only on records visible within your authorized campus scope. Counts represent recorded activity; missing entries and unverified approvals must be checked before sending.</p><div className="formgrid"><label>As-of date<input type="date" value={date} onChange={e=>{if(e.target.value)setDate(e.target.value);}}/></label></div><div className="todayfocus"><b>{brief.stats.activeStudents} active students • {brief.stats.leads} saved leads • {brief.stats.upcomingEvents} upcoming events</b><p>{brief.stats.overdue} overdue follow-ups • {brief.stats.pendingFunding} pending funding authorizations • {brief.stats.missingAttendance} attendance recording gaps</p></div><label className="standalone">Leadership report draft<textarea readOnly rows={28} value={brief.text}/></label><div className="reportactions"><button className="primary" onClick={async()=>{try{await navigator.clipboard.writeText(brief.text);setCopied(true);}catch{setCopied(false);}}}>{copied?'Copied':'Copy report'}</button><button onClick={download}>Save .txt report</button></div><p className="footnote">This is an internal report draft. Review factual claims, staffing and facility approvals, event details, and funding outcomes before sharing with owners or agencies. No confidential student identities are included in the generated report.</p></section>;
+}
