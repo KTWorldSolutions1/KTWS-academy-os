@@ -9,7 +9,7 @@ export async function POST(req:Request) {
  if(!access)return Response.json({error:'Sign in required'},{status:401});
  if(access.role!=='Owner')return Response.json({error:'Owner access required'},{status:403});
  if(req.headers.get('origin')!==new URL(req.url).origin)return Response.json({error:'Invalid origin'},{status:403});
- const id=crypto.randomUUID(),key=access.scope+'/diagnostic-'+id;
+ const id=crypto.randomUUID(),key=access.scope+'/'+id;
  let uploaded=false;
  const checkedAt=new Date().toISOString();
  const result:any={checkedAt,encryptedRoundTrip:false,bucketRoundTrip:false,temporaryObjectRemoved:false,databaseRead:false};
