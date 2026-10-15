@@ -1,0 +1,18 @@
+{
+  "name": "Lone Star Truck Driving Academy",
+  "short_name": "Lone Star",
+  "description": "Private school operations for authorized Lone Star employees",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#090d18",
+  "theme_color": "#12192b",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

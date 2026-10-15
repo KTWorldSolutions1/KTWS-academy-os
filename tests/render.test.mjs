@@ -4,10 +4,10 @@ import {build} from 'vite';
 import {resolve} from 'node:path';
 import {pathToFileURL} from 'node:url';
 const entry=resolve('tests/.academy-render-check.mjs'),out=resolve('tests/.render-check');
-writeFileSync(entry,`import React from 'react';import {renderToStaticMarkup} from 'react-dom/server';import Growth from '../app/growth-center.tsx';import Operations from '../app/operations-center.tsx';import StaffScheduler from '../app/staff-scheduler.tsx';import EnterpriseCenter from '../app/enterprise-center.tsx';import Academy from '../app/workspace.tsx';export const renderWorkspace=()=>renderToStaticMarkup(React.createElement(Academy));export const render=(kind,props)=>renderToStaticMarkup(React.createElement(kind==='enterprise'?EnterpriseCenter:kind==='growth'?Growth:kind==='shifts'?StaffScheduler:Operations,props));`);
+writeFileSync(entry,`import React from 'react';import {renderToStaticMarkup} from 'react-dom/server';import Growth from '../app/growth-center.tsx';import Operations from '../app/operations-center.tsx';import StaffScheduler from '../app/staff-scheduler.tsx';import EnterpriseCenter from '../app/enterprise-center.tsx';import Academy from '../app/workspace.tsx';import PhoneDock from '../app/phone-dock.tsx';import QuickFind from '../app/quick-find.tsx';import {availableSchoolSections} from '../lib/simple-navigation.ts';export const renderPhone=(role)=>renderToStaticMarkup(React.createElement(PhoneDock,{navigation:availableSchoolSections(role),activeSection:'home',onNavigate:()=>{},onMore:()=>{}}));export const renderQuickFind=(role)=>renderToStaticMarkup(React.createElement(QuickFind,{records:[{id:'secret',kind:'students',name:'PRIVATE STUDENT RECORD',status:'Road'}],navigation:availableSchoolSections(role),onClose:()=>{},onNavigate:()=>{}}));export const renderWorkspace=()=>renderToStaticMarkup(React.createElement(Academy));export const render=(kind,props)=>renderToStaticMarkup(React.createElement(kind==='enterprise'?EnterpriseCenter:kind==='growth'?Growth:kind==='shifts'?StaffScheduler:Operations,props));`);
 try{
  const result=await build({build:{ssr:entry,outDir:out,rollupOptions:{input:entry}}});
- const chunk=result.output.find(x=>x.type==='chunk'&&x.isEntry),{render,renderWorkspace}=await import(pathToFileURL(resolve(out,chunk.fileName)).href);
+ const chunk=result.output.find(x=>x.type==='chunk'&&x.isEntry),{render,renderWorkspace,renderPhone,renderQuickFind}=await import(pathToFileURL(resolve(out,chunk.fileName)).href);
  const day=new Date().toLocaleDateString('en-CA',{timeZone:'America/New_York'}),records=[
   {id:'campus',kind:'campuses',name:'Sample campus',status:'Active'},
   {id:'partner',kind:'partners',name:'Sample training employer',status:'Prospect',campusId:'campus',relationshipStage:'Contacted',owner:'Admissions',awayFrom:day,awayThrough:day,backupContact:'Backup rep',contactAvailabilityNote:'Contact away today',relationshipNotes:'Agency paperwork pending'},
@@ -31,9 +31,20 @@ try{
  assert.match(federal,/does not submit it to FMCSA/);
  const workspace=renderWorkspace();
  assert.match(workspace,/Main sections/);
- assert.match(workspace,/What do you need to do/);
+ assert.match(workspace,/Find student/);
  assert.match(workspace,/School Setup/);
  assert.match(workspace,/Take attendance/);
- assert.equal((workspace.match(/aria-current="page"/g)||[]).length,2,'Active sidebar and active Home task');
+ assert.match(workspace,/Your school, in focus/);
+ assert.match(workspace,/What needs your attention/);
+ assert.match(workspace,/Find anything/);
+ assert.match(workspace,/phone-dock/);
+ assert.match(renderPhone('Instructor'),/Training/);
+ assert.doesNotMatch(renderPhone('Instructor'),/Admissions/);
+ assert.match(renderPhone('Front desk'),/Admissions/);
+ assert.doesNotMatch(renderPhone('Front desk'),/Training/);
+ assert.match(renderQuickFind('Instructor'),/Search your school|SEARCH YOUR SCHOOL/);
+ assert.doesNotMatch(renderQuickFind('Instructor'),/PRIVATE STUDENT RECORD/); // Don't print student names until someone searches.
+ 
+ assert.equal((workspace.match(/aria-current="page"/g)||[]).length,3,'One active section, current page and matching phone dock item');
   console.log('PASS: all growth/operations views render with populated and empty records, connected student plans and instructor-limited navigation.');
 }finally{rmSync(entry,{force:true});rmSync(out,{recursive:true,force:true});}
