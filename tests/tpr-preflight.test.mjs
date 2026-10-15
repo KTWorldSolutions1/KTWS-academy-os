@@ -53,5 +53,8 @@ try{
  const recorded=(await json(send('/api/records',null,owner.cookie))).body.records.find(r=>r.id===track.id);
  assert.equal(recorded.reviewedBy,'owner@test.example');
  assert.equal(recorded.status,'Confirmed');
+ assert.equal((await send('/api/records',{records:[{...recorded,status:'Correction needed'}]},recruit.cookie)).status,403);
+ assert.equal((await send('/api/records',{records:[{...recorded,status:'Correction needed'}]},owner.cookie)).status,400);
+ assert.equal((await send('/api/records',{records:[{...recorded,status:'Correction needed',correctionReason:'Official registry issued a correction request.'}]},owner.cookie)).status,200);
  console.log('PASS: FMCSA internal preflight is non-certifying, theory/range/road distinct, de-identified, campus-linked and manual confirmation management-only.');
 }finally{rmSync(process.env.ACADEMY_DATA_DIR,{recursive:true,force:true});}
