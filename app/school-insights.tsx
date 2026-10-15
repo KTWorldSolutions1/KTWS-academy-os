@@ -1,0 +1,29 @@
+'use client';
+import {ArrowRight,BarChart3,CalendarDays,ClipboardCheck,GraduationCap,Handshake,ShieldAlert,Truck,Users} from 'lucide-react';
+import type {RecordData as R} from '../lib/training';
+import {today} from '../lib/training';
+import {campusInsights,combinedSchoolInsights,type SchoolInsight} from '../lib/campus-insights';
+type Props={records:R[];onCampus:(campusId:string)=>void;onPage:(page:string)=>void};
+const money=(n:number)=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}).format(n);
+const pct=(v:number|null)=>v===null?'Not enough records':v+'%';
+function Conversion({value}:{value:number|null}){
+ return <div className="insights-progress" role="progressbar" aria-label="Linked lead-to-student conversion" aria-valuemin={0} aria-valuemax={100} aria-valuenow={value??0}><span style={{width:(value||0)+'%'}}/></div>;
+}
+export default function SchoolInsights({records,onCampus,onPage}:Props){
+ const rows=campusInsights(records,today()),total=combinedSchoolInsights(rows);
+ const numbers=[
+  {label:'New inquiries on file',value:total.leads,detail:'All saved leads, not website traffic',icon:Users},
+  {label:'Students in training',value:total.activeStudents,detail:'Classroom, yard, road or testing',icon:GraduationCap},
+  {label:'Graduates recorded',value:total.graduated,detail:'School status only; verify test evidence',icon:ClipboardCheck},
+  {label:'Follow-ups past due',value:total.followupsOverdue,detail:'Open leads needing contact',icon:CalendarDays},
+  {label:'Training trucks ready',value:total.truckReady,detail:'Marked ready with no reported hold',icon:Truck},
+  {label:'Trucks needing attention',value:total.truckHolds,detail:'Safety holds or recorded out of service',icon:ShieldAlert}
+ ];
+ return <div className="insights-board">
+  <section className="panel"><div className="sectionhead"><div><p className="eyebrow">THREE-CAMPUS SCHOOL NUMBERS</p><h2>School Numbers</h2><p className="muted">One clear view of Greensboro, Mansfield and Dallas. The numbers come from saved school records you are authorized to see, not third-party reports or official FMCSA confirmations.</p></div><BarChart3 size={31}/></div><p className="footnote">Updated when you reload school records · No estimates are presented as verified cash, regulatory outcomes, or employment placements.</p></section>
+  <section className="insights-stats" aria-label="Combined saved school activity">{numbers.map(row=>{const Icon=row.icon;return <div className="insight-tile" key={row.label}><span className="insight-icon"><Icon size={20}/></span><strong>{row.value}</strong><b>{row.label}</b><small>{row.detail}</small></div>})}</section>
+  <section className="panel"><div className="sectionhead"><h2>Inquiries → enrolled students</h2><span className="badge">{total.linkedEnrollments} linked enrollments</span></div><p className="muted">This measures students with a saved link to an existing lead. Imported enrollments without a matching lead are not counted as conversions. A percentage appears only when leads exist.</p><div className="insights-funnel"><div><strong>{total.leads}</strong><small>Leads on file</small></div><ArrowRight size={23}/><div><strong>{total.linkedEnrollments}</strong><small>Linked student records</small></div><ArrowRight size={23}/><div><strong>{pct(total.conversionPct)}</strong><small>Linked conversion</small></div></div><Conversion value={total.conversionPct}/><div className="insights-quick"><button onClick={()=>onPage('leads')}>Open Admissions <ArrowRight size={16}/></button><button onClick={()=>onPage('students')}>Open Students <ArrowRight size={16}/></button></div></section>
+  <section className="panel"><div className="sectionhead"><h2>Compare your campuses</h2><p className="muted">Select any campus to view its actual school records.</p></div><div className="insights-campus-grid">{rows.map(c=><article className="insight-campus" key={c.campusId}><div className="insight-campus-head"><h3>{c.campus}</h3><button onClick={()=>onCampus(c.campusId)}>Open campus <ArrowRight size={15}/></button></div><dl><div><dt>Students training</dt><dd>{c.activeStudents}</dd></div><div><dt>Classes starting</dt><dd>{c.upcomingClasses}</dd></div><div><dt>Open class seats recorded</dt><dd>{c.openSeats}</dd></div><div><dt>Leads → linked enrollments</dt><dd>{c.linkedEnrollments} / {c.leads}</dd></div><div><dt>Recorded conversion rate</dt><dd>{pct(c.conversionPct)}</dd></div><div><dt>Graduates / placements noted</dt><dd>{c.graduated} / {c.recordedPlacements}</dd></div><div><dt>Follow-ups past due</dt><dd>{c.followupsOverdue}</dd></div><div><dt>Ready trucks / safety holds</dt><dd>{c.truckReady} / {c.truckHolds}</dd></div></dl><Conversion value={c.conversionPct}/></article>)}</div>{!rows.length&&<p className="muted">No active campus is visible. Select All campuses or review your employee campus permissions.</p>}</section>
+  <section className="panel"><div className="sectionhead"><h2>What the school records say</h2><Handshake size={23}/></div><div className="insights-bottom"><div><strong>{total.fundingApprovals}</strong><span>Authorized funding records</span><small>{money(total.authorizedFunding)} recorded in approved sponsorships. This is not a payment received.</small></div><div><strong>{money(total.outstandingLedger)}</strong><span>Outstanding tuition ledger</span><small>Manual school balances; confirm with your accounting and payment system.</small></div><div><strong>{total.recordedPlacements} / {total.graduated}</strong><span>Graduate job outcomes noted</span><small>{pct(total.placementPct)} documented from saved school career stages, not verified employer payroll.</small></div></div><p className="footnote">Attendance gaps are not absences. Campus approval status and external agency receipts must always be verified separately. No rates are inferred from absent records.</p></section>
+ </div>;
+}
