@@ -13,7 +13,8 @@
     "run_worker_first": true
   },
   "vars": {
-    "PUBLIC_ORIGIN": "https://academy.ktworldsolutions.com"
+    "PUBLIC_ORIGIN": "https://academy.ktworldsolutions.com",
+    "STUDENT_PORTAL_ENABLED": "false"
   },
   "d1_databases": [
     {
