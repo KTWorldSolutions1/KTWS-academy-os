@@ -82,6 +82,7 @@ if(r.kind==='students'){
   if(issue)return Response.json({error:issue.error},{status:issue.status});
  }
  if(r.kind==='tasks'&&r.operationsCase&&r.staffId){
+  if(!['Owner','Campus manager'].includes(access.role))return Response.json({error:'Staff-assigned operations reviews require school management approval.'},{status:403});
   const assignee=merged().find(x=>x.kind==='staff'&&x.id===r.staffId&&x.status==='Active');
   if(!assignee||!assignee.campusIds?.includes(campusOf(r,merged()))||r.owner!==assignee.name)return Response.json({error:'Follow-up task must be assigned to an active staff member with access to that campus.'},{status:400});
  }
