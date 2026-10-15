@@ -95,5 +95,29 @@ try{
  assert.equal(noExtraHours.sessions.length,1,'Only recorded attendance credited actual hours; plan completion does not add more');
   const inspectedTx=(await json(send('/api/records',null,instructor.cookie))).body.records;
  assert.equal(inspectedTx.some(x=>x.id===txVehicle.id),false);
+
+ const alternate={...trainer,id:crypto.randomUUID(),name:'Replacement instructor',email:'replacement@school.test'};
+ assert.equal((await send('/api/records',{records:[alternate]},owner.cookie)).status,200);
+ const initialPlan={...lesson,id:crypto.randomUUID(),name:'Instructor needs coverage',date,start:'13:00',end:'14:00'};
+ assert.equal((await send('/api/records',{records:[initialPlan]},owner.cookie)).status,200);
+ const original=(await json(send('/api/records',null,owner.cookie))).body.records.find(x=>x.id===initialPlan.id);
+ const replacement={...initialPlan,id:crypto.randomUUID(),name:'New instructor covers yard',employeeId:alternate.id,replacesId:original.id};
+ assert.equal((await send('/api/records',{records:[replacement]},owner.cookie)).status,409,'No replacement can exist without cancelling original in same transaction');
+ assert.equal((await send('/api/records',{records:[{...original,status:'Cancelled'}, {...replacement,studentId:foreignStudent.id}]},owner.cookie)).status,400,'Cannot redirect replacement to another student/campus');
+ assert.equal((await send('/api/records',{records:[{...original,status:'Cancelled'},replacement]},instructor.cookie)).status,403,'Instructor must not change manager assignments');
+ const replaced=await json(send('/api/records',{records:[{...original,status:'Cancelled'},replacement]},owner.cookie));
+ assert.equal(replaced.status,200,JSON.stringify(replaced.body));
+ const after=(await json(send('/api/records',null,owner.cookie))).body.records;
+ assert.equal(after.find(x=>x.id===original.id).status,'Cancelled');
+ assert.equal(after.find(x=>x.id===replacement.id).status,'Planned');
+ assert.equal(after.find(x=>x.id===replacement.id).replacesId,original.id);
+ assert.equal((await send('/api/records',{records:[{...replacement,id:crypto.randomUUID()}]},owner.cookie)).status,409,'No duplicate lesson replacement');
+ assert.equal((await send('/api/records',{records:[{...after.find(x=>x.id===original.id),status:'Planned'}]},owner.cookie)).status,403,'Cannot reactivate cancelled lesson');
+ assert.equal((await send('/api/records',{records:[{...after.find(x=>x.id===replacement.id),replacesId:'forged-link'}]},owner.cookie)).status,403,'Permanent replacement link');
+ assert.equal((await send('/api/records',{records:[{...after.find(x=>x.id===replacement.id),status:'Confirmed'}]},owner.cookie)).status,200,'Replacement may be confirmed after manager check');
+ const afterConfirm=(await json(send('/api/records',null,owner.cookie))).body.records;
+ assert.equal((await send('/api/records',{records:[{...afterConfirm.find(x=>x.id===replacement.id),status:'Cancelled'}]},owner.cookie)).status,200,'Replacement can itself be cancelled and replaced again');
+ const lessonStudent=afterConfirm.find(x=>x.id===student.id);
+ assert.equal(lessonStudent.sessions.length,1,'Replacing schedules never credits training hours');
  console.log('PASS: instructor/truck dispatch, three-campus isolation, conflict blocking, signed defect holds, manager-only repair, and no auto credited hours.');
 }finally{rmSync(process.env.ACADEMY_DATA_DIR,{recursive:true,force:true});}
