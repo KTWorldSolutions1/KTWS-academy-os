@@ -40,7 +40,7 @@ if(r.kind==='students'){
   for(const document of r.documents||[]){
    if(!document||typeof document.key!=='string')return Response.json({error:'Student files must be uploaded before being attached.'},{status:400});
    const existing=savedDocuments.find((d:any)=>d.key===document.key);
-   const restricted=['SSN evidence','Drug screen result','Drug screen authorization','Medical qualification evidence'].includes(document.category);
+   const restricted=restrictedCategories.includes(document.category);
    if(restricted&&!['Owner','Campus manager'].includes(access.role)&&(!existing||JSON.stringify(existing)!==JSON.stringify(document)))return Response.json({error:'Restricted evidence review requires campus management access.'},{status:403});
    if(!existing){
     const meta:any=await db.prepare('SELECT category FROM school_files WHERE key=? AND owner=? AND student=?').bind(document.key,access.scope,r.id).first();
