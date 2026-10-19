@@ -4,7 +4,13 @@ import {studentPlan} from '../lib/operations.ts';
 const day='2026-10-07',partner={id:'p',kind:'partners',name:'Fictional employer',status:'Prospect',campusId:'a',owner:'Admissions',relationshipStage:'Contacted',nextContact:day,touchpoints:[]};
 const referral={id:'r',kind:'referrals',name:'Referred applicant',status:'Received',campusId:'a',partnerId:'p',owner:'Admissions',followUp:day,contactPermission:true,permissionNote:'Applicant approved a school contact.',email:'applicant@example.test',preferredClassId:'c'};
 const cls={id:'c',kind:'classes',name:'October class',status:'Open for enrollment',campusId:'a'};
-assert.equal(validateGrowth(partner),null);assert.equal(validateGrowth(referral),null);assert.match(validateGrowth({...referral,followUp:'2026-02-30'}),/valid follow-up/);
+assert.equal(validateGrowth(partner),null);
+assert.equal(validateGrowth({...partner,type:'Employer',hiresNewGraduates:'Not verified',externalSchoolEligibility:'Not verified',conditionalLetterProcess:'Not verified'}),null);
+assert.match(validateGrowth({...partner,type:'Employer',conditionalLetterProcess:'Confirmed'}),/source and verification date/);
+assert.equal(validateGrowth({...partner,type:'Employer',conditionalLetterProcess:'Confirmed',eligibilitySource:'Fictional recruiter phone interview',requirementsLastVerified:'2026-10-19'}),null);
+assert.match(validateGrowth({...partner,type:'Employer',conditionalLetterProcess:'Guaranteed'}),/verified employer eligibility/);
+assert.match(validateGrowth({...partner,type:'Employer',requirementsLastVerified:'2026-02-30'}),/valid date/);
+assert.equal(validateGrowth(referral),null);assert.match(validateGrowth({...referral,followUp:'2026-02-30'}),/valid follow-up/);
 const bundle=referralBundle(referral,partner,day,['l','t']),all=[partner,cls,...bundle];for(const r of bundle){assert.equal(validateGrowth(r),null);assert.equal(growthLinkProblem(r,all),null);}
 assert.equal(bundle[1].status,'New inquiry');assert.equal(bundle[1].preferredClassId,'c');assert.equal(bundle[2].personId,'l');assert.equal(bundle.some(r=>r.kind==='students'),false);
 assert.match(validateGrowth({...bundle[0],contactPermission:false}),/permission/);assert.match(growthLinkProblem({...referral,partnerId:'missing'},all),/organization/);assert.match(growthLinkProblem({...referral,campusId:'other'},all),/same campus/);
