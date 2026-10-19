@@ -157,6 +157,18 @@ if(r.kind==='safety-incidents'&&r.unitId){
   if(conflicts.length)return Response.json({error:'Another active funding request for this student and sponsor is already recorded. Review it before opening another.'},{status:409});
  }
 if(r.kind==='employment-offers'){
+  if(r.agencyReviewStage==='Accepted by WIOA'){
+   if(!['Owner','Campus manager'].includes(access.role))return Response.json({error:'Only campus management can record an agency-confirmed conditional letter acceptance.'},{status:403});
+   if(!r.studentContactConsent)return Response.json({error:'Confirm the student authorized recruiter contact before claiming WIOA acceptance.'},{status:400});
+   if(!r.agencyReviewNotes||String(r.agencyReviewNotes).trim().length<10)return Response.json({error:'Record the agency decision and source before marking a letter accepted.'},{status:400});
+   r={...r,agencyReviewedBy:old?.agencyReviewStage==='Accepted by WIOA'?old.agencyReviewedBy:access.user.email,agencyReviewedAt:old?.agencyReviewStage==='Accepted by WIOA'?old.agencyReviewedAt:now};
+  }else{
+   if(old?.agencyReviewStage==='Accepted by WIOA'&&r.agencyReviewStage!==old.agencyReviewStage){
+    if(!['Owner','Campus manager'].includes(access.role))return Response.json({error:'Only school management may correct a previously recorded WIOA decision.'},{status:403});
+    if(!r.agencyReviewNotes||String(r.agencyReviewNotes).trim().length<12)return Response.json({error:'Document the agency decision correction.'},{status:400});
+   }
+   r={...r,agencyReviewedBy:old?.agencyReviewedBy,agencyReviewedAt:old?.agencyReviewedAt};
+  }
   const student=proposed.find(x=>x.kind==='students'&&x.id===r.studentId);
   if(!student||student.campusId!==r.campusId||!campusAllowed(access.role,access.campusIds,student,proposed))return Response.json({error:'Offer must refer to an enrolled student in your campus.'},{status:400});
   if(r.partnerId){const p=proposed.find(x=>x.kind==='partners'&&x.id===r.partnerId);if(!p||campusOf(p,proposed)!==r.campusId)return Response.json({error:'Employer partner must belong to the same campus.'},{status:400});}
