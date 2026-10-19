@@ -57,6 +57,17 @@ try{
  assert.equal(final.status,'Verified contingent');
  assert.equal(final.reviewedBy,'owner@test.example');
  assert.ok(final.reviewedAt);
+ assert.equal(validateEmploymentOffer({...sample,recruiterEmail:'recruiter name@example.com'}),'Enter a valid recruiter email.');
+ const wioaRequest={...final,agencyReviewStage:'Accepted by WIOA',agencyReviewDate:'2026-10-16',agencyReviewNotes:'Agency contact verified the school offer documentation.',studentContactConsent:true,recruitingStage:'Screening completed'};
+ assert.equal((await send('/api/records',{records:[wioaRequest]},staff.cookie)).status,403,'Admissions cannot self-certify WIOA acceptance');
+ assert.equal((await send('/api/records',{records:[{...wioaRequest,studentContactConsent:false}]},owner.cookie)).status,400);
+ assert.equal((await send('/api/records',{records:[{...wioaRequest,agencyReviewNotes:'unknown'}]},owner.cookie)).status,400);
+ assert.equal((await send('/api/records',{records:[wioaRequest]},owner.cookie)).status,200);
+ const acceptedRecord=(await json(send('/api/records',null,owner.cookie))).body.records.find(x=>x.id===offer.id);
+ assert.equal(acceptedRecord.agencyReviewedBy,'owner@test.example');
+ assert.ok(acceptedRecord.agencyReviewedAt);
+ assert.equal((await send('/api/records',{records:[{...acceptedRecord,agencyReviewStage:'Rejected by WIOA',agencyReviewNotes:'Rejected'}]},staff.cookie)).status,403);
+
  const restricted=(await json(send('/api/records',null,staff.cookie))).body.records.find(x=>x.id===student.id);
  assert.equal(restricted.documents.some(d=>d.key===receipt.body.key),false);
  const ownOffer=(await json(send('/api/records',null,staff.cookie))).body.records.find(x=>x.id===offer.id);
