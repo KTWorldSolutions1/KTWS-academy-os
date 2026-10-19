@@ -72,6 +72,9 @@ try{
  assert.equal(restricted.documents.some(d=>d.key===receipt.body.key),false);
  const ownOffer=(await json(send('/api/records',null,staff.cookie))).body.records.find(x=>x.id===offer.id);
  assert.ok(ownOffer);
- assert.equal((await send('/api/records',{records:[{...ownOffer,status:'Withdrawn'}]},staff.cookie)).status,200);
+ assert.equal((await send('/api/records',{records:[{...ownOffer,status:'Withdrawn',agencyReviewStage:'Not submitted'}]},staff.cookie)).status,403,'Admissions cannot undo a management-reviewed agency acceptance');
+ const current=(await json(send('/api/records',null,owner.cookie))).body.records.find(x=>x.id===offer.id);
+ assert.equal((await send('/api/records',{records:[{...current,status:'Withdrawn',agencyReviewStage:'Not submitted',agencyReviewNotes:'Employer withdrew the conditional position; school management confirmed.'}]},owner.cookie)).status,200);
+
  console.log('PASS: evidence-gated employer letter, campus isolation, school manager signoff, document privacy, and no automatic job guarantee.');
 }finally{rmSync(process.env.ACADEMY_DATA_DIR,{recursive:true,force:true});}
