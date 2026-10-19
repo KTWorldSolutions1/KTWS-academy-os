@@ -17,7 +17,7 @@ export function validateEmploymentOffer(r:R){
  if(r.recruitingStage!=null&&!recruitingStages.includes(r.recruitingStage))return 'Choose a valid recruiter screening stage.';
  if(r.agencyReviewStage!=null&&!agencyReviewStages.includes(r.agencyReviewStage))return 'Choose a valid WIOA review stage.';
  for(const field of ['screeningDate','followUpDate','agencyReviewDate'])if(r[field]&&!validDate(r[field]))return 'Choose a valid '+field+' date.';
- if(r.recruiterEmail!=null&&(typeof r.recruiterEmail!=='string'||r.recruiterEmail.length>254||r.recruiterEmail&&!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(r.recruiterEmail)))return 'Enter a valid recruiter email.';
+ if(r.recruiterEmail!=null&&(typeof r.recruiterEmail!=='string'||r.recruiterEmail.length>254||r.recruiterEmail&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(r.recruiterEmail)))return 'Enter a valid recruiter email.';
  if(r.recruiterPhone!=null&&(typeof r.recruiterPhone!=='string'||r.recruiterPhone.length>40))return 'Enter a valid recruiter phone number.';
  if(r.agencyReviewStage==='Accepted by WIOA'&&r.status!=='Verified contingent')return 'A WIOA-accepted offer must first be verified against the employer-issued letter.';
  if(r.agencyReviewStage==='Accepted by WIOA'&&!r.agencyReviewDate)return 'Record the WIOA acceptance date.';
