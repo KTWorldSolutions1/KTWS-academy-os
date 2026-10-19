@@ -12,6 +12,12 @@ export function contactAvailability(r:R,day:string){
 export function partnershipQueue(records:R[],day:string){return records.filter(r=>r.kind==='partners'&&r.status!=='Inactive'&&!['Closed','Paused'].includes(r.relationshipStage)).map(r=>({record:r,availability:contactAvailability(r,day),state:!r.owner?'Unassigned':!r.nextContact?'Date needed':r.nextContact<=day?'Due':'Upcoming'})).sort((a,b)=>(a.record.nextContact||'0000').localeCompare(b.record.nextContact||'0000')||a.record.name.localeCompare(b.record.name));}
 export function validateGrowth(r:R){
  if(r.kind==='partners'){
+  if(r.type==='Employer'){
+   for(const field of ['hiresNewGraduates','externalSchoolEligibility','conditionalLetterProcess'])if(r[field]!=null&&!['Not verified','Confirmed','Not offered'].includes(r[field]))return 'Choose a verified employer eligibility status.';
+   for(const field of ['hireStates','entryLevelRequirements','eligibilitySource','carrierFollowUpNotes'])if(r[field]!=null&&(typeof r[field]!=='string'||r[field].length>2000))return 'Employer hiring details exceed the 2,000 character limit.';
+   if(r.requirementsLastVerified&&!validGrowthDate(r.requirementsLastVerified))return 'Choose a valid date for the employer requirement review.';
+   if(['hiresNewGraduates','externalSchoolEligibility','conditionalLetterProcess'].some(field=>r[field]==='Confirmed')&&(!r.requirementsLastVerified||!String(r.eligibilitySource||'').trim()))return 'Verified employer options require a recorded source and verification date.';
+  }
   for(const key of ['awayFrom','awayThrough'])if(r[key]&&!validGrowthDate(r[key]))return 'Choose valid contact absence dates.';
   if(!!r.awayFrom!==!!r.awayThrough||r.awayFrom&&r.awayFrom>r.awayThrough)return 'Contact absence needs a start and end date in order.';
   for(const key of ['backupContact','backupEmail','backupPhone','contactAvailabilityNote','relationshipNotes'])if(r[key]!=null&&(typeof r[key]!=='string'||r[key].length>(['relationshipNotes','contactAvailabilityNote'].includes(key)?4000:200)))return 'Contact and relationship notes exceed the field limit.';
