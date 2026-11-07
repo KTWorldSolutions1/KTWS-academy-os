@@ -782,3 +782,48 @@ button:focus-visible,a:focus-visible{outline:2px solid #68ccff}
 .sample-flow-cards article small{font-size:11px;color:#9babb9}
 .sample-enrollment-flow .reportactions{display:flex;flex-wrap:wrap;gap:10px}
 @media(max-width:750px){.sample-flow-cards{grid-template-columns:1fr}.sample-enrollment-flow{padding:15px}.sample-flow-progress button{width:30px;min-width:30px;height:30px}}
+
+
+/* Privacy-safe, interactive student-portal simulator for the ownership pilot. */
+.demo-student-portal{display:grid;gap:18px}
+.demo-student-shell{display:grid;grid-template-columns:220px minmax(0,1fr);min-height:550px;border:1px solid #4b687e;border-radius:15px;overflow:hidden;background:#eef3f7;color:#132336}
+.demo-student-sidebar{display:flex;flex-direction:column;gap:9px;padding:24px 15px;background:#0a1826;color:#f1f7fc}
+.demo-student-crest{display:grid;place-items:center;background:#1879b4;width:47px;height:47px;border-radius:11px;font-size:31px}
+.demo-student-sidebar>strong{font-size:19px;letter-spacing:1.2px}
+.demo-student-sidebar>small{font-size:9px;color:#adc4d7;letter-spacing:.8px}
+.demo-student-sidebar>span:not(.demo-student-identity){color:#a1c0d3;font-size:11px;font-weight:700;margin-top:28px;letter-spacing:1.5px}
+.demo-student-sidebar button{padding:10px 12px;color:#d1dfeb;border-radius:8px}
+.demo-student-sidebar button.active{background:#1779b3;color:#fff}
+.demo-student-identity{margin-top:auto;border-top:1px solid #45647a;padding:16px 0;display:flex;align-items:center;gap:9px;min-width:0}
+.demo-student-identity span{width:36px;height:36px;border-radius:100%;background:#2e84af;display:grid;place-items:center;font-size:12px;flex-shrink:0}
+.demo-student-identity b{font-size:12px;display:block;overflow-wrap:anywhere}
+.demo-student-identity small{font-size:10px;display:block}
+.demo-student-main{padding:28px 32px;overflow:hidden}
+.demo-student-main .muted{color:#485d6d}
+.demo-student-header{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:22px}
+.demo-student-header h2{color:#13283b;font-size:27px;margin:4px 0}
+.demo-student-header p{color:#435970;font-size:13px}
+.demo-student-header .eyebrow{color:#13669b}
+.demo-student-main h3{font-size:16px;margin:20px 0}
+.demo-student-stages{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:7px;margin:18px 0 25px}
+.demo-student-stages span{padding:9px 7px;border-radius:9px;border:1px solid #ccd6e0;text-align:center;font-size:11px;background:#e2e8ef;color:#59697a}
+.demo-student-stages span.complete{background:#d5e9f5;border-color:#83b5d2;color:#164e74}
+.demo-student-stages span.current{background:#116faa;border-color:#116faa;color:white;font-weight:800}
+.demo-student-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:16px 0}
+.demo-student-metrics>div{border:1px solid #c7d4df;border-radius:12px;background:#fff;padding:14px}
+.demo-student-metrics strong{display:block;font-size:22px;color:#164f78}
+.demo-student-metrics small{color:#627789}
+.demo-student-main .vault-doc-row{border-color:#ced8e1}
+.demo-student-main .vault-doc-row b{color:#142637}
+.demo-student-main .vault-doc-row small{color:#607589}
+.demo-student-main .vault-doc-row button{font-size:12px;padding:8px 12px;border:1px solid #267bb0;color:#155c88;border-radius:6px}
+.demo-student-main .notice{color:#15432e;background:#def4e9;border-color:#76bd96;line-height:1.5}
+.demo-student-main .error{color:#64212a;background:#f9e5e9;border-color:#d99da9}
+.demo-student-question{padding:15px;margin:15px 0;border:1px solid #c3d4e1;border-radius:10px;background:#fff}
+.demo-student-question legend{color:#102e43;font-size:13px}
+.demo-student-question legend small{display:block;color:#4d7593;font-weight:500;margin:6px 0}
+.demo-student-question label{display:flex;align-items:center;gap:9px;padding:6px 0;color:#26394c;font-size:13px;cursor:pointer}
+.demo-student-question input[type=radio]{accent-color:#1177b6;width:16px;height:16px}
+.demo-student-main details{padding:10px 0;color:#354a5d}
+.demo-student-main .badge.warn{color:#7a4f14;background:#faedcf;border-color:#e8c489}
+@media(max-width:800px){.demo-student-shell{grid-template-columns:1fr}.demo-student-sidebar{flex-direction:row;align-items:center;flex-wrap:wrap;gap:6px}.demo-student-sidebar>span:not(.demo-student-identity),.demo-student-identity{display:none}.demo-student-main{padding:19px}.demo-student-stages{grid-template-columns:repeat(3,1fr)}.demo-student-metrics{grid-template-columns:1fr 1fr}}
