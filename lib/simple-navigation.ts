@@ -8,6 +8,7 @@ export type SchoolSection={id:string;label:string;help:string;pages:SchoolPage[]
 export const schoolSections:SchoolSection[]=[
  {id:'home',label:'Home',help:'See what needs attention today.',pages:[
   {id:'overview',label:'Today',help:'Your school at a glance'},
+  {id:'school-notices',label:'Announcements & Closures',help:'Publish student portal banners and emergency closures'},
   {id:'operations',label:'Student Help',help:'Follow up when someone needs support'},
   {id:'manager-brief',label:'Weekly Report',help:'A summary for school leaders'},
   {id:'insights',label:'School Numbers',help:'Compare student progress, inquiries, and campuses'},
@@ -17,12 +18,13 @@ export const schoolSections:SchoolSection[]=[
   {id:'students',label:'Student List',help:'Profiles, paperwork and progress'},
   {id:'document-center',label:'Secure Document Vault',help:'Enrollment agreements, licenses and private student paperwork'},
   {id:'student-id-studio',label:'Student Photos & Badges',help:'Upload, review, save portraits and print student ID cards'},
+  {id:'student-communications',label:'Email & Text Students',help:'Message one student or an opt-in class group'},
   {id:'student-access',label:'Student Portal Access',help:'Owner-approved private student logins'},
   {id:'student-portal-preview',label:'Student Portal Demo',help:'Fictional student document requests and knowledge practice'}
  ]},
  {id:'admissions',label:'Admissions',help:'Handle new inquiries and appointments.',pages:[
   {id:'leads',label:'New Inquiries',help:'Follow up with future students'},
-  {id:'calendar',label:'Calendar',help:'Appointments and school dates'},
+  {id:'calendar',label:'School Calendar',help:'Appointments, birthdays, class dates and closures'},
   {id:'event-intake',label:'Event Signups',help:'Save contacts from fairs and events'},
   {id:'rosters',label:'DMV Roster Packets',help:'First-day class rosters and signed enrollment agreements'}
  ]},
