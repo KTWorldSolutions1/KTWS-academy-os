@@ -31,7 +31,7 @@ export async function GET(req:Request){
  db.prepare('SELECT * FROM billing_payments WHERE owner=? AND student=? ORDER BY created DESC').bind(access.scope,student.id).all()]);
  const charges=cr.results||[],payments=pr.results||[],summary=calculateStudentLedger(charges,payments);
  return reply({student:{id:student.id,name:student.name,campus:student.campusId,fundingType:student.fundingType||null},
- summary:publicBillingSummary(summary),charges:summary.charges,payments:payments.map((p:any)=>({
+ summary:publicBillingSummary(summary),charges:summary.charges.map((row:any)=>({id:row.id,description:row.description,category:row.category,amountCents:row.amount_cents,paidCents:row.paid_cents,outstandingCents:row.outstanding_cents,label:row.label,dueDate:row.due_date,fundingType:row.funding_type})),payments:payments.map((p:any)=>({
   id:p.id,chargeId:p.charge_id,provider:p.provider,amountCents:p.amount_cents,status:p.status,source:p.source,
   refundedCents:p.refunded_cents,disputedCents:p.disputed_cents,
   reference:p.source==='Stripe'?p.external_ref:String(p.external_ref||'').slice(-10),created:p.created,verifiedAt:p.verified_at})),
