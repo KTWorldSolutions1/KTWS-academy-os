@@ -1278,3 +1278,10 @@ button:focus-visible,a:focus-visible{outline:2px solid #68ccff}
 .app-sidebar .sidebar-user-zone{border-color:#ba9753}
 .app-sidebar .nav-close{color:#153455}
 @media(max-width:850px){.app-sidebar .nav-brand-row{margin:5px 6px 0}.app-sidebar .sidebar-group-toggle{min-height:62px}}
+
+/* School-approved wordmark treatment: black lettering, blue center star,
+   white base and restrained gold accent. No external font or logo data. */
+.app-sidebar .nav-brand-button .ls-wordmark{display:flex;flex-direction:column;align-items:flex-start;gap:3px;min-width:0}
+.app-sidebar .nav-brand-button .ls-wordmark>strong{font-family:Arial,sans-serif;font-size:19px;line-height:1.12;letter-spacing:.7px;font-weight:900;color:#111111;white-space:nowrap}
+.app-sidebar .nav-brand-button .ls-wordmark-star{display:inline!important;font-size:21px!important;color:#087ace!important;letter-spacing:0!important;margin:0 2px;line-height:1}
+.app-sidebar .nav-brand-button .ls-wordmark-subtitle{display:block!important;font-size:9px!important;font-weight:800!important;letter-spacing:1px!important;color:#183d70!important}
