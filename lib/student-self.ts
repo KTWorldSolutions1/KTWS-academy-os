@@ -3,6 +3,7 @@ import {activeSessions,instructionHours,latestSkill,skills,theoryState,type Reco
 import {drivingTimeSummary} from './attendance.ts';
 import {lessonProgress} from './lesson-checkoffs.ts';
 import {studentStudyLibrary} from './student-study.ts';
+import {reviewProgress} from './driver-training-plan.ts';
 
 /** Privacy-minimized, student-owned training view. Never expose enrollment
  * identifiers, financial information, private staff notes, R2 metadata, raw
@@ -21,6 +22,7 @@ export function studentSelfView(s:R,records:R[]){
   theory:{label:theory.label,finalScore:theory.final?Number(theory.final.score):null},
   lessonProgress:lessonProgress(records,s).map(x=>({name:x.name,phase:x.phase,status:x.status,completedOn:x.completedOn})),
   studyLibrary:studentStudyLibrary(s,records),
+  driverDevelopment:(()=>{const p=reviewProgress(records,s);return {daysReviewed:p.daysReviewed,topicsReviewed:49-p.federalTopicsNotYetReviewed.length,totalTopics:49,needsAttention:p.openGaps};})(),
   enrollmentDocuments:safeStudentDocuments(s),
   profilePhotoKey:profilePhotoKey(s),
   documentNotices:(s.documentRequests||[]).filter((r:any)=>r.status==='Requested'&&!(s.documents||[]).some((d:any)=>d.category===r.category&&d.verified)).map((r:any)=>({category:r.category,requestedAt:r.requestedAt,message:r.message||'Please upload this missing document.'})),
