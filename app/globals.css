@@ -1177,3 +1177,5 @@ button:focus-visible,a:focus-visible{outline:2px solid #68ccff}
 
 .student-profile-card-photo{display:block;width:54px;height:54px;border-radius:12px;object-fit:cover;object-position:center 20%;border:2px solid #96caeb}
 .student-photo-upload{margin:15px 0;padding:16px;border:1px solid #4b7192;background:#162c40;border-radius:12px}.student-photo-upload h3{color:#ebf7ff}.student-photo-upload p{font-size:12px;line-height:1.5;color:#bfcedb}.student-photo-upload form{display:grid;gap:10px;margin-top:12px}.student-photo-upload label{display:grid;gap:6px;color:#e4f3fa}.student-photo-upload button{justify-self:start;display:inline-flex;align-items:center;gap:7px}
+
+.journey-pulse-actions{display:flex;flex-wrap:wrap;gap:9px;margin:14px 0}.journey-pulse-actions .journey-driverpulse-link{font-size:12px;flex:1 1 165px;justify-content:center;text-align:center}
