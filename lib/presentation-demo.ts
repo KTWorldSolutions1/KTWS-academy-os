@@ -92,5 +92,5 @@ export const DEMO_SCENES:DemoScene[]=[
   highlights:['One place for admission, classroom, yard, road and testing','Early alerts and more useful student progress evidence','Privacy gates, compliance review and staged rollout—not a blind switch'],
   narration:'Academy O S brings the entire student journey into one coherent school system. The next step is an owner-led pilot with fictional records, a security and compliance review, and an approved rollout plan. Thank you for watching.'}
 ];
-export const DEMO_FRAME_MS=7900;
+export const DEMO_FRAME_MS=13500;
 export const DEMO_RUNTIME_SECONDS=Math.round(DEMO_SCENES.length*DEMO_FRAME_MS/1000);
