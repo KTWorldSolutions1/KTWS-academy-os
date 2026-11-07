@@ -33,7 +33,7 @@ export default function ComplianceRosters({records,role,demo,busy,saveMany}:Prop
    if(currentCount+importPreview.count>Number(klass.capacity||0))throw Error('The selected class does not have enough seats. Adjust its approved class capacity first.');
    const rows:R[]=importPreview.candidates.map(s=>({
     id:crypto.randomUUID(),kind:'students',name:s.name,campusId:campus.id,classId:klass.id,
-    cohort:klass.name,program:'Class A',status:'Enrollment pending',phone:s.phone,
+    cohort:klass.name,program:'Class A',status:'Enrollment pending',phone:s.phone,email:('email' in s?String(s.email||''):''),
     licenseNumber:s.licenseNumber,driverLicenseState:s.licenseState,dob:s.dob,address:s.address,city:s.city,state:s.state,zip:s.zip,
     startDate:klass.startDate,finishDate:klass.endDate,studentNumber:('studentNumber' in s?String(s.studentNumber||''):'') ,sessions:[],assessments:[],evaluations:[],
     documents:[],notes:[],documentRequests:[{category:'Enrollment agreement',status:'Requested',
@@ -61,6 +61,22 @@ export default function ComplianceRosters({records,role,demo,busy,saveMany}:Prop
   try{const r=await fetch('/api/compliance/roster?classId='+encodeURIComponent(klass.id),{cache:'no-store'}),body=await r.json();if(!r.ok)throw Error(body.error||'Roster review unavailable');setPreview(body);}
   catch(e:any){setError(e.message);}finally{setLoading(false);}
  }
+ async function createGreensboroNov2(){
+  if(!canManage||demo)return;
+  const g=campuses.find(c=>/greensboro/i.test(c.name||'')||/greensboro/i.test(c.city||''));
+  if(!g){setError('An active Greensboro campus must be configured under Campus Locations before creating its class.');return;}
+  const existing=records.find(c=>c.kind==='classes'&&c.campusId===g.id&&c.program==='Class A'&&c.startDate==='2026-11-02');
+  setSelectedCampus(g.id);
+  if(existing){setSelectedClass(existing.id);setMessage('Greensboro November 2 class selected. Upload your roster below.');return;}
+  const row:R={id:crypto.randomUUID(),kind:'classes',campusId:g.id,name:'Greensboro Class A • November 2, 2026',
+    status:'In progress',program:'Class A',startDate:'2026-11-02',endDate:classEnding('2026-11-02'),capacity:11,
+    schedule:'Monday–Friday · Five-week Class A program · Week 5 testing',
+    theoryHours:50,yardHours:50,roadHours:60,pricingStatus:'Verify each student funding authorization'};
+  setError('');setMessage('');
+  const ok=await saveMany([row]);
+  if(ok){setSelectedClass(row.id);setMessage('Greensboro November 2 class created with 11 proposed seats. Upload the roster in the section below.');}
+  else setError('Class creation was rejected. Check the school error above or review classes and campus permissions.');
+ }
  async function createDates(){
   if(!campus)return;
   setError('');setMessage('');
@@ -79,6 +95,7 @@ export default function ComplianceRosters({records,role,demo,busy,saveMany}:Prop
   else setError('Could not save proposed class dates.');
  }
  return <div className="compliance-rosters"><section className="panel"><div className="sectionhead"><div><p className="eyebrow">REGULATORY REPORTS • LIMITED ACCESS</p><h2>First-day class rosters & enrollment agreements</h2><p className="muted">NC 19A NCAC 03J .0308 requires a roster as of the first day of class and copies of each student's signed contracts. Academy OS prepares a restricted ZIP packet containing the roster CSV and actual verified enrollment agreements. No automatic NCDMV submission is performed.</p></div><ShieldCheck size={26}/></div>
+ {!demo&&canManage&&<div className="reportactions"><button type="button" className="primary" disabled={busy} onClick={()=>void createGreensboroNov2()}><CalendarDays size={16}/> Create or select Greensboro · Nov 2 class (11 students)</button></div>}
  <div className="formgrid"><label>Campus<select value={campus?.id||''} onChange={e=>{setSelectedCampus(e.target.value);setSelectedClass('');setPreview(null);}}>{campuses.map(c=><option value={c.id} key={c.id}>{c.name}{c.state?' • '+c.state:''}</option>)}</select></label><label>Class/select roster<select value={klass?.id||''} onChange={e=>{setSelectedClass(e.target.value);setPreview(null);}}>{!classes.length&&<option value="">No scheduled classes</option>}{classes.map(c=><option key={c.id} value={c.id}>{c.name} • {c.startDate||'Start pending'}</option>)}</select></label></div>
  {klass&&<div className="curriculum-metrics"><div><strong>{students.length}</strong><small>Students assigned to the class</small></div><div><strong>{klass.startDate||'—'}</strong><small>Class start date</small></div><div><strong>{klass.endDate||'—'}</strong><small>Class end date</small></div><div><strong>{klass.capacity||'—'}</strong><small>Planned capacity</small></div></div>}
  <div className="reportactions"><button disabled={!klass||busy||loading||!canManage} onClick={audit}><FileCheck2 size={16}/> Check first-day packet readiness</button>
@@ -89,7 +106,7 @@ export default function ComplianceRosters({records,role,demo,busy,saveMany}:Prop
  {!klass&&<p className="muted">Create a class from the calendar or add proposed class dates below.</p>}
  {message&&<p className="notice">{message}</p>}{error&&<p className="error" role="alert">{error}</p>}
  <p className="footnote">Regulatory roster fields: legal name, driver license number, postal address, telephone and enrollment agreement(s); school-requested extras: DOB, class dates and funding type. SSNs and drug screening records are deliberately excluded. Do not transmit unencrypted ZIPs over ordinary email. Texas reports need a separate Texas-specific approval and template.</p></section>
- <section className="panel"><div className="sectionhead"><div><p className="eyebrow">SECURE ROSTER INTAKE • LOCAL PREVIEW</p><h2>Review a DMV enrollment CSV</h2><p className="muted">Select your enrollment spreadsheet exported as CSV. Use either a full DMV roster CSV or a basic FIRST_NAME,LAST_NAME,STUDENT_ID roster. Review locally first, then explicitly save approved profiles under the selected campus and class. Unverified compliance fields stay blank.</p></div><ShieldCheck size={25}/></div>
+ <section className="panel"><div className="sectionhead"><div><p className="eyebrow">SECURE ROSTER INTAKE • LOCAL PREVIEW</p><h2>Review a DMV enrollment CSV</h2><p className="muted">Select your enrollment spreadsheet exported as CSV. Use either a full DMV roster CSV or a roster with FIRST_NAME,LAST_NAME,STUDENT_ID and optional PHONE,EMAIL,ADDRESS,CITY,STATE,ZIP columns. Review locally first, then explicitly save approved profiles under the selected campus and class. Unverified compliance fields stay blank.</p></div><ShieldCheck size={25}/></div>
  {canManage?<label>Choose DMV roster CSV<input type="file" accept=".csv,text/csv" onChange={e=>{void previewImport(e.target.files?.[0]);e.currentTarget.value='';}}/></label>:<p className="muted">Only the Owner, Regional admin or Campus manager can inspect a roster.</p>}
  {importError&&<p className="error" role="alert">{importError}</p>}
  {importPreview&&<div role="status"><p className="notice">{importPreview.count} student rows checked. {importPreview.dates.length?'Roster dates: '+importPreview.dates.join(', '):'Basic name-and-school-ID roster · assigned to the class selected above'}.</p>
