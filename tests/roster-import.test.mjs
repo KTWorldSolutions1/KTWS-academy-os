@@ -13,10 +13,10 @@ assert.throws(()=>previewDmvCsv(header+'\n'+rows[0].replace('000012345678','123=
 assert.throws(()=>parseCsv('A,B\n"bad'),/Unterminated/);
 console.log('Local-only DMV roster preview tests passed; no identifiable student fixtures.');
 
-const basic=previewBasicCohortCsv('FIRST_NAME,LAST_NAME,STUDENT_ID\nAvery,Example,102233\\nTaylor,Example,102234');
+const basic=previewBasicCohortCsv('FIRST_NAME,LAST_NAME,STUDENT_ID\nAvery,Example,102233\nTaylor,Example,102234');
 assert.equal(basic.count,2);
 assert.equal(basic.candidates[0].studentNumber,'102233');
 assert.equal(basic.candidates[0].licenseNumber,'');
 assert.equal(basic.candidates[0].dob,'');
 assert.deepEqual(basic.dates,[]);
-assert.throws(()=>previewBasicCohortCsv('FIRST_NAME,LAST_NAME,STUDENT_ID\nAvery,Example,102233\\nAvery,Example,102234'),/Duplicate student name/);
+assert.throws(()=>previewBasicCohortCsv('FIRST_NAME,LAST_NAME,STUDENT_ID\nAvery,Example,102233\nAvery,Example,102234'),/Duplicate student name/);
