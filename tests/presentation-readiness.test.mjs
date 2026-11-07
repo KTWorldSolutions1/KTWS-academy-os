@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import {attendanceRoster,attendancePhase,attendanceForDay} from '../lib/attendance.ts';
 import {weekDates,weekStart,plannedPaidHours} from '../lib/staff-scheduling.ts';
+import {yardEntryReadiness,promoteEligibleStudent} from '../lib/yard-promotion.ts';
 import {cleanMessageTemplate,expandMessageTemplate,MESSAGE_TEMPLATES} from '../lib/student-messaging.ts';
 const classroomStudents=[
  {kind:'students',id:'a',name:'Sample One',status:'Enrolled',sessions:[],reportedClassroomHours:40},
@@ -21,3 +22,14 @@ assert.ok(MESSAGE_TEMPLATES.some(x=>x.channel==='Email')&&MESSAGE_TEMPLATES.some
 assert.equal(expandMessageTemplate('Hi {{firstName}}.',{name:'Sample Learner'},undefined),'Hi Sample.');
 assert.ok(!cleanMessageTemplate('Hi {{driverLicense}}').includes('driverLicense'));
 console.log('PASS: classroom permit-waiting rosters, weekly staff schedule totals, and safe messaging templates.');
+
+const evidence=(category)=>({category,key:'encrypted-object-'+category,verified:true});
+const validSessions=Array.from({length:5},(_,i)=>({id:'session-'+i,date:'2026-11-0'+(i+2),phase:'Classroom',hours:10,attendance:'Present',mode:'Instruction',instructor:'Instructor',start:'08:00',end:'18:00'}));
+const ready={kind:'students',name:'Fictional Student',status:'Waiting for permit',campusId:'c',sessions:validSessions,documents:[evidence('Commercial learner permit'),evidence('Drug screen result')],yardClearance:'Cleared'};
+assert.equal(yardEntryReadiness(ready).ready,true);
+assert.equal(promoteEligibleStudent(ready,'2026-11-07T12:00:00Z','school@example.com').status,'Yard');
+assert.equal(promoteEligibleStudent({...ready,sessions:[],reportedClassroomHours:50},'2026-11-07T12:00:00Z','school@example.com').status,'Waiting for permit','Reported hours do not trigger graduation to Yard');
+assert.equal(promoteEligibleStudent({...ready,documents:[]},'2026-11-07T12:00:00Z','school@example.com').status,'Waiting for permit','A document needs secure uploaded and verified evidence');
+assert.equal(promoteEligibleStudent({...ready,yardClearance:''},'2026-11-07T12:00:00Z','school@example.com').status,'Waiting for permit','An unclear drug-screen result blocks yard transition');
+assert.equal(promoteEligibleStudent({...ready,status:'Road'},'2026-11-07T12:00:00Z','school@example.com').status,'Road','Do not change advanced statuses retroactively');
+console.log('PASS: gated automatic classroom-to-yard transition requires genuine hours, verified permit, verified drug screen and administrative clearance.');
