@@ -100,7 +100,7 @@ try{
  assert.equal((await send('/api/records',{records:[withRestricted]},cookie)).status,200);
  const redacted=(await json(await send('/api/records',null,adminAccount.cookie))).body.records.find(r=>r.id===sa.id);
  assert.equal(redacted.documents.some(d=>d.key===ownerRestricted.body.key),false);
- assert.equal((await send('/api/records',{records:[{...redacted,name:'Student A updated by office'}]},adminAccount.cookie)).status,200);
+ const officeEdit=await json(await send('/api/records',{records:[{...redacted,name:'Student A updated by office'}]},adminAccount.cookie));assert.equal(officeEdit.status,200,JSON.stringify(officeEdit.body));
  const retained=(await json(await send('/api/records',null,cookie))).body.records.find(r=>r.id===sa.id);
  assert.equal(retained.documents.some(d=>d.key===ownerRestricted.body.key),true);
  // Consent-to-disclose records need the same management-only protection as other restricted evidence.

@@ -17,6 +17,7 @@ export const schoolSections:SchoolSection[]=[
  {id:'students',label:'Students',help:'Find students and check their records.',pages:[
   {id:'students',label:'Student List',help:'Profiles, paperwork and progress'},
   {id:'document-center',label:'Secure Document Vault',help:'Enrollment agreements, licenses and private student paperwork'},
+  {id:'cohort-agreements',label:'Cohort Agreement Uploads',help:'Match signed files to individual student accounts and encrypt each upload'},
   {id:'student-id-studio',label:'Student Photos & Badges',help:'Upload, review, save portraits and print student ID cards'},
   {id:'student-communications',label:'Email & Text Students',help:'Message one student or an opt-in class group'},
   {id:'student-access',label:'Student Portal Access',help:'Owner-approved private student logins'},
@@ -26,7 +27,8 @@ export const schoolSections:SchoolSection[]=[
   {id:'leads',label:'New Inquiries',help:'Follow up with future students'},
   {id:'calendar',label:'School Calendar',help:'Appointments, birthdays, class dates and closures'},
   {id:'event-intake',label:'Event Signups',help:'Save contacts from fairs and events'},
-  {id:'rosters',label:'DMV Roster Packets',help:'First-day class rosters and signed enrollment agreements'}
+  {id:'rosters',label:'DMV Roster Packets',help:'First-day class rosters and signed enrollment agreements'},
+  {id:'real-roster-intake',label:'Import Real Student Roster',help:'Restricted first-day DMV table import, duplicate protection and private student identity'}
  ]},
  {id:'training',label:'Training',help:'Classes, attendance, trucks and training records.',pages:[
   {id:'closeout',label:'Daily Training Review',help:'Check lessons, logs and truck reports before going home'},
