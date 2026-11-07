@@ -111,12 +111,21 @@ export default function ComplianceRosters({records,role,demo,busy,saveMany}:Prop
   if(existing){setSelectedClass(existing.id);setMessage('Greensboro November 2 class selected. Upload your roster below.');return;}
   const row:R={id:crypto.randomUUID(),kind:'classes',campusId:g.id,name:'Greensboro Class A • November 2, 2026',
     status:'In progress',program:'Class A',startDate:'2026-11-02',endDate:classEnding('2026-11-02'),capacity:11,
-    schedule:'Monday–Friday · Five-week Class A program · Week 5 testing',
+    schedule:'Monday–Friday 7:00 AM–4:00 PM · Five-week Class A program · Week 5 testing',
     theoryHours:50,yardHours:50,roadHours:60,pricingStatus:'Verify each student funding authorization'};
   setError('');setMessage('');
   const ok=await saveMany([row]);
   if(ok){setSelectedClass(row.id);setMessage('Greensboro November 2 class created with 11 proposed seats. Upload the roster in the section below.');}
   else setError('Class creation was rejected. Check the school error above or review classes and campus permissions.');
+ }
+ async function setSelectedClassHours(){
+  if(!canManage||demo||!klass||klass.program!=='Class A')return;
+  setError('');setMessage('');
+  if(!window.confirm('Set the selected Class A class schedule to Monday–Friday, 7:00 AM–4:00 PM? This changes the class schedule only, not student attendance or verified hours.'))return;
+  const schedule='Monday–Friday 7:00 AM–4:00 PM · Five-week Class A program · Week 5 testing';
+  const ok=await saveMany([{...klass,schedule,scheduledStart:'07:00',scheduledEnd:'16:00',scheduledBreakMinutes:60}]);
+  if(ok)setMessage('Class schedule updated to 7:00 AM–4:00 PM. No attendance or training hours were generated.');
+  else setError('Could not save the selected class hours. Review the school error.');
  }
  async function createDates(){
   if(!campus)return;
@@ -127,7 +136,7 @@ export default function ComplianceRosters({records,role,demo,busy,saveMany}:Prop
   const missing=starts.map(startDate=>({
    id:crypto.randomUUID(),kind:'classes',campusId:campus.id,name:'Class A • '+startDate,
    status:'Open for enrollment',program:'Class A',startDate,endDate:classEnding(startDate),
-   schedule:'Monday–Friday • Five-week program • Week 5 testing',capacity:startDate==='2026-11-02'?11:8,tuition:'',pricingStatus:'Pending campus-approved tuition and funding terms',
+   schedule:'Monday–Friday 7:00 AM–4:00 PM • Five-week program • Week 5 testing',capacity:startDate==='2026-11-02'?11:8,tuition:'',pricingStatus:'Pending campus-approved tuition and funding terms',
    theoryHours:50,yardHours:50,roadHours:60,fundingOptions:[...FUNDING_TYPES],
    schedulingNote:'Proposed two-week start cadence; verify staffing, fleet availability, state approval, holidays and training calendar.'
   }));
@@ -137,6 +146,7 @@ export default function ComplianceRosters({records,role,demo,busy,saveMany}:Prop
  }
  return <div className="compliance-rosters"><section className="panel"><div className="sectionhead"><div><p className="eyebrow">REGULATORY REPORTS • LIMITED ACCESS</p><h2>First-day class rosters & enrollment agreements</h2><p className="muted">NC 19A NCAC 03J .0308 requires a roster as of the first day of class and copies of each student's signed contracts. Academy OS prepares a restricted ZIP packet containing the roster CSV and actual verified enrollment agreements. No automatic NCDMV submission is performed.</p></div><ShieldCheck size={26}/></div>
  {!demo&&canManage&&<div className="reportactions"><button type="button" className="primary" disabled={busy} onClick={()=>void createGreensboroNov2()}><CalendarDays size={16}/> Create or select Greensboro · Nov 2 class (11 students)</button></div>}
+ {canManage&&klass&&klass.program==='Class A'&&<button type="button" disabled={busy||demo} onClick={()=>void setSelectedClassHours()}>Set selected class schedule to 7:00 AM–4:00 PM (no attendance changes)</button>}
  <div className="formgrid"><label>Campus<select value={campus?.id||''} onChange={e=>{setSelectedCampus(e.target.value);setSelectedClass('');setPreview(null);}}>{campuses.map(c=><option value={c.id} key={c.id}>{c.name}{c.state?' • '+c.state:''}</option>)}</select></label><label>Class/select roster<select value={klass?.id||''} onChange={e=>{setSelectedClass(e.target.value);setPreview(null);}}>{!classes.length&&<option value="">No scheduled classes</option>}{classes.map(c=><option key={c.id} value={c.id}>{c.name} • {c.startDate||'Start pending'}</option>)}</select></label></div>
  {klass&&<div className="curriculum-metrics"><div><strong>{students.length}</strong><small>Students assigned to the class</small></div><div><strong>{klass.startDate||'—'}</strong><small>Class start date</small></div><div><strong>{klass.endDate||'—'}</strong><small>Class end date</small></div><div><strong>{klass.capacity||'—'}</strong><small>Planned capacity</small></div></div>}
  <div className="reportactions"><button disabled={!klass||busy||loading||!canManage} onClick={audit}><FileCheck2 size={16}/> Check first-day packet readiness</button>
