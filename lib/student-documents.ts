@@ -36,4 +36,4 @@ export function documentChecklist(student:any){
 export function safeStudentDocuments(student:any){
  return documentChecklist(student).map(({category,required,requested,status,uploadedAt})=>({category,required,requested,status,uploadedAt}));
 }
-export function profilePhotoKey(student:any){const last=latestEvidence(student,STUDENT_PHOTO_CATEGORY);return last?.verified?last.key:null;}
+export function profilePhotoKey(student:any){const rows=(Array.isArray(student?.documents)?student.documents:[]).filter((d:any)=>d?.category===STUDENT_PHOTO_CATEGORY&&d?.key&&d?.verified===true);return rows.at(-1)?.key||null;}
