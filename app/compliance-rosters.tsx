@@ -3,7 +3,7 @@ import {useState} from 'react';
 import type {RecordData as R} from '../lib/training';
 import {classEnding,proposedBiweeklyStarts,FUNDING_TYPES,rosterGaps} from '../lib/compliance-roster';
 import {CalendarDays,Download,FileCheck2,ShieldCheck,AlertTriangle} from 'lucide-react';
-import {previewDmvCsv} from '../lib/roster-import';
+import {previewDmvCsv,previewBasicCohortCsv} from '../lib/roster-import';
 type Props={records:R[];role:string;demo:boolean;busy:boolean;saveMany:(rows:R[])=>Promise<boolean>};
 export default function ComplianceRosters({records,role,demo,busy,saveMany}:Props){
  const campuses=records.filter(c=>c.kind==='campuses'&&c.status==='Active');
@@ -13,7 +13,7 @@ export default function ComplianceRosters({records,role,demo,busy,saveMany}:Prop
  const klass=classes.find(c=>c.id===selectedClass)||classes[0];
  const students=records.filter(s=>s.kind==='students'&&s.classId===klass?.id&&s.campusId===campus?.id&&s.status!=='Withdrawn');
  const canManage=['Owner','Regional admin','Campus manager'].includes(role);
- const [importPreview,setImportPreview]=useState<ReturnType<typeof previewDmvCsv>|null>(null);
+ const [importPreview,setImportPreview]=useState<ReturnType<typeof previewDmvCsv>|ReturnType<typeof previewBasicCohortCsv>|null>(null);
  const [importError,setImportError]=useState('');
  const [importSaving,setImportSaving]=useState(false);
  const [confirmImport,setConfirmImport]=useState(false);
@@ -23,7 +23,7 @@ export default function ComplianceRosters({records,role,demo,busy,saveMany}:Prop
   try{
    if(!/greensboro/i.test(campus.name||''))throw Error('Select the Greensboro campus for this roster.');
    if(klass.program!=='Class A')throw Error('Choose a Class A cohort.');
-   if(importPreview.candidates.some(s=>s.startDate!==klass.startDate||s.endDate!==klass.endDate))
+   if(importPreview.candidates.some(s=>s.startDate&&s.startDate!==klass.startDate||s.endDate&&s.endDate!==klass.endDate))
     throw Error('Roster dates do not match the selected class. Verify the correct cohort first.');
    const normalized=(name:string)=>name.trim().replace(/\s+/g,' ').toLowerCase();
    const existing=records.filter(r=>r.kind==='students'&&r.campusId===campus.id);
@@ -35,7 +35,7 @@ export default function ComplianceRosters({records,role,demo,busy,saveMany}:Prop
     id:crypto.randomUUID(),kind:'students',name:s.name,campusId:campus.id,classId:klass.id,
     cohort:klass.name,program:'Class A',status:'Enrollment pending',phone:s.phone,
     licenseNumber:s.licenseNumber,driverLicenseState:s.licenseState,dob:s.dob,address:s.address,city:s.city,state:s.state,zip:s.zip,
-    startDate:klass.startDate,finishDate:klass.endDate,studentNumber:'',sessions:[],assessments:[],evaluations:[],
+    startDate:klass.startDate,finishDate:klass.endDate,studentNumber:('studentNumber' in s?String(s.studentNumber||''):'') ,sessions:[],assessments:[],evaluations:[],
     documents:[],notes:[],documentRequests:[{category:'Enrollment agreement',status:'Requested',
      requestedAt:new Date().toISOString(),message:'School staff must upload and verify the signed enrollment agreement.'}],
     fundingStatus:'Not verified',registrationStatus:'Needs administrative review',targetTheory:50,targetYard:50,targetRoad:60
@@ -51,7 +51,7 @@ export default function ComplianceRosters({records,role,demo,busy,saveMany}:Prop
   setImportError('');setImportPreview(null);
   if(!file)return;
   if(file.size>250_000){setImportError('File too large. Choose a CSV smaller than 250 KB.');return;}
-  try{const preview=previewDmvCsv(await file.text());setImportPreview(preview);}
+  try{const raw=await file.text();const header=raw.split(/\r?\n/,1)[0].toUpperCase();const preview=header.includes('DL_NUMBER')?previewDmvCsv(raw):previewBasicCohortCsv(raw);setImportPreview(preview);}
   catch(e:any){setImportError(e.message||'Invalid CSV');}
  }
  async function audit(){
@@ -89,10 +89,10 @@ export default function ComplianceRosters({records,role,demo,busy,saveMany}:Prop
  {!klass&&<p className="muted">Create a class from the calendar or add proposed class dates below.</p>}
  {message&&<p className="notice">{message}</p>}{error&&<p className="error" role="alert">{error}</p>}
  <p className="footnote">Regulatory roster fields: legal name, driver license number, postal address, telephone and enrollment agreement(s); school-requested extras: DOB, class dates and funding type. SSNs and drug screening records are deliberately excluded. Do not transmit unencrypted ZIPs over ordinary email. Texas reports need a separate Texas-specific approval and template.</p></section>
- <section className="panel"><div className="sectionhead"><div><p className="eyebrow">SECURE ROSTER INTAKE • LOCAL PREVIEW</p><h2>Review a DMV enrollment CSV</h2><p className="muted">Select your enrollment spreadsheet exported as CSV. This checks columns, date formats, and duplicated license numbers in memory, without uploading, saving, or entering real students into the fictional owner presentation.</p></div><ShieldCheck size={25}/></div>
+ <section className="panel"><div className="sectionhead"><div><p className="eyebrow">SECURE ROSTER INTAKE • LOCAL PREVIEW</p><h2>Review a DMV enrollment CSV</h2><p className="muted">Select your enrollment spreadsheet exported as CSV. Use either a full DMV roster CSV or a basic FIRST_NAME,LAST_NAME,STUDENT_ID roster. Review locally first, then explicitly save approved profiles under the selected campus and class. Unverified compliance fields stay blank.</p></div><ShieldCheck size={25}/></div>
  {canManage?<label>Choose DMV roster CSV<input type="file" accept=".csv,text/csv" onChange={e=>{void previewImport(e.target.files?.[0]);e.currentTarget.value='';}}/></label>:<p className="muted">Only the Owner, Regional admin or Campus manager can inspect a roster.</p>}
  {importError&&<p className="error" role="alert">{importError}</p>}
- {importPreview&&<div role="status"><p className="notice">{importPreview.count} student rows checked. Proposed class date range: {importPreview.dates.join(', ')}.</p>
+ {importPreview&&<div role="status"><p className="notice">{importPreview.count} student rows checked. {importPreview.dates.length?'Roster dates: '+importPreview.dates.join(', '):'Basic name-and-school-ID roster · assigned to the class selected above'}.</p>
  <p className="muted">This file is parsed in your browser. Choose the correct Greensboro class above; the Save button submits records through the authenticated, campus-restricted school record API. Signed agreements must still be uploaded separately in the protected document vault after storage recovery approval.</p>
  {!demo&&canManage&&<div className="vault-upload"><p><b>Save these students into the real school</b></p>
  <p className="muted">Selected campus: {campus?.name||'None'} · Class: {klass?.name||'None'} · Start: {klass?.startDate||'Not set'} · Class capacity: {klass?.capacity||'Not set'}</p>
