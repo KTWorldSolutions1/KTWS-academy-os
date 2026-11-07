@@ -3,7 +3,7 @@ Date: 2026-11-07. Campuses: Greensboro NC, Dallas TX, Mansfield TX. This tracks 
 
 ## Recently built in this pilot branch
 - Real-workspace owner demonstration: 30-step operator that navigates actual Academy OS modules, performs safe fictional lead/document/quiz/attendance/task actions, visually highlights controls, and offers an optional real-tab screen recording with user permission. The older scripted visual trailer is separately available.
-- Three-campus sandbox: 100 fictional students distributed across seven statuses, plus 50 fictional applicants awaiting funding; no real DOBs, SSNs, licenses, or agreements. Sample records never sync to live D1.
+- Three-campus sandbox: 100 fictional students distributed across eight statuses (including waiting for permit), plus 50 fictional applicants awaiting funding; no real DOBs, SSNs, licenses, or agreements. Sample records never sync to live D1.
 - A private 7-stage student journey: Enrollment > Classroom theory > Permit preparation/waiting > Yard/pre-trip > Road > Skills testing > Graduate. Current stage is NOT automatically verified completion. Specific theory results, skills proficiency and permit review remain independent evidence.
 - Direct student portal link to Tenstreet Driver Pulse for setting up a driver profile, work history, job filters and applying directly to carriers. There is no Tenstreet API integration, application submission from Academy OS, automatic applicant record transfer, or job placement verification.
 - Separate Students > Student Photos & Badges workspace: select student, upload JPG/PNG to encrypted R2, review/approve, assign school ID, print CR80 badge. Authenticated students can upload their own picture pending management verification. Private documents and ID photo are not automatically published.
@@ -36,3 +36,23 @@ Date: 2026-11-07. Campuses: Greensboro NC, Dallas TX, Mansfield TX. This tracks 
 8. School theme is provisional gray/blue/black/white; the user has not supplied the intended reference photograph in this chat. Final exact HEX or Pantone should match that photo and any approved identity guideline.
 
 Definitions: code merged to branch is not published to production. Successful release automation and live authenticated smoke tests establish publication; security and campus approval are additional requirements before using actual student sensitive documents.
+
+
+## November 7 full-system integration and release matrix
+| Workstream | Present capability | Gated or not implemented |
+|---|---|---|
+| Lead intake & funding | Admissions leads, 50 fictional funding-pending demo applicants; funding sources Cash/WIOA/WRLP/Voc Rehab/employer/other; school approvals and invoices | School policy validation of financial awards and current ETPL tuition |
+| Enrollment & student records | Campus-scoped student profiles, private document requests, submitted/verified evidence, portrait ID card studio, 100 synthetic students | Security and retention acceptance before real SSN evidence uploads |
+| Theory & learning | 30-topic Class A federal theory crosswalk, draft five-day classroom, logging, trip planning, map reading, approved quiz banks, diagnostics | Actual J. J. Keller licensed lesson mapping and instructor-approved assessments |
+| Driver skills | Attendance, actual vs planned hours, field coaching, range/road proficiency and inspection logs | Final instructor/owner validation of every NC and Texas field and state reporting duty |
+| Student portal | Enrollment checklist, private missing notices and upload workflow, seven-stage journey, birthdays not publicly exposed, school closure banners, Driver Pulse career handoff | Full go-live depends on signed student authorization and security pilot |
+| NC compliance | First-day roster preflight, DOB/license/contact info, verified agreement ZIP download | Owner review, secure NC DMV transmission and verified receipt |
+| Texas compliance | Dallas and Mansfield location and role isolation | Texas-specific approved regulatory templates and submission integration |
+| Messaging | Single and opt-in limited bulk email/SMS composer, per-campus permission checks, templates, preview and audits | School-owned verified sending domain, Twilio registration and confirmed STOP handling |
+| Calendars | Month view with student/staff birthdays, approved announcements, confirmed closures and class dates; downloadable privacy-minimized ICS for Outlook/Google | Two-way Outlook/Google Graph sync requires an owner-authorized OAuth app |
+| Payments | Funding invoices and optional signed-webhook Stripe Checkout code | No payment collection until owner confirms Stripe keys, fees and live acceptance |
+| Integrations | Owner Integration Center catalog lists Cloudflare, M365, OneDrive, Teams, Power Automate, poliSCHOOL, J. J. Keller, FMCSA, NC DMV, Texas regulators, Twilio, Resend, Stripe, QuickBooks, Tenstreet, OpenAI, e-sign and Google Calendar | Third-party apps are NOT automatically connected, subscribed, authorized or transmitting data just because they are listed |
+| Team & executive | 30-step actual workspace demo, role-checked pilot invites, campus and regional oversight, assignments, daily focus, weekly reports | Real Texas pilot participants need separate login activation; do not share Owner password |
+
+### Release standard
+A complete *working pilot* does not mean that every vendor connection is approved or that all regulatory submission adapters are live. Public release requires passing GitHub CI, successful Cloudflare deployment, live route smoke test, successful school-owner authentication, explicit security clearance for sensitive file uploads, and written validation of state compliance workflows. A newly added connector listing represents a connection pathway, not a remote installation.
