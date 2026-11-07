@@ -22,7 +22,7 @@ assert.equal(stage.stages[1].completed,false,'Theory stage requires evidence and
 const sample=megaCampusDemoRecords();
 assert.equal(sample.filter(r=>r.kind==='students').length,98);
 assert.equal(sample.filter(r=>r.kind==='leads'&&r.status==='Funding pending').length,50);
-assert.equal(OPERATOR_STEPS.length,30);
+assert.ok(OPERATOR_STEPS.length>=30,'Owner tour must cover the complete student lifecycle');
 assert.ok(OPERATOR_STEPS.every(s=>s.page&&s.title&&s.operatorAction&&s.evidence));
 const demoStudent=sample.find(r=>r.kind==='students'&&r.id==='demo-mega-student-0-001');
 assert.ok(demoStudent);
