@@ -34,7 +34,8 @@ const bank={id:'bank',kind:'quizzes',status:'Active',campusId:'g',program:'Class
 assert.equal(createReviewedDiagnostic([bank], 'g','Class A','Air Brakes',3).questions.length,3);
 assert.throws(()=>createReviewedDiagnostic([], 'g','Class A','Air Brakes'),/at least three/);
 const demo=megaCampusDemoRecords();
-assert.equal(demo.filter(r=>r.kind==='students').length,18);
+assert.equal(demo.filter(r=>r.kind==='students').length,98);
+assert.equal(demo.filter(r=>r.kind==='leads'&&r.status==='Funding pending').length,50);
 assert.equal(new Set(demo.filter(r=>r.kind==='students').map(r=>r.campusId)).size,3);
 assert.ok(demo.every(r=>r.kind!=='students'||!r.ssn));
 console.log('Academy mega-system new workflow validations passed');
