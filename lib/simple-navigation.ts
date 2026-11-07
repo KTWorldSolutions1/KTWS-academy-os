@@ -61,6 +61,7 @@ export const schoolSections:SchoolSection[]=[
   {id:'student-payments',label:'Student Payment Center',help:'Stripe, cash, WIOA, WRLP and reconciled tuition balances'}
  ]},
  {id:'school',label:'Settings & Connections',help:'Campus settings, integrations, access and school controls',pages:[
+  {id:'school-knowledge',label:'School Document Center',help:'Policies, procedures, approved guides, staff resources and SharePoint/OneDrive links'},
   {id:'setup',label:'Get Started',help:'Complete the school setup checklist'},
   {id:'pilot-access',label:'Pilot User Access',help:'Owner creates staff logins and pilot access'},
   {id:'integrations',label:'Integrations & Connections',help:'Configure Microsoft, school systems, messaging, payments and career links'},
