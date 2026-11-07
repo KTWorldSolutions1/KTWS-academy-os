@@ -16,7 +16,7 @@ export const schoolSections:SchoolSection[]=[
  ]},
  {id:'students',label:'Student Records',help:'Students, progress, private forms and ID cards',pages:[
   {id:'students',label:'Student List',help:'Profiles, paperwork and progress'},
-  {id:'document-center',label:'Enrollment Forms & Files',help:'Private signed agreements, licenses and student documents'},
+  {id:'document-center',label:'Bulk Agreement Upload & Student Files',help:'Match multiple signed PDFs to students by name/ID, review and attach securely'},
   {id:'student-id-studio',label:'Student Photos & Badges',help:'Upload, review, save portraits and print student ID cards'},
   {id:'student-communications',label:'Email & Text Students',help:'Message one student or an opt-in class group'},
   {id:'student-access',label:'Student Portal Logins',help:'Invite students to see their own progress and files'},
