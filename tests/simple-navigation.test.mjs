@@ -7,7 +7,7 @@ assert.deepEqual(schoolSections.map(s=>s.label),['Home','Students','Admissions',
 const everyPage=schoolSections.flatMap(s=>s.pages.map(p=>p.id));
 assert.equal(everyPage.length,new Set(everyPage).size,'Each previous workspace route must appear exactly once');
 assert.ok(everyPage.length>=36,'Do not remove any existing school workflow');
-for(const addition of ['document-center','rosters','learning-diagnostics','pilot-access'])assert.ok(everyPage.includes(addition),'Expected new workflow '+addition);
+for(const addition of ['document-center','rosters','learning-diagnostics','pilot-access','student-portal-preview'])assert.ok(everyPage.includes(addition),'Expected new workflow '+addition);
 for(const page of everyPage){
  assert.ok(sectionForPage(page),'Page '+page+' belongs to a discoverable section');
  assert.ok(displayNameForPage(page).length>2,'Every page has a short readable title');
