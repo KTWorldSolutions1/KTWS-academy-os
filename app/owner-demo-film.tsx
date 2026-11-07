@@ -3,7 +3,7 @@ import {useEffect,useRef,useState} from 'react';
 import {ArrowRight,BookOpen,ChevronLeft,ChevronRight,Download,Maximize2,Pause,Play,RotateCcw,Volume2,VolumeX,X,Presentation,CheckCircle2,ShieldCheck} from 'lucide-react';
 import {DEMO_SCENES,DEMO_FRAME_MS,DEMO_RUNTIME_SECONDS,type DemoScene} from '../lib/presentation-demo';
 
-type Props={onClose:()=>void;onNavigate:(id:string)=>void;};
+type Props={onClose:()=>void;onNavigate:(id:string,sceneId:string)=>void;};
 function time(seconds:number){const x=Math.floor(seconds);return Math.floor(x/60)+':'+String(x%60).padStart(2,'0');}
 function wrappedText(ctx:CanvasRenderingContext2D,value:string,x:number,y:number,maxWidth:number,lineHeight:number){
  let line='';for(const word of value.split(' ')){const next=line?line+' '+word:word;if(ctx.measureText(next).width>maxWidth&&line){ctx.fillText(line,x,y);y+=lineHeight;line=word;}else line=next;}
@@ -28,7 +28,7 @@ function drawScene(ctx:CanvasRenderingContext2D,scene:DemoScene,sequence:number,
  ctx.fillStyle='#20334a';ctx.fillRect(0,706,w,14);ctx.fillStyle='#2184c6';ctx.fillRect(0,706,w*progress,14);
 }
 export default function OwnerDemoFilm({onClose,onNavigate}:Props){
- const [playing,setPlaying]=useState(true),[index,setIndex]=useState(0),[fraction,setFraction]=useState(0),[narrate,setNarrate]=useState(false),[speed,setSpeed]=useState(1),[recording,setRecording]=useState(false),[recordedUrl,setRecordedUrl]=useState(''),[error,setError]=useState('');
+ const [recordedMime,setRecordedMime]=useState('video/webm');\n const [playing,setPlaying]=useState(true),[index,setIndex]=useState(0),[fraction,setFraction]=useState(0),[narrate,setNarrate]=useState(true),[speed,setSpeed]=useState(1),[recording,setRecording]=useState(false),[recordedUrl,setRecordedUrl]=useState(''),[error,setError]=useState('');
  const lastClock=useRef<number>(0),canvasRef=useRef<HTMLCanvasElement|null>(null),videoRef=useRef<HTMLVideoElement|null>(null);
  const scene=DEMO_SCENES[index];
  const indexRef=useRef(index),playingRef=useRef(playing),progressRef=useRef(fraction),speedRef=useRef(speed);
@@ -75,7 +75,7 @@ export default function OwnerDemoFilm({onClose,onNavigate}:Props){
    recorder.ondataavailable=ev=>{if(ev.data.size)blobs.push(ev.data);};
    const result=new Promise<void>((resolve,reject)=>{recorder.onerror=()=>reject(Error('Video recording failed'));recorder.onstop=()=>{
      if(!blobs.length){reject(Error('Browser did not record the walkthrough.'));return;}
-     const url=URL.createObjectURL(new Blob(blobs,{type}));setRecordedUrl(url);resolve();
+     const url=URL.createObjectURL(new Blob(blobs,{type}));setRecordedMime(type);setRecordedUrl(url);resolve();
    };});
    recorder.start(250);
    // Fast-export film is approximately 30 seconds and has readable on-screen text.
@@ -94,7 +94,7 @@ export default function OwnerDemoFilm({onClose,onNavigate}:Props){
    recorder.stop();await result;stream.getTracks().forEach(track=>track.stop());
   }catch(e:any){setError(e.message||'Could not export demo video');}finally{setRecording(false);}
  }
- const openFeature=()=>{setPlaying(false);if(typeof speechSynthesis!=='undefined')speechSynthesis.cancel();onClose();onNavigate(scene.destination);};
+ const openFeature=()=>{setPlaying(false);if(typeof speechSynthesis!=='undefined')speechSynthesis.cancel();onClose();onNavigate(scene.destination,scene.id);};
  return <div className="owner-film-overlay" role="dialog" aria-modal="true" aria-label="Lone Star owner presentation video walkthrough">
   <section className="owner-film-dialog">
    <div className="film-top"><div className="film-logo"><span className="film-logo-star">★</span><div><strong>LONE STAR</strong><small>ACADEMY OS • OWNERSHIP PRESENTATION</small></div></div>
@@ -126,7 +126,7 @@ export default function OwnerDemoFilm({onClose,onNavigate}:Props){
       <button type="button" className="primary" onClick={openFeature}><Presentation size={18}/> Open {scene.feature}</button></div>
    </div>
    {recording&&<p className="film-recording-note">Recording the animated story to a local video file in this browser. Leave this window open until it finishes. This export is silent; enable narration for the interactive walkthrough.</p>}
-   {recordedUrl&&<div className="film-recorded"><b>Your demo video is ready.</b><video ref={videoRef} src={recordedUrl} controls playsInline aria-label="Recorded student lifecycle video"/><a href={recordedUrl} download={'LoneStar_AcademyOS_Student_Lifecycle.'+(recordedUrl&&recordedUrl.length?'webm':'webm')}><Download size={16}/> Save video to this device</a><small>Browser-generated visual recording; voice narration is available in the interactive walkthrough, not the exported file.</small></div>}
+   {recordedUrl&&<div className="film-recorded"><b>Your demo video is ready.</b><video ref={videoRef} src={recordedUrl} controls playsInline aria-label="Recorded student lifecycle video"/><a href={recordedUrl} download={'LoneStar_AcademyOS_Student_Lifecycle.'+(recordedMime.includes('mp4')?'mp4':'webm')}><Download size={16}/> Save video to this device</a><small>Browser-generated visual recording; voice narration is available in the interactive walkthrough, not the exported file.</small></div>}
    {error&&<p className="error" role="alert">{error}</p>}
    <canvas ref={canvasRef} width={1280} height={720} style={{position:'absolute',width:1,height:1,opacity:0,pointerEvents:'none'}} aria-hidden="true"/>
   </section>
