@@ -31,12 +31,13 @@ try{
  assert.match(federal,/does not submit it to FMCSA/);
  const workspace=renderWorkspace();
  assert.match(workspace,/School navigation/);
- assert.match(workspace,/Import \/ DMV rosters/);
- assert.match(workspace,/START HERE/);
+ assert.doesNotMatch(workspace,/Import \/ DMV rosters/);
+ assert.match(workspace,/SCHOOL SECTIONS/);
  assert.match(workspace,/Classes &amp; Training/);
  assert.match(workspace,/LONE STAR/);
  assert.match(workspace,/Today/);
  assert.match(workspace,/Find a tool or student/);
+ assert.doesNotMatch(workspace,/sidebar-shortcuts/);
  assert.match(workspace,/phone-dock/);
  assert.match(renderPhone('Instructor'),/Training/);
  assert.doesNotMatch(renderPhone('Instructor'),/Admissions/);
