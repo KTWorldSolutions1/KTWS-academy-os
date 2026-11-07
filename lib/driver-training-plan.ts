@@ -154,6 +154,10 @@ export function validateDailyReview(record:any,all:any[],asOf:string){
    ||Object.entries(record.results).some(([key,value])=>!ids.has(key)||!['Not covered','Reviewed','Needs practice','Student explains','Performed with coaching','Discussed'].includes(String(value))))
   return 'Only valid daily lesson step results may be saved.';
  if(!Object.keys(record.results).length)return 'Record a result for at least one student learning step.';
+ if(record.stepMoods!==undefined){
+  if(!record.stepMoods||typeof record.stepMoods!=='object'||Array.isArray(record.stepMoods)||Object.entries(record.stepMoods).some(([id,value])=>!ids.has(id)||!['green','yellow','red'].includes(String(value))))return 'Choose a valid green, yellow or red lesson rating for each scored step.';
+  if(Object.values(record.stepMoods).some(value=>value==='red')&&!record.nextSteps?.trim())return 'A red lesson rating requires a specific remediation or intervention action.';
+ }
  if(typeof record.notes!=='string'||record.notes.trim().length<12||record.notes.length>3000)return 'Describe observations and next actions in at least 12 characters.';
  if(Object.values(record.results).includes('Needs practice')&&!record.nextSteps?.trim())return 'When practice is needed, specify the next coaching action.';
  if(record.correctionOf&&(!all.some(x=>x.kind==='daily-lesson-reviews'&&x.id===record.correctionOf&&x.studentId===student.id&&x.day===record.day)||all.some(x=>x.kind==='daily-lesson-reviews'&&x.correctionOf===record.correctionOf)))return 'Only a matching, uncorrected daily review can be corrected.';

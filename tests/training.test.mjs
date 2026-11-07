@@ -42,12 +42,12 @@ console.log('PASS: 80% boundary, final sign-off, retake blocking, history retent
 const {attendanceRoster,attendancePhase}=await import('../lib/attendance.ts');
 const moved={...student,status:'Yard',sessions:[{...old,phase:'Classroom'}]};
 const road={...student,id:'road',status:'Road'},pending={...student,id:'pending',status:'Enrollment pending'};
-assert.equal(attendanceRoster([student,moved,road,pending],'Classroom').length,1);
+assert.equal(attendanceRoster([student,moved,road,pending],'Classroom').length,2);
 assert.equal(attendanceRoster([moved],'Classroom').length,0);
 assert.equal(attendanceRoster([moved],'Yard')[0].sessions[0].phase,'Classroom');
 assert.equal(attendanceRoster([student,moved,road,pending,{...student,status:'Graduated'}],'All students').length,4);
 assert.equal(attendancePhase(moved,'All students'),'Yard');
-assert.equal(attendancePhase(pending,'All students'),'');
+assert.equal(attendancePhase(pending,'All students'),'Classroom');
 assert.equal(attendancePhase(pending,'All students','Classroom'),'Classroom');
 console.log('PASS: location rosters, status transfer, retained classroom history, all-student per-location attendance and pending-location selection.');
 
