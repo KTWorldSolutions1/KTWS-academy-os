@@ -871,3 +871,53 @@ button:focus-visible,a:focus-visible{outline:2px solid #68ccff}
 .demo-showcase-panel>.footnote{padding:0 25px 15px;margin:0}
 @media(max-width:990px){.demo-showcase-quick{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:690px){.demo-showcase-hero{grid-template-columns:1fr;padding:22px}.demo-showcase-stats{grid-template-columns:repeat(3,1fr);gap:6px;padding:12px}.demo-showcase-stats>div{border:0}.demo-showcase-stats strong{font-size:27px}.demo-showcase-columns{grid-template-columns:1fr;padding:14px}.demo-showcase-quick{grid-template-columns:1fr;padding:0 14px 12px}.demo-showcase-bar{grid-template-columns:100px 1fr 25px;gap:7px}}
+
+
+/* Actual-workspace operator-guided school demo, not a decorative slide deck */
+.operator-tour{position:fixed;z-index:161;right:22px;bottom:19px;width:min(385px,calc(100vw - 26px));background:#0b1624;color:#eff8ff;border:1px solid #6da4cd;border-radius:18px;box-shadow:0 18px 70px #000b;overflow:hidden;font-size:13px;line-height:1.45;animation:operator-appear .3s ease-out}
+@keyframes operator-appear{from{opacity:.2;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.operator-tour header{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:13px 16px;background:linear-gradient(115deg,#103e60,#091927);border-bottom:1px solid #3c6484}
+.operator-tour header>div:first-child{display:grid;grid-template-columns:auto 1fr;column-gap:8px;align-items:center}
+.operator-tour header b{font-size:12px;letter-spacing:.7px;color:#fff}
+.operator-tour header small{grid-column:2;font-size:9px;letter-spacing:.5px;color:#b9d5e8}
+.operator-rec-dot{grid-row:1/span 2;display:block;width:12px;height:12px;background:#45d3a1;box-shadow:0 0 14px #36c5a5;flex-shrink:0;border-radius:50%}
+.operator-header-actions{display:flex;gap:2px}
+.operator-header-actions button{min-width:34px;min-height:30px;display:grid;place-items:center;color:#ecf6ff;border:1px solid #507897;background:#17344e;border-radius:8px}
+.operator-tour-progress{padding:11px 16px 7px;display:flex;justify-content:space-between;gap:10px;color:#a7c8de;font-size:10px;font-weight:800;letter-spacing:.8px}
+.operator-tour progress{width:calc(100% - 32px);margin:0 16px;height:6px;appearance:none}
+.operator-tour progress::-webkit-progress-bar{background:#253f54;border-radius:7px}
+.operator-tour progress::-webkit-progress-value{background:linear-gradient(90deg,#2587c2,#8ce2fa);border-radius:7px}
+.operator-tour-body{padding:11px 16px}
+.operator-tour-body h3{font-size:18px;line-height:1.22;margin:0 0 9px;color:#f3faff}
+.operator-tour-body>p{margin:0 0 11px;color:#c4d7e5;font-size:12px}
+.operator-example{display:flex;align-items:flex-start;gap:10px;background:#15354c;border-left:3px solid #67b9ed;padding:10px 11px;border-radius:9px;margin-bottom:9px;color:#d2e6f4;font-size:11px}
+.operator-example>svg{flex-shrink:0;color:#83d1ff}
+.operator-example b{display:block;font-size:9px;color:#91cee9;letter-spacing:.7px;margin-bottom:3px}
+.operator-live-note{display:flex;gap:9px;align-items:start;border:1px solid #52799a;background:#0f2537;padding:10px;border-radius:9px;font-size:11px;color:#ebf4fb}
+.operator-live-note svg{flex-shrink:0;color:#b2e4fc}
+.operator-primary-controls{display:flex;align-items:center;justify-content:center;gap:9px;margin:5px 16px 8px}
+.operator-primary-controls button{min-height:38px;border:1px solid #416e8c;border-radius:9px;color:#e5f3ff;padding:8px 13px;display:inline-flex;gap:7px;align-items:center;font-size:12px}
+.operator-primary-controls .operator-play{background:#197cac;color:#fff;border-color:#80c4e5;font-weight:800;flex:1;justify-content:center}
+.operator-primary-controls button:disabled{opacity:.35;cursor:default}
+.operator-secondary-controls{display:flex;justify-content:space-between;align-items:center;gap:4px;padding:0 15px 11px;border-bottom:1px solid #36506a}
+.operator-secondary-controls button{font-size:11px;color:#bdd7e8;display:flex;gap:5px;align-items:center}
+.operator-secondary-controls label{display:flex;align-items:center;gap:5px;color:#bbd4e5;font-size:11px}
+.operator-secondary-controls select{padding:5px;width:66px;font-size:11px;border-color:#5382a6}
+.operator-capture{display:grid;gap:8px;margin:11px 15px;border:1px dashed #436d8c;border-radius:10px;background:#102437;padding:10px}
+.operator-capture b{display:flex;align-items:center;gap:7px;color:#edfaff;font-size:11px}
+.operator-capture p{font-size:10px;color:#a2bfd3;margin:5px 0 0;line-height:1.45}
+.operator-capture button,.operator-capture a{border:1px solid #61a2c9;padding:9px 11px;border-radius:8px;color:#dff3ff;background:#143c58;text-align:center;font-size:11px;display:flex;align-items:center;justify-content:center;gap:6px}
+.operator-capture a{color:#e1fff2;background:#1c574c;border-color:#5bc4a3}
+.operator-footer{border-top:1px solid #344c61;padding:9px 16px;display:flex;align-items:center;justify-content:space-between;font-size:10px;color:#bdd2e1}
+.operator-footer span{display:flex;align-items:center;gap:5px}
+.operator-footer button{font-size:11px;color:#b5d9f2}
+.operator-tour.minimized{width:min(370px,calc(100vw - 28px))}
+.operator-minimized-continue{padding:15px;color:#d7ebf8;display:flex;align-items:center;gap:9px;text-align:left;font-size:12px}
+.operator-live-pointer{position:fixed;z-index:155;pointer-events:none;color:#fdfefe;filter:drop-shadow(0 3px 3px #000c);transition:left .46s ease,top .46s ease,opacity .4s ease;display:flex;align-items:flex-end;gap:4px}
+.operator-live-pointer svg{fill:#208cc5;stroke:#e6f8ff;stroke-width:1.7px}
+.operator-live-pointer span{font-size:9px;font-weight:800;background:#1679ba;border:1px solid #d9f4ff;padding:4px 7px;border-radius:6px;letter-spacing:1px}
+.operator-live-pointer.is-clicking{transform:scale(.88)}
+.operator-focus-target{outline:3px solid #3cb0ff!important;outline-offset:4px!important;box-shadow:0 0 0 7px #2377bb30,0 0 32px #54a6da66!important;position:relative;z-index:3;border-radius:8px;transition:outline .2s}
+.operator-tour-error{position:fixed;bottom:30px;right:30px;background:#702c36;color:white;padding:15px;border-radius:9px;z-index:999}
+@media(max-width:680px){.operator-tour{right:6px;left:6px;bottom:4px;width:auto;max-height:76vh;overflow:auto;border-radius:13px}.operator-tour-body h3{font-size:15px}.operator-tour-body>p,.operator-example,.operator-live-note{font-size:11px}.operator-capture{margin:8px}.operator-secondary-controls button,.operator-secondary-controls label{font-size:10px}.operator-tour.minimized{left:8px;width:auto}}
+@media(prefers-reduced-motion:reduce){.operator-tour{animation:none}.operator-live-pointer{transition:none}}
