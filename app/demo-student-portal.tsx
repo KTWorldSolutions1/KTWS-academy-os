@@ -24,7 +24,7 @@ export default function DemoStudentPortal({records,demo,saveMany}:Props){
  if(!student)return <div className="notice">No sample students in your authorized school scope. Ask the school owner to assign a demo campus.</div>;
  const reqs=documentChecklist(student),pending=reqs.filter(r=>r.requested&&r.status!=='Verified'),mastery=summarizeKnowledgeAssessments(student);
  const initials=student.name.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase();
- const stages=['Enrollment pending','Classroom','Yard','Road','Test preparation','Graduated'];
+ const stages=['Enrollment pending','Waiting for permit','Classroom','Yard','Road','Test preparation','Graduated'];
  const current=Math.max(0,stages.indexOf(student.status));
  async function simulateUpload(category:string){
   const attachment={key:'demo-'+crypto.randomUUID(),category,name:'SAMPLE_'+category.replace(/\W+/g,'_')+'.pdf',uploadedAt:new Date().toISOString(),uploadedBy:'Demo student',verified:false,demoOnly:true};
