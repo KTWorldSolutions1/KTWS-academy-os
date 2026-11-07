@@ -32,6 +32,25 @@ export default function OwnerDemoFilm({onClose,onNavigate}:Props){
  const [playing,setPlaying]=useState(true),[index,setIndex]=useState(0),[fraction,setFraction]=useState(0),[narrate,setNarrate]=useState(true),[speed,setSpeed]=useState(1),[recording,setRecording]=useState(false),[recordedUrl,setRecordedUrl]=useState(''),[error,setError]=useState('');
  const lastClock=useRef<number>(0),canvasRef=useRef<HTMLCanvasElement|null>(null),videoRef=useRef<HTMLVideoElement|null>(null);
  const scene=DEMO_SCENES[index];
+ const stages=['Inquiry','Enrollment','Classroom','Yard','Road','Testing','Graduate'];
+ const stageIndex=[0,0,0,1,1,1,2,2,3,4,5,6,6,6][index]||0;
+ const clickPaths:Record<string,string>={
+  network:'Choose a campus in the top filter → review student and school counts',
+  lead:'Admissions → New Inquiries → add applicant → set next contact date',
+  funding:'Partners → Funding Approvals → verify written funding source',
+  docs:'Students → Secure Document Vault → select student → request a missing file',
+  portrait:'Secure Document Vault → add portrait → verify → save ID number → print',
+  roster:'Admissions → DMV Roster Packets → select NC class → run preflight',
+  theory:'Training → Take Attendance → Week-one planner → view all 30 topics',
+  test:'Training → Knowledge Diagnostics → select class → inspect missed objectives',
+  yard:'Training → Take Attendance → record yard attendance and maneuvers',
+  road:'Training → Daily Training Plan → assign instructor, student and truck',
+  testing:'Students → Student 360 → review theory, skills and evidence gaps',
+  career:'Home → School Numbers → compare enrollment and completion trends',
+  team:'Team → Tasks & Appointments → select campus and assigned employee',
+  finale:'Replay the full story or open a module for hands-on practice'
+ };
+
  const indexRef=useRef(index),playingRef=useRef(playing),progressRef=useRef(fraction),speedRef=useRef(speed);
  indexRef.current=index;playingRef.current=playing;progressRef.current=fraction;speedRef.current=speed;
  useEffect(()=>{
@@ -104,10 +123,11 @@ export default function OwnerDemoFilm({onClose,onNavigate}:Props){
     <div className="film-light-beam" aria-hidden="true"/><div className="film-watermark">DEMO ONLY · NO REAL STUDENT INFORMATION</div>
     <div key={scene.id} className="film-scene">
       <div className="film-eyebrow"><span className="film-step">{scene.step} / {String(DEMO_SCENES.length).padStart(2,'0')}</span><span>{scene.kicker}</span></div>
+      <div className="film-journey"><span className="film-journey-persona">FOLLOW JORDAN ELLIS <small>FICTIONAL STUDENT STORY</small></span><div className="film-journey-stages" aria-label="Student lifecycle">{stages.map((label,idx)=><span key={label} className={idx===stageIndex?'current':idx<stageIndex?'complete':''}>{label}</span>)}</div></div>
       <h2>{scene.title}</h2><p className="film-subtitle">{scene.subtitle}</p>
       <div className="film-metric-row">{scene.stats.map((stat,i)=><div className="film-metric" key={i}><strong>{stat}</strong><small>{['CURRENT VIEW','VISIBLE EVIDENCE','KEY OUTCOME'][i]}</small></div>)}</div>
       <div className="film-insights">{scene.highlights.map((item,i)=><div key={i}><CheckCircle2 size={18}/><p>{item}</p></div>)}</div>
-      <div className="film-narrative"><BookOpen size={18}/><p>{scene.narration}</p></div>
+      <div className="film-click-path"><strong>HOW TO USE IT:</strong> {clickPaths[scene.id]}</div><div className="film-narrative"><BookOpen size={18}/><p>{scene.narration}</p></div>
     </div>
     <div className="film-features"><span>LIVE WORKFLOW LINK</span><button type="button" onClick={openFeature}>{scene.feature} <ArrowRight size={15}/></button></div>
    </div>
