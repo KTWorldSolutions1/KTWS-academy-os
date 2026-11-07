@@ -603,3 +603,41 @@ small,.muted{color:var(--school-secondary)}
 .classroom-coverage summary{padding:14px;display:flex;gap:10px;align-items:center;cursor:pointer;font-weight:600;color:#d6e7ff}
 .classroom-coverage .tablewrap{padding:0 12px 12px}
 @media(max-width:750px){.curriculum-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.classroom-topic{grid-template-columns:1fr}.classroom-attachments{grid-template-columns:1fr}.classroom-day-tabs button{flex:1 1 115px}.classroom-campus-choice{grid-template-columns:1fr}}
+
+
+/* Lone Star Academy OS — document vault, multi-campus pilot controls and diagnostics */
+.student-document-center,.learning-diagnostics,.compliance-rosters,.team-assignments,.pilot-access{display:grid;gap:18px}
+.vault-doc-grid{display:grid;gap:7px;margin:14px 0}
+.vault-doc-row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:12px 4px;border-bottom:1px solid #344761;min-width:0}
+.vault-doc-row>div:first-child{min-width:0;flex:1}
+.vault-doc-row b,.vault-doc-row small{display:block;overflow-wrap:anywhere}
+.vault-doc-row small{margin-top:5px}
+.vault-doc-row>div:last-child{display:flex;align-items:center;flex-wrap:wrap;gap:9px}
+.vault-doc-row a{display:inline-flex;align-items:center;gap:5px}
+.vault-checkbox{display:inline-flex;align-items:center;gap:6px;font-size:12px;white-space:nowrap}
+.vault-upload,.vault-id,.student-file-upload{display:grid;gap:12px;margin:20px 0;border:1px solid #344f76;border-radius:13px;padding:18px;background:linear-gradient(135deg,#172b46,#121d31)}
+.vault-upload label,.vault-id label,.student-file-upload label{display:grid;gap:7px}
+.vault-upload button,.vault-id button,.student-file-upload button{justify-self:start}
+.vault-id button{margin:4px 8px 4px 0}
+.vault-portrait{width:138px;height:165px;object-fit:cover;object-position:center top;border-radius:10px;border:2px solid #8da8c9}
+.student-file-alerts{background:#42332163;border:1px solid #a08056;border-radius:9px;padding:12px;margin:10px 0}
+.student-file-alerts p{display:flex;gap:7px;align-items:center;margin:8px 0;font-size:13px}
+.student-file-panel .sectionhead,.student-diagnostic-practice .sectionhead{align-items:flex-start}
+.student-diagnostic-practice form{display:grid;gap:10px}
+.diagnostic-subjects{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px;margin:20px 0}
+.diagnostic-subject{padding:15px;border-radius:11px;border:1px solid #39577c;background:#152741}
+.diagnostic-subject>div:first-child{display:flex;justify-content:space-between;gap:8px;align-items:center}
+.diagnostic-subject small{display:block;margin-top:8px}
+.diagnostic-subject .s360-progress{margin:10px 0}
+.diagnostic-subject p{font-size:13px;line-height:1.55;margin:6px 0;display:flex;gap:5px}
+.diagnostic-subject p.diagnostic-objective{display:block;border-top:1px solid #314869;padding-top:8px}
+.biweekly-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(195px,1fr));gap:10px;margin:18px 0}
+.biweekly-date{display:grid;gap:6px;background:#152740;border:1px solid #345579;padding:14px;border-radius:10px}
+.biweekly-date b{color:#c0d6f2}
+.biweekly-date .badge{justify-self:start}
+.pilot-campus-checks{display:flex;flex-wrap:wrap;gap:12px;margin:12px 0}
+.pilot-activation{margin:15px 0;border:1px solid #587698;border-radius:10px;padding:14px;display:grid;gap:9px}
+.pilot-activation input{width:100%}
+.pilot-activation button{justify-self:start}
+.team-assignments .recordrow{width:100%}
+@media(max-width:760px){.vault-doc-row{align-items:flex-start;flex-direction:column}.vault-doc-row>div:last-child{width:100%;justify-content:flex-start}.student-document-center .curriculum-metrics,.compliance-rosters .curriculum-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.pilot-campus-checks{flex-direction:column}}
