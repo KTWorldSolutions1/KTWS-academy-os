@@ -3,7 +3,7 @@ import {schoolSections,availableSchoolSections,sectionForPage,displayNameForPage
 import {moduleAllowed,roleModules,startModule} from '../lib/roles.ts';
 
 assert.equal(schoolSections.length,8,'Exactly eight top-level navigation choices');
-assert.deepEqual(schoolSections.map(s=>s.label),['Home','Students','Admissions','Training','Team','Partners','Payments','School Setup']);
+assert.deepEqual(schoolSections.map(s=>s.label),['Dashboard & Reports','Student Records','Admissions & Calendar','Classes & Training','Staff & Scheduling','Funding & Employers','Tuition & Billing','Settings & Connections']);
 const everyPage=schoolSections.flatMap(s=>s.pages.map(p=>p.id));
 assert.equal(everyPage.length,new Set(everyPage).size,'Each previous workspace route must appear exactly once');
 assert.ok(everyPage.length>=36,'Do not remove any existing school workflow');
@@ -29,8 +29,8 @@ assert.deepEqual(
 for(const forbidden of ['staff','finance','agency','employment-offers','audit']){
  assert.equal(availableSchoolSections('Instructor').some(s=>s.pages.some(p=>p.id===forbidden)),false,'Instructor must not see '+forbidden);
 }
-assert.equal(sectionForPage('event-intake')?.label,'Admissions');
-assert.equal(sectionForPage('employment-offers')?.label,'Partners');
-assert.equal(sectionForPage('manager-brief')?.label,'Home');
-assert.equal(sectionForPage('campuses')?.label,'School Setup');
+assert.equal(sectionForPage('event-intake')?.label,'Admissions & Calendar');
+assert.equal(sectionForPage('employment-offers')?.label,'Funding & Employers');
+assert.equal(sectionForPage('manager-brief')?.label,'Dashboard & Reports');
+assert.equal(sectionForPage('campuses')?.label,'Settings & Connections');
 console.log('PASS: original 36 school tasks and the new secure mega-system workflows coexist in eight role-aware sections.');
