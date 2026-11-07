@@ -22,10 +22,14 @@ export async function POST(req:Request){
  if(!admin&&!student)return respond({error:'Sign in required'},401);
  if(req.headers.get('origin')!==new URL(req.url).origin)return respond({error:'Invalid origin'},403);
  if(!openUploads())return respond({error:'Private file uploads remain paused pending the school encryption, recovery and privacy acceptance checks. Nothing has been stored.'},503);
- if(admin&&['Instructor','Front desk'].includes(admin.role))return respond({error:'Private student files require authorized administrative access.'},403);
  try{
   const data=await req.formData(),file=data.get('file'),studentId=String(data.get('studentId')||''),category=String(data.get('category')||'Other');
   const publicResource=category===PUBLIC_RESOURCE_CATEGORY;
+  const dailyLog=category==='Daily training log';
+  const trainingDate=String(data.get('trainingDate')||'');
+  if(admin&&['Instructor','Front desk'].includes(admin.role)&&!(admin.role==='Instructor'&&dailyLog))return respond({error:'This role may only upload authorized daily training evidence.'},403);
+  if(dailyLog&&(!admin||!['Owner','Regional admin','Campus manager','Admin assistant','Instructor'].includes(admin.role)))return respond({error:'Daily training logs require school employee authorization.'},403);
+  if(dailyLog&&(!/^\\d{4}-\\d{2}-\\d{2}$/.test(trainingDate)||trainingDate>new Date().toLocaleDateString('en-CA',{timeZone:'America/New_York'})))return respond({error:'Enter the actual training date, not a future date.'},400);
   if(!(file instanceof File)||!file.size||file.size>10000000)return respond({error:'Choose a file smaller than 10 MB.'},400);
   if(!docCategories.includes(category))return respond({error:'Invalid document category.'},400);
   if(!['application/pdf','image/jpeg','image/png','text/plain'].includes(file.type))return respond({error:'Only PDF, JPG, PNG or text documents are accepted.'},400);
@@ -50,18 +54,19 @@ export async function POST(req:Request){
   await bucket().put(key,await encrypt(bytes.buffer),{httpMetadata:{contentType:'application/octet-stream'}});
   try{
    await db.prepare('INSERT INTO school_files (key,owner,campus,student,category,name,mime,actor,created) VALUES (?,?,?,?,?,?,?,?,?)').bind(key,owner,campus,target?.id||null,category,name,file.type,admin?.user.email||student.user.email,at).run();
-   if(student){
+   if(student||dailyLog){
+    // Student submissions and signed staff daily training logs attach atomically.
     // A student's upload is attached to their own record immediately, pending campus review.
     const row:any=await db.prepare("SELECT payload,revision FROM records WHERE id=? AND owner=? AND kind='students'").bind(target.id,owner).first();
     const current=JSON.parse(row.payload);
-    const docs=[...(current.documents||[]),{key,category,name,uploadedAt:at,uploadedBy:'Student portal',verified:false}];
+    const docs=[...(current.documents||[]),{key,category,name,uploadedAt:at,uploadedBy:student?'Student portal':admin?.user.email,trainingDate:dailyLog?trainingDate:undefined,verified:false}];
     const updated=await db.prepare('UPDATE records SET payload=?,revision=revision+1,updated=? WHERE id=? AND owner=? AND revision=?')
      .bind(JSON.stringify({...current,documents:docs}),at,target.id,owner,row.revision).run();
     if(!Number(updated.meta?.changes??updated.changes??0))throw Error('Concurrent student record update');
    }
    await db.prepare('INSERT INTO audit(id,owner,record_id,action,at,payload,actor) VALUES (?,?,?,?,?,?,?)').bind(crypto.randomUUID(),owner,target?.id||campus,'Encrypted file uploaded',at,JSON.stringify({category,publicResource,studentId:target?.id||null}),admin?.user.email||student.user.email).run();
   }catch(e){await db.prepare('DELETE FROM school_files WHERE key=?').bind(key).run();await bucket().delete(key);throw e;}
-  return respond({key,name,category,encrypted:true,uploadedAt:at,uploadedBy:admin?.user.email||'Student portal',verified:false});
+  return respond({key,name,category,trainingDate:dailyLog?trainingDate:undefined,encrypted:true,uploadedAt:at,uploadedBy:admin?.user.email||'Student portal',verified:false});
  }catch{return respond({error:'Secure upload unavailable; no attachment was confirmed. Please retry.'},503);}
 }
 export async function GET(req:Request){
@@ -71,10 +76,10 @@ export async function GET(req:Request){
  const owner=admin?.scope||'academy-owner',db=database();
  if(list){
   const campusId=student?.student.campusId||String(url.searchParams.get('campusId')||'');
-  if(!campusId||(admin&&admin.role!=='Owner'&&!admin.campusIds.includes(campusId)))return respond({error:'Campus access denied.'},403);
+  if(!campusId||(admin&&!['Owner','Regional admin'].includes(admin.role)&&!admin.campusIds.includes(campusId)))return respond({error:'Campus access denied.'},403);
   const resourceOnly=student||url.searchParams.get('category')===PUBLIC_RESOURCE_CATEGORY;
   const rows:any=await db.prepare('SELECT key,name,category,mime,created,campus,student FROM school_files WHERE owner=? AND campus=? ORDER BY created DESC').bind(owner,campusId).all();
-  return respond({files:rows.results.filter((r:any)=>resourceOnly?r.category===PUBLIC_RESOURCE_CATEGORY:admin&&['Owner','Campus manager'].includes(admin.role)||r.category===PUBLIC_RESOURCE_CATEGORY).map((r:any)=>({key:r.key,name:r.name,category:r.category,created:r.created,studentId:r.student||null}))});
+  return respond({files:rows.results.filter((r:any)=>resourceOnly?r.category===PUBLIC_RESOURCE_CATEGORY:admin&&['Owner','Regional admin','Campus manager'].includes(admin.role)||r.category===PUBLIC_RESOURCE_CATEGORY||admin?.role==='Instructor'&&r.category==='Daily training log').map((r:any)=>({key:r.key,name:r.name,category:r.category,created:r.created,studentId:r.student||null}))});
  }
  if(!key?.startsWith(owner+'/'))return new Response('Forbidden',{status:403,headers});
  try{
@@ -84,7 +89,7 @@ export async function GET(req:Request){
   // The student may retrieve shared resources, a file uploaded through their own portal,
   // or a school-verified profile photo. Other internal school evidence is staff-only.
   if(student&&meta.category!==PUBLIC_RESOURCE_CATEGORY&&meta.actor!==student.user.email&&!(meta.category===STUDENT_PHOTO_CATEGORY&&(student.student.documents||[]).some((d:any)=>d.key===meta.key&&d.verified===true)))return new Response('Student document unavailable',{status:403,headers});
-  if(admin&&(!['Owner','Regional admin'].includes(admin.role)&&!admin.campusIds.includes(meta.campus)||restrictedCategories.includes(meta.category)&&!['Owner','Campus manager'].includes(admin.role)||['Instructor','Front desk'].includes(admin.role)))return new Response('Forbidden',{status:403,headers});
+  if(admin&&(!['Owner','Regional admin'].includes(admin.role)&&!admin.campusIds.includes(meta.campus)||restrictedCategories.includes(meta.category)&&!['Owner','Regional admin','Campus manager'].includes(admin.role)||['Instructor','Front desk'].includes(admin.role)&&meta.category!=='Daily training log'||admin.role==='Front desk'))return new Response('Forbidden',{status:403,headers});
   const file=await bucket().get(key);if(!file)return new Response('Not found',{status:404,headers});
   const body=await decrypt(await file.arrayBuffer());
   await db.prepare('INSERT INTO audit(id,owner,record_id,action,at,payload,actor) VALUES (?,?,?,?,?,?,?)').bind(crypto.randomUUID(),owner,key,'Document accessed',new Date().toISOString(),JSON.stringify({category:meta.category,kind:'files'}),admin?.user.email||student?.user.email).run();
