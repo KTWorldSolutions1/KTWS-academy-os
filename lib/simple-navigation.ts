@@ -62,6 +62,7 @@ export const schoolSections:SchoolSection[]=[
  {id:'school',label:'School Setup',help:'Manage campuses and school settings.',pages:[
   {id:'setup',label:'Get Started',help:'Complete the school setup checklist'},
   {id:'pilot-access',label:'Pilot User Access',help:'Owner creates staff logins and pilot access'},
+  {id:'integrations',label:'Integrations & Connections',help:'Configure Microsoft, school systems, messaging, payments and career links'},
   {id:'campuses',label:'Campus Locations',help:'Greensboro, Mansfield and Dallas'},
   {id:'templates',label:'Saved Forms',help:'Message and agreement templates'},
   {id:'compliance',label:'School Readiness',help:'Review missing items and approvals'},
