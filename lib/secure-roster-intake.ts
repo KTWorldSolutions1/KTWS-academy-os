@@ -93,3 +93,20 @@ export function rosterMatch(existing:any[],r:IntakeRow){
  ));
 }
 export function safeReference(license:string){return '•••• '+license.slice(-4);}
+
+/** A conservative suggestion, never a USPS-verified address.
+ * Unsupported cities stay blank so managers must confirm them.
+ */
+export function suggestMailingPieces(text:string){
+ const clean=String(text||'').replace(/\s+/g,' ').trim();
+ const match=/^(.*?)\s+([A-Z]{2})\s+(\d{5}(?:-\d{4})?)$/.exec(clean);
+ if(!match)return {address:clean,city:'',state:'',zip:''};
+ const stem=match[1],state=match[2],zip=match[3];
+ const cities=['Sandy Ridge','High Point','Greensboro','Henderson','Winston-Salem','Burlington','Reidsville','Eden','Raleigh','Durham','Charlotte','Mansfield','Dallas'];
+ for(const city of cities.sort((a,b)=>b.length-a.length)){
+  if(stem.toLowerCase().endsWith(' '+city.toLowerCase())){
+   return {address:stem.slice(0,-city.length).trim(),city,state,zip};
+  }
+ }
+ return {address:stem,city:'',state,zip};
+}
