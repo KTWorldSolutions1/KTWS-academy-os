@@ -1,0 +1,18 @@
+import assert from 'node:assert/strict';
+import {deriveAttentionAlerts} from '../lib/attention-alerts.ts';
+import {availableSchoolSections} from '../lib/simple-navigation.ts';
+const date='2026-11-07';
+const s={id:'fictional-a',kind:'students',name:'Fictional Learner',status:'Waiting for permit',documents:[],sessions:[]};
+const alerts=deriveAttentionAlerts([s],date);
+assert.equal(alerts.length,1);
+assert.equal(alerts[0].id,'fictional-a:documents');
+assert.equal(alerts[0].blockedByConfiguration,true);
+assert.match(alerts[0].resolution,/encrypted uploads|securely/i);
+assert.equal(deriveAttentionAlerts([{...s,documents:[{category:'Enrollment agreement',verified:true}]}],date).length,0);
+assert.equal(deriveAttentionAlerts([s,{id:'lead-1',kind:'leads',name:'Fictional Lead',followUp:'2026-10-01',status:'Closed'}],date).length,1,'Closed admissions leads must not remain overdue');
+assert.equal(deriveAttentionAlerts([s,{id:'lead-1',kind:'leads',name:'Fictional Lead',followUp:'2026-10-01',status:'Funding pending'}],date).length,2);
+assert.equal(deriveAttentionAlerts([{id:'staff-1',kind:'staff',name:'Fictional Staff',status:'Pending credential'}],date)[0].page,'credentials');
+for(const role of ['Owner','Campus manager','Instructor'])assert.ok(availableSchoolSections(role).some(x=>x.pages.some(p=>p.id==='attention')),'Attention page missing for '+role);
+const ownerNav=availableSchoolSections('Owner').find(x=>x.id==='school');
+assert.ok(ownerNav?.pages.some(p=>p.id==='integrations'),'Settings must have integration destination');
+console.log('PASS: attention flags track current evidence, avoid completed lead alerts, disclose storage blocker and offer real navigable resolution pages.');
