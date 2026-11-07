@@ -10,7 +10,7 @@ import {lessonProgress} from '../lib/lesson-checkoffs';
 import {reviewProgress,FEDERAL_THEORY_CODES,FEDERAL_RANGE_CODES,FEDERAL_ROAD_CODES} from '../lib/driver-training-plan';
 import {moduleAllowed} from '../lib/roles';
 type Props={student:R;records:R[];role:string;onPage:(page:string)=>void};
-const stepLabels=['Enrollment pending','Classroom','Yard','Road','Test preparation','Graduated'];
+const stepLabels=['Enrollment pending','Waiting for permit','Classroom','Yard','Road','Test preparation','Graduated'];
 function percent(achieved:number,target:number){return target>0?Math.min(100,Math.max(0,Math.round(achieved/target*100))):0;}
 export default function Student360({student:s,records,role,onPage}:Props){
  const date=new Date().toLocaleDateString('en-CA',{timeZone:'America/New_York'});
