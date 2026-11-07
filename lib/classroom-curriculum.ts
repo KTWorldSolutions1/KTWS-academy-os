@@ -103,11 +103,11 @@ export const CLASSROOM_WEEK_ONE:ClassroomDay[]=[
   ],
   workshop:{title:'Truck atlas & dispatch route-planning lab',
    objectives:['Find interstate routes on a truck atlas','Spot bridge, axle/weight, vehicle-size and restricted-route issues','Estimate trip time with HOS, rest, traffic and time zones','Explain why ordinary car GPS routes may not be suitable for a tractor-trailer'],
-   steps:['Distribute a trucker's atlas and a fictional load tender','Choose a legal route from Greensboro, NC to Dallas, TX; verify truck restrictions with current sources','Mark fuel, weigh stations, parking and breaks','Calculate a realistic ETA from the supplied driver clock; account for time-zone differences','Introduce an earlier delivery request and have students explain when to reject an illegal dispatch'],
+   steps:["Distribute a trucker's atlas and a fictional load tender",'Choose a legal route from Greensboro, NC to Dallas, TX; verify truck restrictions with current sources','Mark fuel, weigh stations, parking and breaks','Calculate a realistic ETA from the supplied driver clock; account for time-zone differences','Introduce an earlier delivery request and have students explain when to reject an illegal dispatch'],
    scenario:'53-foot dry van, Greensboro to Dallas, fictional pickup/delivery appointment and supplied hours available. Do not provide assumed mileage: students must research and document the selected safe route.',
    assessment:'Completed route worksheet, stop plan, ETA and a written communication to dispatch. Instructor reviews restricted routes and HOS compliance.'
   },
-  materials:['Current trucker's atlas','Sample load confirmation','Truck-safe routing reference','HOS/ETA worksheet','Calculator'],
+  materials:["Current trucker's atlas",'Sample load confirmation','Truck-safe routing reference','HOS/ETA worksheet','Calculator'],
   evidence:['Signed trip plan','Map-reading worksheet','Dispatch-delay response and practical rubric'],
   instructorNotes:'All routes, permits and parking must be verified from current authoritative road information; do not use illustrative routes for real dispatch.'
  },
