@@ -13,10 +13,10 @@ export default function SchoolAppSidebar({sections,activeSection,activePage,role
   <div className="sidebar-intro"><span className="sidebar-workspace-label">SCHOOL WORKSPACE <span className="sidebar-live-dot"/></span><p>Choose a section, then a tool. Sections close when you navigate.</p></div>
   <button className="sidebar-command" onClick={onSearch}><Search size={17}/><span>Find a tool or student</span><kbd>⌘ K</kbd></button>
   <div className="sidebar-scroll">
-   <div className="sidebar-section-label">SCHOOL SECTIONS · OPEN ONE AT A TIME</div>
+   <div className="sidebar-section-label">SCHOOL SECTIONS · OPEN ONE AT A TIME</div><p className="sidebar-subpages-note">Click Settings & Connections near the bottom to expand its pages. The list scrolls to the expanded section.</p>
    <nav className="sidebar-tree" aria-label="Main sections">{sections.map(section=>{const Icon=icons[section.id as keyof typeof icons]||LayoutDashboard;const opened=expanded===section.id;const selected=section.id===activeSection;
      return <div key={section.id} className={'sidebar-tree-group '+(selected?'selected':'')}>
-       <button type="button" className={'sidebar-group-toggle '+(selected?'active':'')} aria-expanded={opened} aria-current={selected?'page':undefined} onClick={()=>setExpanded(opened?'':section.id)}>
+       <button type="button" className={'sidebar-group-toggle '+(selected?'active':'')} aria-expanded={opened} aria-current={selected?'page':undefined} onClick={e=>{setExpanded(opened?'':section.id);if(!opened){const group=e.currentTarget.closest('.sidebar-tree-group');requestAnimationFrame(()=>group?.scrollIntoView({block:'nearest',behavior:'smooth'}));}}}>
         <Icon size={19}/><span className="sidebar-category-text"><b>{section.label}</b><small>{section.help}</small></span>{section.id==='home'&&alertCount>0&&<em>{Math.min(alertCount,99)}</em>}<ChevronDown size={16} className={opened?'rotated':''}/>
        </button>
        {opened&&<div className="sidebar-subpages" role="group" aria-label={section.label+' pages'}><p className="sidebar-subpages-note">Choose what you want to do:</p>{section.pages.map(page=><button type="button" key={page.id} className={activePage===page.id?'active':''} aria-current={activePage===page.id?'page':undefined} onClick={()=>go(page.id)} title={page.help}><span className="sidebar-page-mark"/><span><b>{page.label}</b><small>{page.help}</small></span></button>)}</div>}

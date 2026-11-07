@@ -33,3 +33,10 @@ assert.equal(promoteEligibleStudent({...ready,documents:[]},'2026-11-07T12:00:00
 assert.equal(promoteEligibleStudent({...ready,yardClearance:''},'2026-11-07T12:00:00Z','school@example.com').status,'Waiting for permit','An unclear drug-screen result blocks yard transition');
 assert.equal(promoteEligibleStudent({...ready,status:'Road'},'2026-11-07T12:00:00Z','school@example.com').status,'Road','Do not change advanced statuses retroactively');
 console.log('PASS: gated automatic classroom-to-yard transition requires genuine hours, verified permit, verified drug screen and administrative clearance.');
+
+const {availableSchoolSections}=await import('../lib/simple-navigation.ts');
+const campusConnections=availableSchoolSections('Campus manager').find(x=>x.id==='school');
+assert.ok(campusConnections,'Campus manager must have Settings & Connections section');
+assert.ok(campusConnections.pages.some(x=>x.id==='integrations'),'Campus manager must see integrations setup and owner-only connection notice');
+assert.ok(campusConnections.pages.some(x=>x.id==='settings'),'Campus manager must be able to reach school details');
+console.log('PASS: Settings & Connections has navigable pages for a campus manager.');
