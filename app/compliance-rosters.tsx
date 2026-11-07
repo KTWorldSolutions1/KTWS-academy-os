@@ -3,7 +3,7 @@ import {useState} from 'react';
 import type {RecordData as R} from '../lib/training';
 import {classEnding,proposedBiweeklyStarts,FUNDING_TYPES,rosterGaps} from '../lib/compliance-roster';
 import {CalendarDays,Download,FileCheck2,ShieldCheck,AlertTriangle} from 'lucide-react';
-import {previewDmvCsv,previewBasicCohortCsv} from '../lib/roster-import';
+import {previewDmvCsv,previewBasicCohortCsv,previewStudentReconciliationCsv} from '../lib/roster-import';
 type Props={records:R[];role:string;demo:boolean;busy:boolean;saveMany:(rows:R[])=>Promise<boolean>};
 export default function ComplianceRosters({records,role,demo,busy,saveMany}:Props){
  const campuses=records.filter(c=>c.kind==='campuses'&&c.status==='Active');
@@ -13,6 +13,48 @@ export default function ComplianceRosters({records,role,demo,busy,saveMany}:Prop
  const klass=classes.find(c=>c.id===selectedClass)||classes[0];
  const students=records.filter(s=>s.kind==='students'&&s.classId===klass?.id&&s.campusId===campus?.id&&s.status!=='Withdrawn');
  const canManage=['Owner','Regional admin','Campus manager'].includes(role);
+ const [reconcilePreview,setReconcilePreview]=useState<ReturnType<typeof previewStudentReconciliationCsv>|null>(null);
+ const [reconcileError,setReconcileError]=useState(''),[reconcileSaving,setReconcileSaving]=useState(false),[reconcileConfirmed,setReconcileConfirmed]=useState(false);
+ async function previewReconcile(file:File|undefined){
+  setReconcileError('');setReconcilePreview(null);setReconcileConfirmed(false);
+  if(!file)return;if(file.size>250000){setReconcileError('Maximum CSV file size 250 KB.');return;}
+  try{setReconcilePreview(previewStudentReconciliationCsv(await file.text()));}
+  catch(e:any){setReconcileError(e.message||'Invalid update CSV');}
+ }
+ async function saveReconciliation(){
+  if(!reconcilePreview||!reconcileConfirmed||!campus||!klass||!canManage||demo)return;
+  setReconcileError('');setReconcileSaving(true);
+  try{
+   if(!/greensboro/i.test(campus.name||'')||klass.startDate!=='2026-11-02'||klass.program!=='Class A')throw Error('Select the Greensboro Class A November 2, 2026 cohort before updating.');
+   const original=records.filter(r=>r.kind==='students'&&r.campusId===campus.id&&r.classId===klass.id);
+   const normalize=(name:string)=>name.toLowerCase().replace(/[^a-z0-9]/g,'');
+   const updates:R[]=[];
+   for(const candidate of reconcilePreview.candidates){
+    const match=original.filter(r=>r.studentNumber===candidate.studentNumber);
+    if(match.length!==1)throw Error('Student ID '+candidate.studentNumber+' is not uniquely present in this cohort. No changes saved.');
+    const student=match[0];
+    if(normalize(student.name)!==normalize(candidate.name))throw Error('Name/ID mismatch for '+candidate.studentNumber+'. No changes saved. Review legal spelling.');
+    const r:R={...student};
+    for(const field of ['phone','email','address','city','state','zip'] as const){
+     if(candidate[field]&&!String(r[field]||'').trim())r[field]=candidate[field];
+    }
+    if(candidate.fundingType)r.fundingType=candidate.fundingType==='SELF-PAY'?'Cash':candidate.fundingType==='VOCATIONAL REHABILITATION'?'Vocational Rehabilitation':candidate.fundingType==='EMPLOYER-SPONSORED'?'Employer-sponsored':candidate.fundingType;
+    if(candidate.status)r.status=candidate.status;
+    if(candidate.registrationStatus)r.registrationStatus=candidate.registrationStatus;
+    if(candidate.reportedClassroomHours!==null){
+     r.reportedClassroomHours=candidate.reportedClassroomHours;
+     r.reportedClassroomHoursStatus='Pending instructor log verification';
+     r.reportedClassroomHoursSource='Campus manager-reported prior classroom hours; does not replace daily attendance or ELDT evidence';
+    }
+    updates.push(r);
+   }
+   const ok=await saveMany(updates);
+   if(!ok)throw Error('School rejected reconciliation; read the red school error at top for details.');
+   setMessage('Updated '+updates.length+' student profiles. Funding and stage saved; 40 reported classroom hours remain pending instructor attendance verification.');
+   setReconcilePreview(null);setReconcileConfirmed(false);
+  }catch(e:any){setReconcileError(e.message||'Unable to reconcile existing students');}
+  finally{setReconcileSaving(false);}
+ }
  const [importPreview,setImportPreview]=useState<ReturnType<typeof previewDmvCsv>|ReturnType<typeof previewBasicCohortCsv>|null>(null);
  const [importError,setImportError]=useState('');
  const [importSaving,setImportSaving]=useState(false);
@@ -118,6 +160,16 @@ export default function ComplianceRosters({records,role,demo,busy,saveMany}:Prop
  {demo&&<p className="notice">Leave sample/demo mode to import real students.</p>}
  {importPreview.warnings.map((w,i)=><p key={i} className="muted"><AlertTriangle size={14}/> {w}</p>)}
  <p className="footnote">Candidate records stay only in this open page's memory. Closing or refreshing clears them; no download or background sync occurs. Do not use browser developer tools or screenshots to share sensitive entries.</p></div>}
+ </section>
+ <section className="panel"><div className="sectionhead"><div><p className="eyebrow">EXISTING STUDENTS · CORRECT PROFILE DATA</p>
+ <h2>Update November 2 student profiles</h2><p className="muted">This is not a second import. Match the existing students by school ID to add funding, contact fields and enrollment/permit status without creating duplicates. Reported classroom hours are kept separate from verified instructor attendance logs.</p></div><FileCheck2 size={24}/></div>
+ {canManage&&<label>Choose student update CSV<input type="file" accept=".csv,text/csv" disabled={reconcileSaving} onChange={e=>{void previewReconcile(e.target.files?.[0]);e.target.value='';}}/></label>}
+ {reconcileError&&<p className="error" role="alert">{reconcileError}</p>}
+ {reconcilePreview&&<><p className="notice">{reconcilePreview.count} students in update file. Selected class: {klass?.name||'None'}. This will update existing records only.</p>
+ {reconcilePreview.candidates.map(x=><div className="vault-doc-row" key={x.studentNumber}><div><b>{x.name} · ID {x.studentNumber}</b><small>{x.fundingType||'Funding not specified'} · {x.registrationStatus||'No registration update'} · {x.status||'No stage update'} · {x.reportedClassroomHours===null?'No hours update':x.reportedClassroomHours+' hours reported (unverified)'}</small></div></div>)}
+ <label className="checkboxlabel"><input type="checkbox" checked={reconcileConfirmed} onChange={e=>setReconcileConfirmed(e.target.checked)}/> I verified the student ID matches, cohort, funding and the reported hours; no attendance or graduation evidence will be fabricated.</label>
+ <button type="button" className="primary" onClick={()=>void saveReconciliation()} disabled={demo||busy||reconcileSaving||!reconcileConfirmed}>{reconcileSaving?'Updating records…':'Update '+reconcilePreview.count+' existing student profiles'}</button></>}
+ <p className="footnote">Missing contact details are filled, not overwritten. Funding left blank means leave the prior value unchanged. Classroom-hour statements are administrative claims until dated instructor logs are entered and audited.</p>
  </section>
  <section className="panel"><div className="sectionhead"><div><p className="eyebrow">ADMISSIONS PLANNING</p><h2>Class start calendar • every two weeks</h2><p className="muted">Greensboro includes the November 2, 2026 cohort for the existing class; new Class A starts begin Monday, November 16, 2026 and repeat every 14 days. Dates are proposals, not a promise that a campus has available instructors, trucks or approved capacity. Five-week end dates assume a Monday start and Friday of Week 5.</p></div><CalendarDays size={25}/></div>
  <div className="biweekly-grid">{proposedBiweeklyStarts('2026-11-16',16).map(d=><div className="biweekly-date" key={d}><b>{d}</b><small>Testing week ends {classEnding(d)}</small><span className="badge">{classes.some(c=>c.startDate===d&&c.program==='Class A')?'Configured':'Proposed'}</span></div>)}</div>

@@ -89,3 +89,32 @@ export function previewBasicCohortCsv(csv:string){
  warnings.push('Unsigned/unverified documents, DOB, driver license, permit, attendance and funding remain unverified. Review handwritten entries against source agreements.');
  return {count:candidates.length,candidates,warnings,dates:[] as string[]};
 }
+
+/** Updates existing class students without fabricating attendance or signed agreements.
+ * No customer data is ever bundled with the app.
+ */
+export function previewStudentReconciliationCsv(csv:string){
+ const rows=parseCsv(csv);if(rows.length<2)throw Error('Reconciliation CSV must include a header and student rows.');
+ const headers=rows[0].map(normalize),index=(key:string)=>headers.indexOf(key);
+ if(index('STUDENTID')<0||index('FIRSTNAME')<0||index('LASTNAME')<0)throw Error('Use STUDENT_ID,FIRST_NAME,LAST_NAME columns to match existing student accounts.');
+ const get=(row:string[],key:string)=>index(key)<0?'':String(row[index(key)]||'').trim();
+ const seen=new Set<string>();
+ const candidates=rows.slice(1).map((row,i)=>{
+  if(row.length!==headers.length)throw Error('Line '+(i+2)+' has a wrong column count.');
+  const studentNumber=get(row,'STUDENTID'),name=(get(row,'FIRSTNAME')+' '+get(row,'LASTNAME')).trim();
+  if(!studentNumber||!name||seen.has(studentNumber))throw Error('Line '+(i+2)+' is missing student ID/name or has a duplicate student ID.');seen.add(studentNumber);
+  const fundingType=get(row,'FUNDINGTYPE').toUpperCase(),status=get(row,'STATUS'),registrationStatus=get(row,'REGISTRATIONSTATUS');
+  if(fundingType&&!['WIOA','WRLP','CASH','SELF-PAY','EMPLOYER-SPONSORED','SCHOLARSHIP','VOCATIONAL REHABILITATION','OTHER'].includes(fundingType))throw Error('Unrecognized funding type, line '+(i+2));
+  if(status&&!['Enrollment pending','Enrolled','Waiting for permit','Classroom','Yard','Road','Test preparation','Graduated','Withdrawn'].includes(status))throw Error('Unrecognized student stage, line '+(i+2));
+  if(registrationStatus&&!['Enrolled','Enrollment pending'].includes(registrationStatus))throw Error('Unrecognized registration status, line '+(i+2));
+  const reported=get(row,'REPORTEDCLASSROOMHOURS');
+  if(reported&&(!/^\\d+(?:\\.\\d+)?$/.test(reported)||Number(reported)>160))throw Error('Invalid reported classroom hours, line '+(i+2));
+  const phone=get(row,'PHONE'),email=get(row,'EMAIL'),state=get(row,'STATE').toUpperCase(),zip=get(row,'ZIP');
+  if(phone&&!/^[0-9()+ .-]{7,24}$/.test(phone))throw Error('Invalid telephone, line '+(i+2));
+  if(email&&!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email))throw Error('Invalid email, line '+(i+2));
+  if(state&&!/^[A-Z]{2}$/.test(state))throw Error('Invalid state, line '+(i+2));
+  if(zip&&!/^\\d{5}(?:-\\d{4})?$/.test(zip))throw Error('Invalid ZIP, line '+(i+2));
+  return {studentNumber,name,fundingType,status,registrationStatus,reportedClassroomHours:reported===''?null:Number(reported),phone,email,address:get(row,'ADDRESS'),city:get(row,'CITY'),state,zip};
+ });
+ return {candidates,count:candidates.length};
+}
