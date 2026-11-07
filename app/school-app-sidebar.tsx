@@ -8,7 +8,7 @@ const quick=[{id:'students',label:'Find a student',Icon:GraduationCap},{id:'cale
 export default function SchoolAppSidebar({sections,activeSection,activePage,role,menu,alertCount,onNavigate,onSearch,onWebsite,onClose}:Props){
  const [expanded,setExpanded]=useState('');
  const go=(id:string)=>{setExpanded('');onNavigate(id);onClose();};
- return <aside className={(menu?'sidebar open':'sidebar')++' app-sidebar'} aria-label="School navigation">
+ return <aside className={(menu?'sidebar open':'sidebar')+' app-sidebar'} aria-label="School navigation">
   <div className="nav-brand-row"><button className="brand nav-brand-button" onClick={()=>go('overview')} aria-label="Lone Star Academy OS home"><div className="ls-wordmark"><strong>LONE <span aria-label="star" className="ls-wordmark-star">★</span> STAR</strong><span className="ls-wordmark-subtitle">TRUCK DRIVING ACADEMY</span></div></button><button className="nav-close" onClick={onClose} aria-label="Close navigation"><X size={20}/></button></div>
   <div className="sidebar-intro"><span className="sidebar-workspace-label">SCHOOL WORKSPACE <span className="sidebar-live-dot"/></span><p>Choose a section, then a tool. Sections close when you navigate.</p></div>
   <button className="sidebar-command" onClick={onSearch}><Search size={17}/><span>Find a tool or student</span><kbd>⌘ K</kbd></button>
