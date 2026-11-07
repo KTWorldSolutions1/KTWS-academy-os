@@ -1,7 +1,7 @@
-import {self} from '../student/route';
-import {database} from '../../../lib/storage';
-import {validateRecord} from '../../../lib/training';
-import {ALL_STUDY_AREAS,summarizeKnowledgeAssessments} from '../../../lib/learning-diagnostics';
+import {self} from '../route';
+import {database} from '../../../../lib/storage';
+import {validateRecord} from '../../../../lib/training';
+import {ALL_STUDY_AREAS,summarizeKnowledgeAssessments} from '../../../../lib/learning-diagnostics';
 
 const headers={'Cache-Control':'no-store','X-Content-Type-Options':'nosniff'};
 function reply(v:any,status=200){return Response.json(v,{status,headers});}
