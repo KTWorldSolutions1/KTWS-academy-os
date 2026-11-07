@@ -921,3 +921,77 @@ button:focus-visible,a:focus-visible{outline:2px solid #68ccff}
 .operator-tour-error{position:fixed;bottom:30px;right:30px;background:#702c36;color:white;padding:15px;border-radius:9px;z-index:999}
 @media(max-width:680px){.operator-tour{right:6px;left:6px;bottom:4px;width:auto;max-height:76vh;overflow:auto;border-radius:13px}.operator-tour-body h3{font-size:15px}.operator-tour-body>p,.operator-example,.operator-live-note{font-size:11px}.operator-capture{margin:8px}.operator-secondary-controls button,.operator-secondary-controls label{font-size:10px}.operator-tour.minimized{left:8px;width:auto}}
 @media(prefers-reduced-motion:reduce){.operator-tour{animation:none}.operator-live-pointer{transition:none}}
+
+
+/* Seven-stage student journey and Tenstreet career launch, mobile-first */
+.student-career-journey{display:grid;gap:17px;margin:18px 0 25px}
+.journey-hero{display:flex;justify-content:space-between;gap:20px;align-items:center;border:1px solid #3a79a4;border-radius:20px;padding:28px;background:radial-gradient(ellipse at 92% 22%,#2d95d344,transparent 55%),linear-gradient(115deg,#122940,#0c1e2d)}
+.journey-hero h2{font-size:clamp(24px,3.5vw,38px);letter-spacing:-1px;margin:8px 0 12px;line-height:1.1;color:#f5faff}
+.journey-hero .eyebrow{color:#8ccefb}
+.journey-sub{color:#c8dbea;margin:0 0 9px}.journey-sub strong{color:#fff}
+.journey-hero .muted{color:#b1c6d7;line-height:1.65}
+.journey-hero-icon{font-size:80px;background:#ffffff1c;border:1px solid #8fc3e04d;border-radius:19px;padding:13px;line-height:1.1}
+.journey-rail{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:7px}
+.journey-stop{min-width:0;padding:12px 5px;background:#152336;border:1px solid #34516c;border-radius:12px;display:flex;flex-direction:column;align-items:center;gap:7px;text-align:center}
+.journey-stop.active{background:linear-gradient(155deg,#1569a2,#175281);border-color:#79c8f7;box-shadow:0 8px 22px #2484b92a}
+.journey-stop.complete{background:#16384d;border-color:#478bb4}
+.journey-stop-icon{font-size:22px;min-height:27px;display:grid;place-items:center}
+.journey-stop b{font-size:11px;color:#f0f9ff}
+.journey-stop small{font-size:9px;color:#a9c6d9}
+.journey-progress-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px}
+.journey-progress-grid>div{background:#101d2d;border:1px solid #324f67;border-radius:12px;padding:17px;min-width:0}
+.journey-progress-grid small{font-size:11px;color:#9ac1db}
+.journey-progress-grid strong{display:block;font-size:29px;color:#fcfeff;margin:8px 0 2px;overflow-wrap:anywhere}
+.journey-progress-grid strong span{font-size:17px;color:#91b4c7}
+.journey-progress-grid strong.journey-class-name{font-size:18px}
+.journey-progress-grid p{font-size:11px;color:#b4c7d9;margin:0}
+.journey-today{background:#13314b;border:1px solid #568bb1;border-radius:14px;padding:17px;display:grid;gap:10px}
+.journey-today>div:first-child{display:flex;align-items:start;gap:13px}
+.journey-today>div:first-child>svg{color:#8bd0fd;flex-shrink:0}
+.journey-today b{color:white}
+.journey-today p{color:#cae1ef;line-height:1.6;margin:4px 0 0;font-size:13px}
+.journey-today-actions{display:flex;gap:10px;flex-wrap:wrap}
+.journey-today-actions button{border:1px solid #6dadd3;padding:10px 12px;border-radius:8px;color:#e5f7ff;font-size:12px}
+.journey-detail{border:1px solid #345b77;border-radius:12px;background:#111f2f;overflow:hidden}
+.journey-detail>summary{padding:15px 18px;cursor:pointer;font-weight:800;color:#e4f6ff}
+.journey-stage-list{display:grid;gap:6px;padding:12px 15px 17px}
+.journey-stage-list article{display:flex;align-items:center;gap:11px;min-width:0;border-radius:10px;padding:12px;background:#1a2a3a}
+.journey-stage-list article.active{border:1px solid #4f9bc6;background:#1c3b56}
+.journey-stage-list article>div{flex:1;min-width:0}
+.journey-stage-list h3{font-size:14px;margin:0 0 4px;color:#fff}
+.journey-stage-list p,.journey-stage-list small{display:block;color:#b7ccda;font-size:11px;line-height:1.45;margin:2px 0}
+.journey-stage-emoji{font-size:23px;flex-shrink:0}
+.journey-stage-list .badge{flex-shrink:0}
+.journey-career{background:linear-gradient(145deg,#152f42,#101e2b);border:1px solid #4b7999;padding:23px;border-radius:15px}
+.journey-career-brand{display:flex;align-items:center;gap:13px}
+.journey-career-brand>svg{color:#97d4f4}
+.journey-career h3{font-size:22px;margin:4px 0;color:#fff}
+.journey-career>p{font-size:13px;line-height:1.65;color:#c2d7e5}
+.journey-job-steps{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin:19px 0}
+.journey-job-steps span{padding:13px;border-radius:10px;border:1px solid #47738d;color:#bce8ff;background:#102839;font-weight:800}
+.journey-job-steps b{color:#edf8ff;font-size:11px;margin-left:8px}
+.journey-driverpulse-link{display:inline-flex;align-items:center;gap:8px;border-radius:9px;background:#147dbb;color:#fff!important;padding:13px 16px;font-size:13px;font-weight:800}
+.journey-career .footnote{color:#a7bece;line-height:1.5}
+.student-badge-studio{display:grid;gap:16px}
+.student-badge-studio .sectionhead h2{display:flex;gap:11px;align-items:center}
+.badge-studio-steps{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0}
+.badge-studio-steps span{padding:9px 11px;border-radius:8px;background:#184263;color:#e2f5ff;font-size:11px;border:1px solid #487ea6;font-weight:800}
+.badge-studio-grid{display:grid;grid-template-columns:1fr 1fr;gap:15px;align-items:start}
+.badge-studio-upload>h3,.badge-studio-grid .panel>h3{display:flex;align-items:center;gap:10px}
+.badge-review-queue{margin:18px 0;padding:15px;border:1px solid #8bacbd;background:#233448;border-radius:10px;display:grid;justify-items:start;gap:10px}
+.badge-review-queue b{color:#f7fbff}
+.badge-review-queue small{color:#b7cddd;line-height:1.5}
+.badge-review-queue img{max-width:165px;height:145px;object-fit:cover;border-radius:8px}
+.badge-review-queue button{background:#1b6e99;padding:10px;border:1px solid #5daed8;border-radius:8px;color:white;display:flex;align-items:center;gap:8px}
+.student-badge-preview{width:min(100%,420px);min-height:237px;aspect-ratio:3.375/2.125;background:#f8fafc;color:#122033;border:3px solid #1a5b90;border-radius:10px;overflow:hidden;margin:18px 0 22px;box-shadow:0 15px 35px #0006;position:relative}
+.student-badge-preview header{background:#102f4e;color:#fff;padding:13px 17px;display:grid;gap:3px}
+.student-badge-preview header b{letter-spacing:.9px;font-size:20px}
+.student-badge-preview header small{font-size:8px;letter-spacing:1.3px;color:#c6d5e5}
+.student-badge-preview>div{display:flex;align-items:center;gap:14px;padding:16px}
+.student-badge-face{width:105px;height:115px;flex-shrink:0;background:#dce5ed;border:1px solid #bccad6;display:grid;place-items:center}
+.student-badge-face img{width:100%;height:100%;object-fit:cover;object-position:center 24%}
+.student-badge-preview section h4{font-size:16px;margin:0 0 9px;color:#102a46}
+.student-badge-preview section p{font-size:11px;color:#293f53;margin:4px 0}
+.student-badge-preview footer{position:absolute;bottom:4px;left:16px;color:#778899;font-size:9px}
+@media(max-width:960px){.badge-studio-grid{grid-template-columns:1fr}.journey-rail{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(max-width:570px){.journey-hero{padding:18px}.journey-hero-icon{font-size:45px}.journey-rail{grid-template-columns:repeat(3,minmax(0,1fr))}.journey-progress-grid{grid-template-columns:1fr 1fr}.journey-job-steps{grid-template-columns:1fr}.journey-stage-list article{flex-wrap:wrap}.student-badge-preview header b{font-size:16px}}
