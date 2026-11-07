@@ -1,6 +1,6 @@
 'use client';
 import {useEffect,useMemo,useState} from 'react';
-import {AtSign,BellRing,Check,CheckCircle2,FileText,LockKeyhole,Mail,MessageSquareText,Search,Send,ShieldCheck,Smartphone,UsersRound,UserRound,WarningCircle} from 'lucide-react';
+import {AtSign,BellRing,Check,CheckCircle2,FileText,LockKeyhole,Mail,MessageSquareText,Search,Send,ShieldCheck,Smartphone,UsersRound,UserRound} from 'lucide-react';
 import type {RecordData as R} from '../lib/training';
 import {MESSAGE_TEMPLATES,expandMessageTemplate} from '../lib/student-messaging';
 type Props={records:R[];role:string;demo:boolean;initialStudentId?:string;onStudent:(id:string)=>void;busy:boolean;saveMany:(records:R[])=>Promise<boolean>};
@@ -20,7 +20,7 @@ export default function StudentCommunications({records,role,demo,initialStudentI
  const chosen=students.filter(s=>selected.includes(s.id));
  const currentConsent=students.find(s=>s.id===consentStudent)||chosen[0]||filtered[0];
  const selectedCampus=campuses.find(c=>c.id===currentConsent?.campusId);
- useEffect(()=>{if(initialStudentId){setSelected([initialStudentId]);setConsentStudent(initialStudentId);}},[initialStudentId]);
+ useEffect(()=>{if(initialStudentId){setSelected([initialStudentId]);setConsentStudent(initialStudentId);const matching=students.find(s=>s.id===initialStudentId);if(matching)setCampusId(matching.campusId);}},[initialStudentId]);
  useEffect(()=>{if(currentConsent){setConsentEmail(currentConsent.emailConsent===true);setConsentSms(currentConsent.smsConsent===true);setConsentNote(currentConsent.consentNote||'');}},[currentConsent?.id]);
  useEffect(()=>{setPreview(null);setHash('');setResult(null);},[selected.join(','),body,subject,channel]);
  const canCheckAll=filtered.every(s=>selected.includes(s.id));
@@ -32,8 +32,8 @@ export default function StudentCommunications({records,role,demo,initialStudentI
   if(consentSms&&!currentConsent.smsConsent&&consentNote.trim().length<12){setError('Record how the student affirmatively consented to texts (minimum 12 characters).');return;}
   if(consentEmail&&!currentConsent.emailConsent&&consentNote.trim().length<12){setError('Record how the student consented to email updates.');return;}
   const updated:R={...currentConsent,emailConsent:consentEmail,smsConsent:consentSms,
-   smsOptOut:consentSms?currentConsent.smsOptOut:false,
-   emailOptOut:consentEmail?currentConsent.emailOptOut:false,
+   smsOptOut:currentConsent.smsOptOut===true,
+   emailOptOut:currentConsent.emailOptOut===true,
    consentRecordedAt:consentSms||consentEmail?new Date().toISOString():currentConsent.consentRecordedAt,
    consentNote:consentNote.trim(),consentSource:consentNote.trim().slice(0,250)};
   if(await saveMany([updated]))setNotice('Contact preferences saved in the authorized student record. Consent does not automatically send a message.');
