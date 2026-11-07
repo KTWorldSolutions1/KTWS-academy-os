@@ -1,7 +1,7 @@
 import type {RecordData} from './training';
 export const attendanceLocations=['Classroom','Yard','Road','All students'] as const;
-export function attendanceRoster(students:RecordData[],location:string){return students.filter(s=>s.kind==='students'&&!['Graduated','Withdrawn'].includes(s.status)&&(location==='All students'||s.status===location));}
-export function attendancePhase(student:RecordData,location:string,override?:string){return override|| (location==='All students'?(['Classroom','Yard','Road'].includes(student.status)?student.status:''):location);}
+export function attendanceRoster(students:RecordData[],location:string){return students.filter(s=>s.kind==='students'&&!['Graduated','Withdrawn'].includes(s.status)&&(location==='All students'||s.status===location||(location==='Classroom'&&['Enrolled','Enrollment pending','Waiting for permit'].includes(s.status))));}
+export function attendancePhase(student:RecordData,location:string,override?:string){return override|| (location==='All students'?(['Classroom','Yard','Road'].includes(student.status)?student.status:['Enrolled','Enrollment pending','Waiting for permit'].includes(student.status)?'Classroom':''):location);}
 
 /** Daily attendance must be explicitly marked; a blank is never an absence. */
 export function attendanceForDay(student:RecordData,day:string,phase?:string){
