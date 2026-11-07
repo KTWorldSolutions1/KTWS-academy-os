@@ -1,3 +1,4 @@
+import {safeStudentDocuments,profilePhotoKey} from './student-documents.ts';
 import {activeSessions,instructionHours,latestSkill,skills,theoryState,type RecordData as R} from './training.ts';
 import {drivingTimeSummary} from './attendance.ts';
 import {lessonProgress} from './lesson-checkoffs.ts';
@@ -20,12 +21,15 @@ export function studentSelfView(s:R,records:R[]){
   theory:{label:theory.label,finalScore:theory.final?Number(theory.final.score):null},
   lessonProgress:lessonProgress(records,s).map(x=>({name:x.name,phase:x.phase,status:x.status,completedOn:x.completedOn})),
   studyLibrary:studentStudyLibrary(s,records),
+  enrollmentDocuments:safeStudentDocuments(s),
+  profilePhotoKey:profilePhotoKey(s),
+  documentNotices:(s.documentRequests||[]).filter((r:any)=>r.status==='Requested'&&!(s.documents||[]).some((d:any)=>d.category===r.category&&d.verified)).map((r:any)=>({category:r.category,requestedAt:r.requestedAt,message:r.message||'Please upload this missing document.'})),
    skillCounts:{yardProficient:skills.Yard.filter(name=>latestSkill(s,name)?.level==='Proficient').length,yardTotal:skills.Yard.length,roadProficient:skills.Road.filter(name=>latestSkill(s,name)?.level==='Proficient').length,roadTotal:skills.Road.length},
   attendance:latest.map(x=>({date:x.date,phase:x.phase,attendance:x.attendance,hours:Number(x.hours)||0,mode:x.mode||'Instruction'})),
   nextLessons:records.filter(x=>x.kind==='training-assignments'&&x.campusId===s.campusId&&x.studentId===s.id&&x.status!=='Cancelled'&&x.date>=new Date().toLocaleDateString('en-CA',{timeZone:'America/New_York'}))
     .sort((a,b)=>(a.date+a.start).localeCompare(b.date+b.start)).slice(0,8)
     .map(x=>({date:x.date,start:x.start,end:x.end,phase:x.phase,status:x.status,topic:x.lessonObjective||'Lesson planned'})),
-  notice:'Read-only student progress from saved school records. Recorded training hours are not FMCSA certification, and planned lessons are not attendance. Contact your campus to correct or discuss an entry.'
+  notice:'Student progress from saved school records. Recorded training hours are not FMCSA certification, and planned lessons are not attendance. Contact your campus to correct or discuss an entry.'
  };
 }
 export function allowedStudentAccount(student:R,link:{student:string;campus:string;active:number}){
