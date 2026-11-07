@@ -38,7 +38,7 @@ const demo=megaCampusDemoRecords();
 assert.equal(demo.filter(r=>r.kind==='students').length,98);
 assert.equal(demo.filter(r=>r.kind==='leads'&&r.status==='Funding pending').length,50);
 assert.equal(new Set(demo.filter(r=>r.kind==='students').map(r=>r.campusId)).size,3);
-assert.equal(new Set(demo.filter(r=>r.kind==='students').map(r=>r.status)).size,7);
+assert.equal(new Set(demo.filter(r=>r.kind==='students').map(r=>r.status)).size,8);
 assert.equal(DEMO_SCENES.length,15);
 assert.equal(new Set(DEMO_SCENES.map(s=>s.id)).size,15);
 assert.ok(DEMO_SCENES.every(s=>s.destination&&s.narration&&s.highlights.length===3));
