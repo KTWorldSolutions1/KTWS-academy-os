@@ -1,7 +1,7 @@
-import {getWorkspaceAccess} from '../../../lib/workspace-access';
-import {database} from '../../../lib/storage';
-import {REQUESTABLE_DOCUMENTS,STUDENT_PHOTO_CATEGORY} from '../../../lib/student-documents';
-import {campusAllowed} from '../../../lib/enterprise';
+import {getWorkspaceAccess} from '../../../../lib/workspace-access';
+import {database} from '../../../../lib/storage';
+import {REQUESTABLE_DOCUMENTS,STUDENT_PHOTO_CATEGORY} from '../../../../lib/student-documents';
+import {campusAllowed} from '../../../../lib/enterprise';
 const noStore={'Cache-Control':'no-store','X-Content-Type-Options':'nosniff'};
 const respond=(body:any,status=200)=>Response.json(body,{status,headers:noStore});
 export async function POST(req:Request){
