@@ -32,5 +32,6 @@ export function createPublicCalendarIcs(events:PublicCalendarEvent[],campusName:
    'DTSTART;VALUE=DATE:'+icsDay(r.start),'DTEND;VALUE=DATE:'+icsDay(r.end),
    'SUMMARY:'+escape(r.summary),'DESCRIPTION:'+escape(r.description||'School-managed calendar event. Confirm time with your campus.'),'CATEGORIES:'+escape(r.kind.toUpperCase()),'END:VEVENT');
  }
+ lines.push('END:VCALENDAR');
  return lines.join('\r\n')+'\r\n';
 }
