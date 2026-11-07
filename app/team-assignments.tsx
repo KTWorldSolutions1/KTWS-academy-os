@@ -26,7 +26,8 @@ export default function TeamAssignments({records,role,busy,demo,saveMany}:Props)
   if(problem){setError(problem);return;}
   if(!form.assignedTo){setError('Select a staff member from this location.');return;}
   if(!form.name.trim()){setError('Provide a title for the assignment.');return;}
-  if(await saveMany([form])){setForm(null);setMessage('Saved for assigned employee at '+campus?.name+'.');}
+  const employee=staff.find(s=>s.id===form.assignedTo);const final={...form,owner:employee?.name||'',ownerId:form.assignedTo};
+  if(await saveMany([final])){setForm(null);setMessage('Saved for assigned employee at '+campus?.name+'.');}
   else setError('Save failed; review the school error and try again.');
  }
  return <section className="panel team-assignments"><div className="sectionhead"><div><p className="eyebrow">MULTI-CAMPUS OPERATIONS</p><h2>Tasks, appointments and staff assignments</h2><p className="muted">Give work to an authorized employee at a specific campus. Regional administrators can coordinate schoolwide; other users only access the locations approved for their login.</p></div><ClipboardCheck size={24}/></div>
