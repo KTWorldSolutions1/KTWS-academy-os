@@ -51,14 +51,12 @@ export default function StudentDocumentCenter({records,role,demo,busy,saveMany,s
   if(demo){setError('Secure uploads are disabled in sample mode.');return;}
   const form=e.currentTarget,body=new FormData(form);
   body.set('category',publicResource?PUBLIC_RESOURCE_CATEGORY:category);
-  if(publicResource)body.set('campusId',campus?.id||'');else body.set('studentId',student?.id||'');
+  if(publicResource)body.set('campusId',campus?.id||'');else{body.set('studentId',student?.id||'');body.set('attachToStudent','1');}
   try{
    const res=await fetch('/api/files',{method:'POST',body}),data=await res.json();
    if(!res.ok)throw Error(data.error||'Upload failed');
-   if(!publicResource&&student){
-    const okay=await saveMany([{...student,documents:[...(student.documents||[]),{...data,verified:false}]}]);
-    if(!okay)throw Error('File was encrypted but student attachment was not saved. Ask management to reconcile the file.');
-   }
+   if(!publicResource&&!data.attachedToStudent)throw Error('Upload was not linked to the student. Ask management to reconcile before retrying.');
+   if(!publicResource)await reload();
    setNotice(publicResource?'Campus resource uploaded. Students with portal access can view it.':'Encrypted file uploaded, awaiting management verification.');
    form.reset();await resourceList();
   }catch(e:any){setError(e.message||'Secure file upload was unavailable');}
