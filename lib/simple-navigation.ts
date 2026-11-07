@@ -26,7 +26,8 @@ export const schoolSections:SchoolSection[]=[
   {id:'leads',label:'New Inquiries',help:'Follow up with future students'},
   {id:'calendar',label:'School Calendar',help:'Appointments, birthdays, class dates and closures'},
   {id:'event-intake',label:'Event Signups',help:'Save contacts from fairs and events'},
-  {id:'rosters',label:'DMV Roster Packets',help:'First-day class rosters and signed enrollment agreements'}
+  {id:'rosters',label:'DMV Roster Packets',help:'First-day class rosters and signed enrollment agreements'},
+  {id:'secure-intake',label:'Import Students & Agreements',help:'Private DMV roster intake and individually matched signed contracts'}
  ]},
  {id:'training',label:'Training',help:'Classes, attendance, trucks and training records.',pages:[
   {id:'closeout',label:'Daily Training Review',help:'Check lessons, logs and truck reports before going home'},
