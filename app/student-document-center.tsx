@@ -9,6 +9,7 @@ type Props={records:R[];role:string;demo:boolean;busy:boolean;selectedStudentId?
 export default function StudentDocumentCenter({records,role,demo,busy,saveMany,selectedStudentId,photoFocus=false}:Props){
  const students=records.filter(s=>s.kind==='students'&&s.campusId&&s.campusId!=='__legacy__');
  const campuses=records.filter(r=>r.kind==='campuses'&&r.status==='Active');
+ const [batchFiles,setBatchFiles]=useState<File[]>([]),[batchConfirmed,setBatchConfirmed]=useState(false),[batchBusy,setBatchBusy]=useState(false),[batchResults,setBatchResults]=useState<string[]>([]);
  const [selected,setSelected]=useState(selectedStudentId||''),[category,setCategory]=useState('Enrollment agreement'),[pending,setPending]=useState<string[]>([]),[notice,setNotice]=useState(''),[error,setError]=useState(''),[photo,setPhoto]=useState(''),[schoolFiles,setSchoolFiles]=useState<any[]>([]),[resourceCampus,setResourceCampus]=useState(''),[studentNumber,setStudentNumber]=useState('');
  const student=students.find(s=>s.id===selected)||students[0],campus=campuses.find(c=>c.id===(resourceCampus||student?.campusId))||campuses[0];
  const required=student?documentChecklist(student):[],proof=student?profilePhotoKey(student):null;
@@ -63,6 +64,41 @@ export default function StudentDocumentCenter({records,role,demo,busy,saveMany,s
    form.reset();await resourceList();
   }catch(e:any){setError(e.message||'Secure file upload was unavailable');}
  }
+
+ const batchMatches=batchFiles.map(file=>{
+  const stem=file.name.replace(/\\.pdf$/i,'').replace(/\\s+EA(?:\\s*\\(\\d+\\))?$/i,'').trim();
+  const norm=(v:string)=>v.toLowerCase().replace(/[^a-z0-9]/g,'');
+  const matches=students.filter(s=>norm(s.name)===norm(stem));
+  const person=matches.length===1?matches[0]:null;
+  const already=person?.documents?.some((d:any)=>d.category==='Enrollment agreement'&&d.name===file.name);
+  return {file,person,issue:!file.name.toLowerCase().endsWith('.pdf')?'PDF only':file.size>10000000?'Over 10 MB':!person?'No unique student profile match':already?'File already attached':null};
+ });
+ async function attachAgreementBatch(){
+  if(!batchConfirmed||demo||!['Owner','Regional admin','Campus manager'].includes(role)||batchBusy)return;
+  setBatchBusy(true);setError('');setBatchResults([]);
+  const result:string[]=[];
+  try{
+   const issues=batchMatches.filter(x=>x.issue);
+   if(issues.length)throw Error('Resolve every unmatched or duplicate file before starting. No files were sent.');
+   for(const entry of batchMatches){
+    const person=entry.person!;
+    const form=new FormData();
+    form.set('file',entry.file);form.set('studentId',person.id);form.set('category','Enrollment agreement');
+    const response=await fetch('/api/files',{method:'POST',body:form});
+    const body=await response.json();
+    if(!response.ok){result.push(person.name+': '+(body.error||'Upload blocked'));break;}
+    const updated={...person,documents:[...(person.documents||[]),{...body,verified:false}]};
+    const attached=await saveMany([updated]);
+    result.push(person.name+': '+(attached?'Encrypted document attached · awaiting verification':'Encrypted upload stored, but student file needs manual reconciliation'));
+    if(!attached)break;
+   }
+   setBatchResults(result);
+   if(result.length===batchMatches.length&&result.every(x=>x.includes('attached'))){
+    setBatchFiles([]);setBatchConfirmed(false);setNotice('Batch documents uploaded to students. Campus management must inspect the actual signed pages before verifying agreements.');
+   }
+  }catch(e:any){setError(e.message||'Upload failed');setBatchResults(result);}
+  finally{setBatchBusy(false);}
+ }
  function printId(){
   if(!student||!studentNumber.trim()||!photo){setError('Save a student ID number and verify an uploaded photo before printing.');return;}
   const safe=(s:string)=>s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]!));
@@ -75,6 +111,15 @@ export default function StudentDocumentCenter({records,role,demo,busy,saveMany,s
  const canManage=['Owner','Regional admin','Campus manager'].includes(role);
  if(!canManage)return <p className="notice">Secure student enrollment records require campus management access.</p>;
  return <div className="student-document-center"><section className="panel"><div className="sectionhead"><div><p className="eyebrow">SCHOOL RECORDS • PRIVATE VAULT</p><h2>Student documents, ID cards and missing-item notices</h2><p className="muted">All uploads use protected, encrypted school storage and are scoped to a campus and individual student. Social Security and licensing documents never appear on a student ID card or in public school resources.</p></div><ShieldCheck size={26}/></div>
+ {!demo&&canManage&&<section className="panel" aria-label="Batch attach enrollment agreements"><h3>Attach multiple signed enrollment agreements</h3>
+ <p className="muted">Select PDFs named like <b>Student Name EA.pdf</b> or <b>Student Name EA(3).pdf</b>. Files are matched by the full student name. Nothing is uploaded until you review the matches and confirm. Every document remains pending management verification.</p>
+ <label>Choose signed agreements<input type="file" accept="application/pdf,.pdf" multiple disabled={batchBusy} onChange={e=>{setBatchFiles(Array.from(e.target.files||[]));setBatchConfirmed(false);setBatchResults([]);}}/></label>
+ {batchFiles.length>0&&<><p className="notice">{batchFiles.length} PDFs selected for private student matching:</p>
+ {batchMatches.map((item,i)=><div className="vault-doc-row" key={i}><div><b>{item.file.name}</b><small>{item.person?item.person.name+' · '+(item.person.cohort||'Campus profile'):'No matching student'}</small></div><span className={item.issue?'badge warn':'badge good'}>{item.issue||'Ready to upload'}</span></div>)}
+ <label className="checkboxlabel"><input type="checkbox" checked={batchConfirmed} onChange={e=>setBatchConfirmed(e.target.checked)}/> I checked each filename and matching student account. Attach these as unverified enrollment agreements.</label>
+ <button type="button" className="primary" disabled={batchBusy||!batchConfirmed||batchMatches.some(x=>x.issue)||busy} onClick={()=>void attachAgreementBatch()}>{batchBusy?'Attaching documents…':'Upload and attach '+batchFiles.length+' agreement(s)'}</button></>}
+ {batchResults.map((line,i)=><p key={i} className="notice">{line}</p>)}
+ </section>}
  {demo&&<SampleEnrollmentWalkthrough/>}<label>Student<select value={student?.id||''} onChange={e=>{setSelected(e.target.value);setNotice('');setError('');}}>{students.map(s=><option key={s.id} value={s.id}>{s.name} • {s.cohort||s.program||'CDL'}</option>)}</select></label>
  {student&&<><details className="vault-identity"><summary>Private identity, DMV roster fields and funding type</summary><p className="muted">Only authorized management may review or update identity fields. The DMV roster uses these details, but sensitive documents remain in encrypted restricted storage. Never enter the full Social Security number into text fields.</p>
  <form className="vault-upload" onSubmit={async e=>{e.preventDefault();const f=new FormData(e.currentTarget);const values=Object.fromEntries(f);if(await saveMany([{...student,...values}]))setNotice('Protected student identity and funding fields saved.');else setError('Identity update was not saved.');}}>
