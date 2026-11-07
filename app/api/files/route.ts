@@ -27,6 +27,9 @@ export async function POST(req:Request){
   const publicResource=category===PUBLIC_RESOURCE_CATEGORY;
   const dailyLog=category==='Daily training log';
   const trainingDate=String(data.get('trainingDate')||'');
+  // Explicitly bind management uploads to the chosen student's file record.
+  // This prevents a private file from being stored without appearing in the student's vault.
+  const attachToStudent=data.get('attachToStudent')==='1';
   if(admin&&['Instructor','Front desk'].includes(admin.role)&&!(admin.role==='Instructor'&&dailyLog))return respond({error:'This role may only upload authorized daily training evidence.'},403);
   if(dailyLog&&(!admin||!['Owner','Regional admin','Campus manager','Admin assistant','Instructor'].includes(admin.role)))return respond({error:'Daily training logs require school employee authorization.'},403);
   if(dailyLog&&(!/^\\d{4}-\\d{2}-\\d{2}$/.test(trainingDate)||trainingDate>new Date().toLocaleDateString('en-CA',{timeZone:'America/New_York'})))return respond({error:'Enter the actual training date, not a future date.'},400);
@@ -54,7 +57,7 @@ export async function POST(req:Request){
   await bucket().put(key,await encrypt(bytes.buffer),{httpMetadata:{contentType:'application/octet-stream'}});
   try{
    await db.prepare('INSERT INTO school_files (key,owner,campus,student,category,name,mime,actor,created) VALUES (?,?,?,?,?,?,?,?,?)').bind(key,owner,campus,target?.id||null,category,name,file.type,admin?.user.email||student.user.email,at).run();
-   if(student||dailyLog){
+   if(student||dailyLog||attachToStudent){
     // Student submissions and signed staff daily training logs attach atomically.
     // A student's upload is attached to their own record immediately, pending campus review.
     const row:any=await db.prepare("SELECT payload,revision FROM records WHERE id=? AND owner=? AND kind='students'").bind(target.id,owner).first();
@@ -66,7 +69,7 @@ export async function POST(req:Request){
    }
    await db.prepare('INSERT INTO audit(id,owner,record_id,action,at,payload,actor) VALUES (?,?,?,?,?,?,?)').bind(crypto.randomUUID(),owner,target?.id||campus,'Encrypted file uploaded',at,JSON.stringify({category,publicResource,studentId:target?.id||null}),admin?.user.email||student.user.email).run();
   }catch(e){await db.prepare('DELETE FROM school_files WHERE key=?').bind(key).run();await bucket().delete(key);throw e;}
-  return respond({key,name,category,trainingDate:dailyLog?trainingDate:undefined,encrypted:true,uploadedAt:at,uploadedBy:admin?.user.email||'Student portal',verified:false});
+  return respond({key,name,category,trainingDate:dailyLog?trainingDate:undefined,encrypted:true,attachedToStudent:!!(student||dailyLog||attachToStudent),uploadedAt:at,uploadedBy:admin?.user.email||'Student portal',verified:false});
  }catch{return respond({error:'Secure upload unavailable; no attachment was confirmed. Please retry.'},503);}
 }
 export async function GET(req:Request){
