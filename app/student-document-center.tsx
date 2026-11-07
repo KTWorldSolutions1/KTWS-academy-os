@@ -4,6 +4,7 @@ import type {RecordData as R} from '../lib/training';
 import {documentChecklist,REQUIRED_ENROLLMENT_CATEGORIES,REQUESTABLE_DOCUMENTS,STUDENT_PHOTO_CATEGORY,PUBLIC_RESOURCE_CATEGORY,profilePhotoKey} from '../lib/student-documents';
 import {FileText,ShieldCheck,Image,Printer,Bell,Upload} from 'lucide-react';
 import {FUNDING_TYPES} from '../lib/compliance-roster';
+import SampleEnrollmentWalkthrough from './sample-enrollment-walkthrough';
 type Props={records:R[];role:string;demo:boolean;busy:boolean;saveMany:(rows:R[])=>Promise<boolean>};
 export default function StudentDocumentCenter({records,role,demo,busy,saveMany}:Props){
  const students=records.filter(s=>s.kind==='students'&&s.campusId&&s.campusId!=='__legacy__');
@@ -73,7 +74,7 @@ export default function StudentDocumentCenter({records,role,demo,busy,saveMany}:
  const canManage=['Owner','Regional admin','Campus manager'].includes(role);
  if(!canManage)return <p className="notice">Secure student enrollment records require campus management access.</p>;
  return <div className="student-document-center"><section className="panel"><div className="sectionhead"><div><p className="eyebrow">SCHOOL RECORDS • PRIVATE VAULT</p><h2>Student documents, ID cards and missing-item notices</h2><p className="muted">All uploads use protected, encrypted school storage and are scoped to a campus and individual student. Social Security and licensing documents never appear on a student ID card or in public school resources.</p></div><ShieldCheck size={26}/></div>
- <label>Student<select value={student?.id||''} onChange={e=>{setSelected(e.target.value);setNotice('');setError('');}}>{students.map(s=><option key={s.id} value={s.id}>{s.name} • {s.cohort||s.program||'CDL'}</option>)}</select></label>
+ {demo&&<SampleEnrollmentWalkthrough/>}<label>Student<select value={student?.id||''} onChange={e=>{setSelected(e.target.value);setNotice('');setError('');}}>{students.map(s=><option key={s.id} value={s.id}>{s.name} • {s.cohort||s.program||'CDL'}</option>)}</select></label>
  {student&&<><details className="vault-identity"><summary>Private identity, DMV roster fields and funding type</summary><p className="muted">Only authorized management may review or update identity fields. The DMV roster uses these details, but sensitive documents remain in encrypted restricted storage. Never enter the full Social Security number into text fields.</p>
  <form className="vault-upload" onSubmit={async e=>{e.preventDefault();const f=new FormData(e.currentTarget);const values=Object.fromEntries(f);if(await saveMany([{...student,...values}]))setNotice('Protected student identity and funding fields saved.');else setError('Identity update was not saved.');}}>
  <div className="formgrid">
