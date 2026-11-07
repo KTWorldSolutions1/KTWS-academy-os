@@ -52,12 +52,12 @@ export default function StudentBadgeStudio({records,role,demo,busy,saveMany,init
   const form=e.currentTarget,files=form.querySelector('input[type="file"]') as HTMLInputElement;
   const file=files?.files?.[0];
   if(!file||!['image/jpeg','image/png'].includes(file.type)||file.size>2_000_000){setError('Choose a JPG or PNG portrait smaller than 2 MB.');setWorking(false);return;}
-  const body=new FormData();body.set('studentId',student.id);body.set('category',STUDENT_PHOTO_CATEGORY);body.set('file',file);
+  const body=new FormData();body.set('studentId',student.id);body.set('category',STUDENT_PHOTO_CATEGORY);body.set('file',file);body.set('attachToStudent','1');
   try{
    const res=await fetch('/api/files',{method:'POST',body}),data=await res.json();
    if(!res.ok)throw Error(data.error||'Private photo storage is not active.');
-   const ok=await saveMany([{...student,documents:[...(student.documents||[]),{key:data.key,category:STUDENT_PHOTO_CATEGORY,name:data.name,uploadedAt:data.uploadedAt,uploadedBy:data.uploadedBy,verified:false}]}]);
-   if(!ok)throw Error('Photo was encrypted, but the student record did not update. Contact the owner before retrying to avoid duplicate uploads.');
+   if(!data.attachedToStudent)throw Error('The portrait was not linked to the student. Ask management to reconcile before retrying.');
+   await saveMany([]);
    setMessage('Photo stored privately. An authorized manager must approve it before it appears on the student card or student portal.');
    form.reset();
   }catch(e:any){setError(e.message||'Could not complete private upload.');}finally{setWorking(false);}
