@@ -13,7 +13,7 @@ export default function StudentCommunications({records,role,demo,initialStudentI
  const [error,setError]=useState(''),[notice,setNotice]=useState(''),[sending,setSending]=useState(false);
  const [consentStudent,setConsentStudent]=useState(''),[consentNote,setConsentNote]=useState(''),[consentEmail,setConsentEmail]=useState(false),[consentSms,setConsentSms]=useState(false);
  const canSend=['Owner','Regional admin','Campus manager','Enrollment specialist','Admin assistant'].includes(role);
- const campuses=records.filter(r=>r.kind==='campuses'&&r.status==='Active'),campus=campuses.find(r=>r.id===campusId)||campuses[0];
+ const campuses=records.filter(r=>r.kind==='campuses'&&r.status==='Active'),campus=campuses.find(r=>r.id===campusId);
  const students=records.filter(r=>r.kind==='students'&&r.status!=='Withdrawn');
  const customTemplates=records.filter(r=>r.kind==='templates'&&r.templateType==='Student communication'&&r.status==='Active');
  const allTemplates=[...MESSAGE_TEMPLATES,...customTemplates.map(r=>({id:r.id,name:r.name,channel:r.templateChannel||'Email',subject:r.subject||'',body:r.body||''}))];
@@ -90,11 +90,11 @@ export default function StudentCommunications({records,role,demo,initialStudentI
  if(!canSend)return <div className="panel"><LockKeyhole/> Student communications are available to authorized enrollment and administrative roles only.</div>;
  return <div className="student-outreach">
   <section className="panel outreach-command"><div className="sectionhead"><div><p className="eyebrow">STUDENT RELATIONSHIP CENTER • VERIFIED OPT-IN</p><h2><MessageSquareText size={23}/> Email & text students from Academy OS</h2><p className="muted">Select a student or permitted cohort, choose an approved message, verify consent and preview every recipient. Student personal information and document attachments are never auto-inserted into messages.</p></div><ShieldCheck size={28}/></div>
-   <div className="formgrid"><label>Campus<select value={campus?.id||''} onChange={e=>{setCampusId(e.target.value);setCohort('All classes');setSelected([]);}}>{campuses.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></label>
+   <div className="formgrid"><label>Campus<select value={campus?.id||''} onChange={e=>{setCampusId(e.target.value);setCohort('All classes');setSelected([]);}}><option value="">All campuses</option>{campuses.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></label>
     <label>Class group<select value={cohort} onChange={e=>setCohort(e.target.value)}><option>All classes</option>{cohorts.map(c=><option key={c}>{c}</option>)}</select></label></div>
    <label className="outreach-search"><Search size={17}/><input value={query} placeholder="Search students, student IDs, emails or phone numbers" onChange={e=>setQuery(e.target.value)} aria-label="Search students for outreach"/></label>
    <div className="outreach-roster-head"><b><UsersRound size={16}/> {filtered.length} student(s) at this location</b><button onClick={selectAll} disabled={!filtered.length}> {canCheckAll?'Clear displayed students':'Select displayed students (up to 25)'}</button></div>
-   <div className="outreach-rows">{filtered.map(s=><label key={s.id} className="outreach-row">
+   <div className="outreach-rows">{filtered.length===0&&<p className="notice">No student profiles match this campus, class and search. Choose All campuses and All classes, or clear the search. Existing student records have not been removed.</p>}{filtered.map(s=><label key={s.id} className="outreach-row">
     <input type="checkbox" checked={selected.includes(s.id)} onChange={e=>setSelected(prev=>e.target.checked?[...prev,s.id].slice(0,25):prev.filter(id=>id!==s.id))}/>
     <div><b>{s.name}</b><small>{s.cohort||s.program||'CDL'} · {s.status}</small></div>
     <div className="outreach-consent"><span className={s.emailConsent&&!s.emailOptOut?'good':'muted'}><Mail size={13}/> Email {s.emailConsent&&!s.emailOptOut?'opted in':'not approved'}</span>
