@@ -105,7 +105,8 @@ export function applyOperatorExample(action:string,records:R[]):OperatorExample{
   return {updates:[{...person,documents:[...(person.documents||[]),evidence]}],message:'Student submitted a simulated signed agreement. Staff review is pending; no file bytes were stored.',studentId:person.id};
  }
  if(action==='review'){
-  const docs=(person.documents||[]).map((d:any)=>d.key==='demo-operator-signed-agreement-'+person.id?{...d,verified:true,reviewedBy:'DEMO manager',reviewedAt:'2026-11-07T17:08:00Z'}:d);
+  const latest=(person.documents||[]).filter((d:any)=>d.category==='Enrollment agreement'&&d.demoOnly===true&&d.key).at(-1)?.key;
+  const docs=(person.documents||[]).map((d:any)=>d.key===latest?{...d,verified:true,reviewedBy:'DEMO manager',reviewedAt:'2026-11-07T17:08:00Z'}:d);
   return {updates:[{...person,documents:docs}],message:'Verified the synthetic agreement only. The license and SSN evidence remain missing.',studentId:person.id};
  }
  if(action==='photo-id'){
