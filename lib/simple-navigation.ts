@@ -57,7 +57,8 @@ export const schoolSections:SchoolSection[]=[
  ]},
  {id:'payments',label:'Payments',help:'Review tuition amounts and balances.',pages:[
   {id:'finance',label:'Tuition & Balances',help:'Manual payment records, not a bank connection'},
-  {id:'funding-invoices',label:'Funding Invoices',help:'Draft school invoices for WIOA, WRLP and authorized funding'}
+  {id:'funding-invoices',label:'Funding Invoices',help:'Draft school invoices for WIOA, WRLP and authorized funding'},
+  {id:'student-payments',label:'Student Payment Center',help:'Stripe, cash, WIOA, WRLP and reconciled tuition balances'}
  ]},
  {id:'school',label:'School Setup',help:'Manage campuses and school settings.',pages:[
   {id:'setup',label:'Get Started',help:'Complete the school setup checklist'},
