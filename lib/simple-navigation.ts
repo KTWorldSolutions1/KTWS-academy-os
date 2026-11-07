@@ -15,24 +15,29 @@ export const schoolSections:SchoolSection[]=[
  ]},
  {id:'students',label:'Students',help:'Find students and check their records.',pages:[
   {id:'students',label:'Student List',help:'Profiles, paperwork and progress'},
-  {id:'student-access',label:'Student Portal Access',help:'Owner-approved private student logins'}
+  {id:'document-center',label:'Secure Document Vault',help:'Student photos, IDs, agreements and missing paperwork'},
+  {id:'student-access',label:'Student Portal Access',help:'Owner-approved private student logins'},
+  {id:'student-portal-preview',label:'Student Portal Demo',help:'Fictional student document requests and knowledge practice'}
  ]},
  {id:'admissions',label:'Admissions',help:'Handle new inquiries and appointments.',pages:[
   {id:'leads',label:'New Inquiries',help:'Follow up with future students'},
   {id:'calendar',label:'Calendar',help:'Appointments and school dates'},
-  {id:'event-intake',label:'Event Signups',help:'Save contacts from fairs and events'}
+  {id:'event-intake',label:'Event Signups',help:'Save contacts from fairs and events'},
+  {id:'rosters',label:'DMV Roster Packets',help:'First-day class rosters and signed enrollment agreements'}
  ]},
  {id:'training',label:'Training',help:'Classes, attendance, trucks and training records.',pages:[
   {id:'closeout',label:'Daily Training Review',help:'Check lessons, logs and truck reports before going home'},
   {id:'dispatch',label:'Daily Training Plan',help:'Assign students, instructors, trucks and training areas'},
   {id:'courses',label:'Take Attendance',help:'Daily training, driving hours and tests'},
   {id:'lesson-checkoffs',label:'Lesson Checkoffs',help:'Approved lessons and student progress'},
+  {id:'driver-playbook',label:'25-Day Instructor Playbook',help:'Daily instructor steps, student coverage and log checks'},
+  {id:'learning-diagnostics',label:'Knowledge Diagnostics',help:'Detect weak CDL subjects before Friday testing'},
   {id:'classes',label:'Classes & Dates',help:'Start dates, schedules and class lists'},
   {id:'fleet',label:'Trucks & Equipment',help:'Training vehicles and maintenance'},
   {id:'tpr',label:'Federal Training Records',help:'Track required reporting; verify submissions'}
  ]},
  {id:'team',label:'Team',help:'Give assignments and manage staff.',pages:[
-  {id:'tasks',label:'To-Do List',help:'Work assigned to your team'},
+  {id:'tasks',label:'Tasks & Appointments',help:'Assign work to employees by campus'},
   {id:'safety',label:'Safety Concerns',help:'Report a concern and review campus action'},
   {id:'staff',label:'Employees',help:'Staff accounts and roles'},
   {id:'credentials',label:'Staff Licenses',help:'Instructor approvals and renewal dates'},
@@ -48,10 +53,12 @@ export const schoolSections:SchoolSection[]=[
   {id:'mous',label:'Agreements',help:'Partnership documents and terms'}
  ]},
  {id:'payments',label:'Payments',help:'Review tuition amounts and balances.',pages:[
-  {id:'finance',label:'Tuition & Balances',help:'Manual payment records, not a bank connection'}
+  {id:'finance',label:'Tuition & Balances',help:'Manual payment records, not a bank connection'},
+  {id:'funding-invoices',label:'Funding Invoices',help:'Draft school invoices for WIOA, WRLP and authorized funding'}
  ]},
  {id:'school',label:'School Setup',help:'Manage campuses and school settings.',pages:[
   {id:'setup',label:'Get Started',help:'Complete the school setup checklist'},
+  {id:'pilot-access',label:'Pilot User Access',help:'Owner creates staff logins and pilot access'},
   {id:'campuses',label:'Campus Locations',help:'Greensboro, Mansfield and Dallas'},
   {id:'templates',label:'Saved Forms',help:'Message and agreement templates'},
   {id:'compliance',label:'School Readiness',help:'Review missing items and approvals'},

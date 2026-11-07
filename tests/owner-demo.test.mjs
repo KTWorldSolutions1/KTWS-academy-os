@@ -1,0 +1,27 @@
+import assert from 'node:assert/strict';
+import {DEMO_SCENES,DEMO_FRAME_MS,DEMO_RUNTIME_SECONDS} from '../lib/presentation-demo.ts';
+import {PRESENTATION_DEMO_TARGETS,megaCampusDemoRecords,DEMO_STATUSES,DEMO_CAMPUSES} from '../lib/mega-demo-data.ts';
+import {schoolSections} from '../lib/simple-navigation.ts';
+const allPages=new Set(schoolSections.flatMap(s=>s.pages.map(p=>p.id)));
+assert.ok(DEMO_SCENES.length>=12,'Presentation must walk the full five-week student lifecycle');
+assert.equal(new Set(DEMO_SCENES.map(s=>s.id)).size,DEMO_SCENES.length,'Unique presentation chapters');
+assert.ok(DEMO_SCENES.every(s=>s.title&&s.narration&&s.highlights?.length===3&&allPages.has(s.destination)),'Every narrated chapter must link to a real screen');
+assert.ok(DEMO_RUNTIME_SECONDS>60&&DEMO_RUNTIME_SECONDS<240,'Owner demo must be short enough for a live presentation');
+assert.ok(DEMO_FRAME_MS>=6000&&DEMO_FRAME_MS<=15000,'Give audience time to read each chapter');
+const sample=megaCampusDemoRecords(),students=sample.filter(s=>s.kind==='students'),funding=sample.filter(s=>s.kind==='leads'&&s.status==='Funding pending');
+assert.equal(students.length,98);
+assert.equal(PRESENTATION_DEMO_TARGETS.studentsTotal,100);
+assert.equal(funding.length,50);
+assert.equal(DEMO_CAMPUSES.length,3);
+assert.equal(DEMO_CAMPUSES.reduce((total,s)=>total+s.students,0),98);
+assert.equal(DEMO_CAMPUSES.reduce((total,s)=>total+s.pending,0),50);
+for(const status of DEMO_STATUSES)assert.ok(students.some(s=>s.status===status),'Demo must include stage '+status);
+for(const campus of DEMO_CAMPUSES){assert.ok(students.some(s=>s.campusId===campus.id),'Demo must include campus '+campus.name);assert.ok(funding.some(s=>s.campusId===campus.id),'Funding pending at campus '+campus.name);}
+assert.ok(DEMO_SCENES.some(s=>s.destination==='learning-diagnostics'));
+assert.ok(DEMO_SCENES.some(s=>s.destination==='document-center'));
+assert.ok(DEMO_SCENES.some(s=>s.destination==='rosters'));
+assert.ok(DEMO_SCENES.some(s=>s.destination==='courses'));
+assert.ok(DEMO_SCENES.some(s=>s.destination==='tasks'));
+assert.ok(DEMO_SCENES.some(s=>s.destination==='sponsorships'));
+assert.ok(!JSON.stringify(students).includes('real student','Prevent live records in demonstration'));
+console.log('PASS: complete captioned owner tour connects real screens, all seven synthetic stages, three campuses, 100 students and 50 pending applicants.');

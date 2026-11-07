@@ -68,6 +68,38 @@ try{
  assert.ok(!serialized.includes('Dallas Student'));
  for(const phrase of ['SECRET STAFF NOTES','DRAFT PRIVATE CLASS NOTES','OTHER CAMPUS READING','OTHER PROGRAM READING','NOT PUBLISHED NOTES'])assert.ok(!serialized.includes(phrase),'No unauthorized curriculum materials: '+phrase);
   for(const term of ['LICENSE-PRIVATE','4321','5550011000','drugScreen','private instructor','PII-KEY'])assert.ok(!serialized.includes(term),'No private field '+term);
+ const requested=await json(send('/api/student/requests',{action:'request',studentId:sa.id,categories:['Enrollment agreement','Driver license']},owner.cookie));
+ assert.equal(requested.status,200,JSON.stringify(requested.body));
+ assert.equal((await json(send('/api/student/portal',null,active.cookie))).body.student.documentNotices.length,2);
+ assert.equal((await send('/api/student/requests',{action:'request',studentId:sb.id,categories:['Driver license']},active.cookie)).status,403);
+ const studentUpload=new FormData();studentUpload.set('category','Enrollment agreement');
+ studentUpload.set('file',new File(['Fictional signed enrollment contract for integration test'],'agreement.txt',{type:'text/plain'}));
+ const submitted=await json(handle(new Request('https://academy.test/api/files',{method:'POST',headers:{Origin:'https://academy.test',Cookie:active.cookie},body:studentUpload})));
+ assert.equal(submitted.status,200,JSON.stringify(submitted.body));
+ assert.equal((await json(send('/api/student/portal',null,active.cookie))).body.student.enrollmentDocuments.find(d=>d.category==='Enrollment agreement').status,'Submitted — review pending');
+ assert.equal((await send('/api/files?key='+submitted.body.key,null,active.cookie)).status,200,'Student may retrieve own submitted file');
+ const verify=await json(send('/api/student/requests',{action:'verify',studentId:sa.id,key:submitted.body.key},owner.cookie));
+ assert.equal(verify.status,200,JSON.stringify(verify.body));
+ assert.equal((await json(send('/api/student/portal',null,active.cookie))).body.student.enrollmentDocuments.find(d=>d.category==='Enrollment agreement').status,'Verified');
+ const outOfScope=new FormData();outOfScope.set('category','Enrollment agreement');outOfScope.set('studentId',sb.id);
+ outOfScope.set('file',new File(['Unrelated fictional Texas agreement'],'tx-agreement.txt',{type:'text/plain'}));
+ const texasUpload=await json(handle(new Request('https://academy.test/api/files',{method:'POST',headers:{Origin:'https://academy.test',Cookie:owner.cookie},body:outOfScope})));
+ assert.equal(texasUpload.status,200);
+ assert.equal((await send('/api/files?key='+texasUpload.body.key,null,active.cookie)).status,403);
+ const quiz={id:crypto.randomUUID(),kind:'quizzes',name:'Friday general knowledge early check',status:'Active',campusId:a.id,program:'Class A',type:'Quiz',week:1,studentPractice:true,questions:[
+  {id:'testq1',prompt:'What should a driver do before driving?',options:['Inspect the vehicle','Skip checks'],correct:'0',subject:'General Knowledge',objective:'Vehicle inspection safety'},
+  {id:'testq2',prompt:'What does a driver need to monitor before dispatch?',options:['Hours and legal limits','Only the radio'],correct:'0',subject:'General Knowledge',objective:'Legal driving limits'},
+  {id:'testq3',prompt:'Why must trucks follow posted restrictions?',options:['Safety and route compliance','No reason'],correct:'0',subject:'General Knowledge',objective:'Restricted vehicle routes'}
+ ]};
+ assert.equal((await send('/api/records',{records:[quiz]},owner.cookie)).status,200);
+ const listedQuizzes=await json(send('/api/student/exams',null,active.cookie));assert.equal(listedQuizzes.status,200);
+ assert.equal(listedQuizzes.body.quizzes.length,1);
+ assert.equal(JSON.stringify(listedQuizzes.body.quizzes).includes('correct'),false,'Do not expose answer keys before grading');
+ const scored=await json(send('/api/student/exams',{quizId:quiz.id,answers:{testq1:0,testq2:1,testq3:0}},active.cookie));
+ assert.equal(scored.status,200,JSON.stringify(scored.body));assert.equal(scored.body.score,66.67);
+ const stats=await json(send('/api/student/exams',null,active.cookie));
+ assert.equal(stats.body.progress.find(s=>s.subject==='General Knowledge').percent,67);
+ assert.equal((await send('/api/student/exams',{quizId:quiz.id,answers:{testq1:0,testq2:0,testq3:0}},active.cookie)).status,409,'One diagnostic attempt per day');
  const list=await json(send('/api/student/admin',null,owner.cookie));assert.equal(list.status,200);
  assert.equal(list.body.accounts.length,1);
  const staff={id:crypto.randomUUID(),kind:'staff',name:'Forged staff role',email:sa.email,status:'Active',accessRole:'Campus manager',campusIds:[a.id]};

@@ -12,7 +12,7 @@ async function tokenDigest(value:string){const hash=await crypto.subtle.digest('
 async function markAudit(db:any,recordId:string,action:string,actor:string,details:any={}){
  await db.prepare('INSERT INTO audit(id,owner,record_id,action,at,payload,actor) VALUES (?,?,?,?,?,?,?)').bind(crypto.randomUUID(),'academy-owner',recordId,action,new Date().toISOString(),JSON.stringify(details),actor).run();
 }
-async function self(){
+export async function self(){
  const user=identity.getStore();if(!user||!user.userId.startsWith('student-')||!isEnabled())return null;
  const db=database();
  const link:any=await db.prepare('SELECT account,student,campus,consent_key,active FROM student_accounts WHERE account=? AND active=1').bind(user.userId).first();
@@ -33,6 +33,11 @@ export async function GET(req:Request){
   const found=await self();
   if(!found)return error('Student portal sign-in or access is unavailable',401);
   return reply({email:found.user.email,role:'Student',name:found.student.name,campus:found.campus.name});
+ }
+ if(path==='/api/student/resources'){
+  const found=await self();if(!found)return error('Student portal access unavailable',401);
+  const rows:any=await found.db.prepare("SELECT key,name,created FROM school_files WHERE owner='academy-owner' AND campus=? AND category='Public school resource' ORDER BY created DESC LIMIT 50").bind(found.student.campusId).all();
+  return reply({files:rows.results});
  }
  if(path==='/api/student/portal'){
   const found=await self();

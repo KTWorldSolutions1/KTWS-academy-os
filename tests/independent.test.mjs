@@ -89,7 +89,7 @@ try{
  assert.equal((await send('/api/records',{records:[adminStaff]},cookie)).status,200);
  const adminInvite=await json(await send('/api/accounts/invite',{staffId:adminStaff.id},cookie));assert.equal(adminInvite.status,200);
  const adminAccount=await json(await send('/api/auth/activate',{token:adminInvite.body.link.split('#token=')[1],password:'unique assistant password for tests'}));assert.equal(adminAccount.status,200);
- assert.equal((await send('/api/files?key='+upload.body.key,null,adminAccount.cookie)).status,200);
+ // Signed enrollment contracts are restricted to management in the secure vault.\n  assert.equal((await send('/api/files?key='+upload.body.key,null,adminAccount.cookie)).status,403);
  const restricted=new FormData();restricted.set('studentId',sa.id);restricted.set('category','Drug screen result');restricted.set('file',new File(['sample record'],'restricted.txt',{type:'text/plain'}));
  assert.equal((await handle(new Request('https://academy.test/api/files',{method:'POST',headers:{Origin:'https://academy.test',Cookie:adminAccount.cookie},body:restricted}))).status,403);
  const ownerRestricted=await json(await handle(new Request('https://academy.test/api/files',{method:'POST',headers:{Origin:'https://academy.test',Cookie:cookie},body:restricted})));assert.equal(ownerRestricted.status,200);
