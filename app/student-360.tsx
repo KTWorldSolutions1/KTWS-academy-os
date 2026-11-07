@@ -1,4 +1,6 @@
 'use client';
+import {useEffect,useState} from 'react';
+import {profilePhotoKey} from '../lib/student-documents';
 import {ArrowRight,BookOpen,CalendarDays,CheckCircle2,ClipboardCheck,FileCheck2,GraduationCap,ShieldAlert,Truck,UserRound} from 'lucide-react';
 import type {RecordData as R} from '../lib/training';
 import {activeSessions,skills,theoryState,instructionHours,latestSkill} from '../lib/training';
@@ -10,11 +12,22 @@ import {lessonProgress} from '../lib/lesson-checkoffs';
 import {reviewProgress,FEDERAL_THEORY_CODES,FEDERAL_RANGE_CODES,FEDERAL_ROAD_CODES} from '../lib/driver-training-plan';
 import {moduleAllowed} from '../lib/roles';
 type Props={student:R;records:R[];role:string;onPage:(page:string)=>void};
+function VerifiedStudentPhoto({student,role}:{student:R;role:string}){
+ const key=['Owner','Regional admin','Campus manager'].includes(role)?profilePhotoKey(student):null;
+ const [photo,setPhoto]=useState('');
+ useEffect(()=>{
+  let active=true,resource='';
+  setPhoto('');if(!key)return;
+  fetch('/api/files?key='+encodeURIComponent(key),{cache:'no-store'}).then(r=>{if(!r.ok)throw Error('Unavailable');return r.blob();}).then(blob=>{resource=URL.createObjectURL(blob);if(active)setPhoto(resource);else URL.revokeObjectURL(resource);}).catch(()=>{});
+  return()=>{active=false;if(resource)URL.revokeObjectURL(resource);};
+ },[key]);
+ return photo?<img className="student-profile-card-photo" src={photo} alt={student.name+' verified profile photo'}/>:<GraduationCap size={26}/>;
+}
 const stepLabels=['Enrollment pending','Waiting for permit','Classroom','Yard','Road','Test preparation','Graduated'];
 function percent(achieved:number,target:number){return target>0?Math.min(100,Math.max(0,Math.round(achieved/target*100))):0;}
 export default function Student360({student:s,records,role,onPage}:Props){
  const date=new Date().toLocaleDateString('en-CA',{timeZone:'America/New_York'});
- if(!moduleAllowed(role,'courses'))return <div className="student-360"><div className="s360-hero"><div className="s360-mark"><GraduationCap size={26}/></div><div><h3>Student at a glance</h3><p>{s.name} · {s.program||'Program not specified'} · {s.status}</p></div></div><div className="s360-block"><h3>Basic school information</h3><p>Class: {records.find(r=>r.id===s.classId)?.name||s.cohort||'Not assigned'}</p><p>Campus: {records.find(r=>r.id===s.campusId)?.name||'Assigned campus'}</p><small>Open the student's permitted contact details in Overview. Training, funding and restricted documents are available only to authorized school roles.</small></div></div>;
+ if(!moduleAllowed(role,'courses'))return <div className="student-360"><div className="s360-hero"><div className="s360-mark"><VerifiedStudentPhoto student={s} role={role}/></div><div><h3>Student at a glance</h3><p>{s.name} · {s.program||'Program not specified'} · {s.status}</p></div></div><div className="s360-block"><h3>Basic school information</h3><p>Class: {records.find(r=>r.id===s.classId)?.name||s.cohort||'Not assigned'}</p><p>Campus: {records.find(r=>r.id===s.campusId)?.name||'Assigned campus'}</p><small>Open the student's permitted contact details in Overview. Training, funding and restricted documents are available only to authorized school roles.</small></div></div>;
   const plan=studentPlan(s,records,date),theory=theoryState(s),ready=graduationReadiness(s,records);
  const road=drivingTimeSummary(s),sessions=activeSessions(s);
  const assigned=scheduleForStudent(s.id,records).filter(x=>x.date>=date&&['Planned','Confirmed'].includes(x.status)).slice(0,5);
