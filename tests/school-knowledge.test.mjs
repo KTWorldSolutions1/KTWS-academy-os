@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {validateSchoolKnowledge,canViewSchoolKnowledge,schoolKnowledgeNeedsReview} from '../lib/school-knowledge.ts';
 import {canWrite,canRead} from '../lib/workspace-access.ts';
 import {availableSchoolSections} from '../lib/simple-navigation.ts';
-import {DEMO_SCENES,DEMO_RUNTIME_SECONDS} from '../lib/presentation-demo.ts';
+import {DEMO_SCENES,DEMO_FRAME_MS,DEMO_RUNTIME_SECONDS} from '../lib/presentation-demo.ts';
 import {OPERATOR_STEPS} from '../lib/operator-demo.ts';
 
 const row={id:'synthetic',kind:'school-knowledge',name:'Classroom emergency procedures',status:'Published',category:'Policies & procedures',audience:'All staff',campusId:'campus',body:'Instructors review attendance and notify campus management of any safety issue.',documentVersion:'1.0',effectiveDate:'2026-11-07',reviewDate:'2026-12-07',approvedBy:'Campus manager',ackRequired:false};
@@ -30,5 +30,5 @@ for(const id of ['school-library','bulk-attendance','hours-audit','instructor-ch
  assert.ok(tourIds.has(id),'Operator demo lacks feature '+id);
 assert.equal(DEMO_SCENES.at(-1).id,'finale');
 assert.equal(OPERATOR_STEPS.at(-1).id,'finish');
-assert.equal(DEMO_RUNTIME_SECONDS,Math.round(DEMO_SCENES.length*13500/1000));
+assert.equal(DEMO_RUNTIME_SECONDS,Math.round(DEMO_SCENES.length*DEMO_FRAME_MS/1000));
 console.log('PASS: school knowledge permission gates, content validation, review dates, navigation, film and operator walkthrough coverage.');
