@@ -17,7 +17,7 @@ function counts(records:R[],student:R,day:number){
 }
 export default function DriverPlaybook({records,role,demo,busy,saveMany}:Props){
  const [campusId,setCampusId]=useState(''),[studentId,setStudentId]=useState(''),[dayNumber,setDayNumber]=useState(1),
- [date,setDate]=useState(today()),[results,setResults]=useState<Record<string,string>>({}),[notes,setNotes]=useState(''),[nextSteps,setNextSteps]=useState(''),
+ [date,setDate]=useState(today()),[results,setResults]=useState<Record<string,string>>({}),[stepMoods,setStepMoods]=useState<Record<string,'green'|'yellow'|'red'>>({}),[notes,setNotes]=useState(''),[nextSteps,setNextSteps]=useState(''),
  [notice,setNotice]=useState(''),[error,setError]=useState(''),[logFile,setLogFile]=useState<File|null>(null);
  const campuses=records.filter(r=>r.kind==='campuses'&&r.status==='Active');
  const campus=campuses.find(x=>x.id===campusId)||campuses[0];
@@ -37,14 +37,14 @@ export default function DriverPlaybook({records,role,demo,busy,saveMany}:Props){
   if(!student)return;
   const record:R={id:crypto.randomUUID(),kind:'daily-lesson-reviews',name:student.name+' · Instructor day '+dayNumber,
    campusId:student.campusId,studentId:student.id,day:dayNumber,week:current.week,phase:current.phase,
-   date,status:'Reviewed',results,notes:notes.trim(),nextSteps:nextSteps.trim(),correctionOf:history?.id||undefined};
+   date,status:'Reviewed',results,stepMoods,notes:notes.trim(),nextSteps:nextSteps.trim(),correctionOf:history?.id||undefined};
   const issue=validateDailyReview(record,records,date);
   if(issue){setError(issue);return;}
   if(!active.length&&!demo){setError('Record real attendance first for this date and training phase. This checklist never creates training hours.');return;}
   if(!Object.keys(results).length){setError('Mark at least one training step for this student.');return;}
   setError('');setNotice('');
   if(await saveMany([record])){
-   setResults({});setNotes('');setNextSteps('');
+   setResults({});setStepMoods({});setNotes('');setNextSteps('');
    setNotice(demo?'Saved a fictional classroom/range/road review for demonstration only.':'Daily review recorded. It does not certify federal proficiency or add attendance hours.');
   }else setError('Could not record the instructor review. Check the school error at the top.');
  }
@@ -74,9 +74,9 @@ export default function DriverPlaybook({records,role,demo,busy,saveMany}:Props){
   const win=window.open('','_blank');if(win){win.document.write(html);win.document.close();}else setError('Allow a pop-up to print or save this daily checklist.');
  }
  return <div className="daily-playbook">
- <section className="panel"><div className="sectionhead"><div><p className="eyebrow">LONE STAR • FIVE-WEEK INSTRUCTOR OPERATIONS</p><h2>25-Day Driver Development Playbook</h2><p className="muted">One daily teaching script per day, per student. Covers all {ALL_FEDERAL_CODES.length} federally listed Class A theory, range and road units, plus the practical habits that make a professional driver.</p></div><BookOpen size={27}/></div>
- <div className="formgrid"><label>Location<select value={campus?.id||''} onChange={e=>{setCampusId(e.target.value);setStudentId('');setResults({});}}>{campuses.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></label>
- <label>Student<select value={student?.id||''} onChange={e=>{setStudentId(e.target.value);setResults({});setNotes('');setNextSteps('');}}>{!students.length&&<option value="">No Class A students</option>}{students.map(s=><option key={s.id} value={s.id}>{s.name} • {s.status}</option>)}</select></label>
+ <section className="panel"><div className="sectionhead"><div><p className="eyebrow">LONE STAR • FIVE-WEEK INSTRUCTOR OPERATIONS</p><h2>25-Day Driver Development Playbook</h2><p className="muted">Instructor-led daily checklist for each student, with FMCSA lesson mapping, the school's licensed J. J. Keller material references, and smiley feedback for areas needing coaching. Covers all {ALL_FEDERAL_CODES.length} federally listed Class A theory, range and road subjects plus practical driver readiness.</p></div><BookOpen size={27}/></div>
+ <div className="formgrid"><label>Location<select value={campus?.id||''} onChange={e=>{setCampusId(e.target.value);setStudentId('');setResults({});setStepMoods({});}}>{campuses.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></label>
+ <label>Student<select value={student?.id||''} onChange={e=>{setStudentId(e.target.value);setResults({});setStepMoods({});setNotes('');setNextSteps('');}}>{!students.length&&<option value="">No Class A students</option>}{students.map(s=><option key={s.id} value={s.id}>{s.name} • {s.status}</option>)}</select></label>
  <label>Teaching day<select value={dayNumber} onChange={e=>{setDayNumber(Number(e.target.value));setResults({});setNotes('');setNextSteps('');}}>{dayOptions.map(d=><option key={d.value} value={d.value}>{d.label}</option>)}</select></label>
  <label>Actual date of instruction<input type="date" value={date} max={today()} onChange={e=>setDate(e.target.value)}/></label></div>
  <div className="curriculum-metrics"><div><strong>30</strong><small>FMCSA Class A theory subjects mapped</small></div><div><strong>7</strong><small>Required range competencies mapped</small></div><div><strong>12</strong><small>Public-road topics mapped</small></div><div><strong>{inspected?.daysReviewed??0}/25</strong><small>Student instructional day reviews recorded</small></div></div>
@@ -84,11 +84,16 @@ export default function DriverPlaybook({records,role,demo,busy,saveMany}:Props){
  {demo&&<p className="notice">Practice data only: sample instructor reviews save temporarily in this browser session, without creating actual student records or files.</p>}
  </section>
  {student&&<section className="panel"><div className="sectionhead"><div><p className="eyebrow">WEEK {current.week} • DAY {dayNumber} • {current.phase.toUpperCase()}</p><h2>{current.heading}</h2><p className="muted">{current.objective}</p></div><ClipboardCheck size={25}/></div>
- <div className="daily-review-context"><span className="badge">{student.name} · {student.status}</span><span className="badge">{active.length} saved attendance session(s) for {date}</span><span className="badge">{completed} steps marked in this review</span></div>
+ <div className="daily-review-context"><span className="badge">{student.name} · {student.status}</span><span className="badge">{active.length} saved attendance session(s) for {date}</span><span className="badge">{completed} steps marked in this review</span><span className="badge">{Object.values(stepMoods).filter(m=>m==='yellow'||m==='red').length} topics need coaching</span></div>
  {history&&<p className="notice"><CheckCircle2 size={16}/> Previous saved review from {history.date}: {Object.values(history.results||{}).filter(x=>x!=='Not covered').length} steps. A new submission is an auditable correction; the previous entry remains in the school history.</p>}
  <div className="daily-checklist-items">{current.steps.map((step,index)=><section className="daily-checklist-item" key={step.id}><div className="daily-step-heading"><div><span className="badge">STEP {index+1} • {step.method}</span><h3>{step.title}</h3>{step.fmcsCodes.length>0&&<small>49 CFR Part 380 Appendix A: {step.fmcsCodes.join(', ')}</small>}</div><CheckCircle2 size={21}/></div>
  <p><b>Instructor actions:</b> {step.guidance}</p><p><b>What to collect:</b> {step.verification}</p>
  <label>Individual student outcome<select value={results[step.id]||'Not covered'} onChange={e=>setResults(x=>({...x,[step.id]:e.target.value}))}><option>Not covered</option>{choices.filter(x=>x!=='Not covered').map(x=><option key={x}>{x}</option>)}</select></label>
+ <div className="moodbuttons" role="group" aria-label={'Student performance for '+step.title}>
+ <span><b>Instructor smiley:</b> </span>
+ {([['green','☺','Understands / on track'],['yellow','😐','Needs extra practice'],['red','☹','Struggling / intervention needed']] as const).map(([mood,face,description])=><button type="button" key={mood} className={stepMoods[step.id]===mood?'active '+mood:''} aria-pressed={stepMoods[step.id]===mood} title={description} onClick={()=>{setStepMoods(old=>({...old,[step.id]:mood}));setResults(old=>({...old,[step.id]:mood==='green'?'Student explains':'Needs practice'}));}}>{face} {description}</button>)}
+ </div>
+ {stepMoods[step.id]&&<p className="muted">Marked {stepMoods[step.id]==='green'?'on track':stepMoods[step.id]==='yellow'?'for further practice':'for instructor intervention'}. Add the specific weak concept and follow-up below. This is an instructional observation, not a skill certification.</p>}
  </section>)}</div>
  <div className="daily-review-footer"><label>Instructor's individual observations and missed concepts<textarea value={notes} onChange={e=>setNotes(e.target.value)} placeholder="The student correctly identified the air pressure limits but could not independently explain the low-pressure warning..."/></label><label>Specific next action / remediation<textarea value={nextSteps} onChange={e=>setNextSteps(e.target.value)} placeholder="Repeat the air-brake knowledge check at the beginning of tomorrow's session..."/></label>
  <p className="footnote">A 15-minute daily coaching recap is optional if actual time and school staffing permit. It must not be automatically counted toward student training hours or employee overtime. Use Take Attendance for verified start/end, breaks, phase, driving vs. observation and night hours.</p>
