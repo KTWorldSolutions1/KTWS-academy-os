@@ -4,10 +4,10 @@ import {build} from 'vite';
 import {resolve} from 'node:path';
 import {pathToFileURL} from 'node:url';
 const entry=resolve('tests/.academy-render-check.mjs'),out=resolve('tests/.render-check');
-writeFileSync(entry,`import React from 'react';import {renderToStaticMarkup} from 'react-dom/server';import Growth from '../app/growth-center.tsx';import Operations from '../app/operations-center.tsx';import StaffScheduler from '../app/staff-scheduler.tsx';import EnterpriseCenter from '../app/enterprise-center.tsx';import Academy from '../app/workspace.tsx';import PhoneDock from '../app/phone-dock.tsx';import QuickFind from '../app/quick-find.tsx';import {availableSchoolSections} from '../lib/simple-navigation.ts';export const renderPhone=(role)=>renderToStaticMarkup(React.createElement(PhoneDock,{navigation:availableSchoolSections(role),activeSection:'home',onNavigate:()=>{},onMore:()=>{}}));export const renderQuickFind=(role)=>renderToStaticMarkup(React.createElement(QuickFind,{records:[{id:'secret',kind:'students',name:'PRIVATE STUDENT RECORD',status:'Road'}],navigation:availableSchoolSections(role),onClose:()=>{},onNavigate:()=>{}}));export const renderWorkspace=()=>renderToStaticMarkup(React.createElement(Academy));export const render=(kind,props)=>renderToStaticMarkup(React.createElement(kind==='enterprise'?EnterpriseCenter:kind==='growth'?Growth:kind==='shifts'?StaffScheduler:Operations,props));`);
+writeFileSync(entry,`import React from 'react';import {renderToStaticMarkup} from 'react-dom/server';import Growth from '../app/growth-center.tsx';import Operations from '../app/operations-center.tsx';import StaffScheduler from '../app/staff-scheduler.tsx';import EnterpriseCenter from '../app/enterprise-center.tsx';import Academy from '../app/workspace.tsx';import PhoneDock from '../app/phone-dock.tsx';import QuickFind from '../app/quick-find.tsx';import StudentCommunications from '../app/student-communications.tsx';import StaffScheduler from '../app/staff-scheduler.tsx';import {availableSchoolSections} from '../lib/simple-navigation.ts';export const renderPhone=(role)=>renderToStaticMarkup(React.createElement(PhoneDock,{navigation:availableSchoolSections(role),activeSection:'home',onNavigate:()=>{},onMore:()=>{}}));export const renderQuickFind=(role)=>renderToStaticMarkup(React.createElement(QuickFind,{records:[{id:'secret',kind:'students',name:'PRIVATE STUDENT RECORD',status:'Road'}],navigation:availableSchoolSections(role),onClose:()=>{},onNavigate:()=>{}}));export const renderWorkspace=()=>renderToStaticMarkup(React.createElement(Academy));export const renderMessaging=(records)=>renderToStaticMarkup(React.createElement(StudentCommunications,{records,role:'Owner',demo:false,initialStudentId:'student',onStudent:()=>{},busy:false,saveMany:async()=>true}));export const renderStaffCalendar=(records)=>renderToStaticMarkup(React.createElement(StaffScheduler,{records,reload:async()=>true}));export const render=(kind,props)=>renderToStaticMarkup(React.createElement(kind==='enterprise'?EnterpriseCenter:kind==='growth'?Growth:kind==='shifts'?StaffScheduler:Operations,props));`);
 try{
  const result=await build({build:{ssr:entry,outDir:out,rollupOptions:{input:entry}}});
- const chunk=result.output.find(x=>x.type==='chunk'&&x.isEntry),{render,renderWorkspace,renderPhone,renderQuickFind}=await import(pathToFileURL(resolve(out,chunk.fileName)).href);
+ const chunk=result.output.find(x=>x.type==='chunk'&&x.isEntry),{render,renderWorkspace,renderPhone,renderQuickFind,renderMessaging,renderStaffCalendar}=await import(pathToFileURL(resolve(out,chunk.fileName)).href);
  const day=new Date().toLocaleDateString('en-CA',{timeZone:'America/New_York'}),records=[
   {id:'campus',kind:'campuses',name:'Sample campus',status:'Active'},
   {id:'partner',kind:'partners',name:'Sample training employer',status:'Prospect',campusId:'campus',relationshipStage:'Contacted',owner:'Admissions',awayFrom:day,awayThrough:day,backupContact:'Backup rep',contactAvailabilityNote:'Contact away today',relationshipNotes:'Agency paperwork pending'},
@@ -29,6 +29,16 @@ try{
  assert.match(federal,/not required federally/);
  assert.match(federal,/second business day/);
  assert.match(federal,/does not submit it to FMCSA/);
+ const messaging=renderMessaging(records);
+ assert.match(messaging,/Email &amp; text students/);
+ assert.match(messaging,/Message composer/);
+ assert.match(messaging,/Approved wording templates/);
+ assert.match(messaging,/Custom message template name/);
+ assert.match(messaging,/Sample student/);
+ const calendar=renderStaffCalendar([...records,{id:'shift',kind:'shifts',name:'Sample instructor',status:'Approved',employeeId:'staff',campusId:'campus',date:day,start:'08:00',end:'17:00',breakMinutes:60},{id:'staff',kind:'staff',name:'Sample instructor',status:'Active',campusIds:['campus'],weeklyTargetHours:40}]);
+ assert.match(calendar,/Staff work calendar/);
+ assert.match(calendar,/Week starting Monday/);
+ assert.match(calendar,/No shifts scheduled|Sample instructor/);
  const workspace=renderWorkspace();
  assert.match(workspace,/School navigation/);
  assert.doesNotMatch(workspace,/Import \/ DMV rosters/);
