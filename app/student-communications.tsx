@@ -3,18 +3,20 @@ import {useEffect,useMemo,useState} from 'react';
 import {AtSign,BellRing,Check,CheckCircle2,FileText,LockKeyhole,Mail,MessageSquareText,Search,Send,ShieldCheck,Smartphone,UsersRound,UserRound} from 'lucide-react';
 import type {RecordData as R} from '../lib/training';
 import {MESSAGE_TEMPLATES,expandMessageTemplate} from '../lib/student-messaging';
-type Props={records:R[];role:string;demo:boolean;initialStudentId?:string;onStudent:(id:string)=>void;busy:boolean;saveMany:(records:R[])=>Promise<boolean>};
+type Props={records:R[];role:string;demo:boolean;initialStudentId?:string;onStudent:(id:string)=>void;onNavigate?:(page:string)=>void;busy:boolean;saveMany:(records:R[])=>Promise<boolean>};
 type Recipient={studentId:string;name:string;campusId?:string;maskedRecipient:string;status:string;reason:string};
-export default function StudentCommunications({records,role,demo,initialStudentId,onStudent,busy,saveMany}:Props){
+export default function StudentCommunications({records,role,demo,initialStudentId,onStudent,onNavigate,busy,saveMany}:Props){
  const [selected,setSelected]=useState<string[]>(initialStudentId?[initialStudentId]:[]),[channel,setChannel]=useState<'Email'|'SMS'>('Email');
  const [campusId,setCampusId]=useState(''),[cohort,setCohort]=useState('All classes'),[query,setQuery]=useState('');
- const [body,setBody]=useState(''),[subject,setSubject]=useState(''),[template,setTemplate]=useState('');
+ const [body,setBody]=useState(''),[subject,setSubject]=useState(''),[template,setTemplate]=useState(''),[templateName,setTemplateName]=useState('');
  const [preview,setPreview]=useState<any>(null),[hash,setHash]=useState(''),[batchId,setBatchId]=useState(''),[result,setResult]=useState<any>(null);
  const [error,setError]=useState(''),[notice,setNotice]=useState(''),[sending,setSending]=useState(false);
  const [consentStudent,setConsentStudent]=useState(''),[consentNote,setConsentNote]=useState(''),[consentEmail,setConsentEmail]=useState(false),[consentSms,setConsentSms]=useState(false);
  const canSend=['Owner','Regional admin','Campus manager','Enrollment specialist','Admin assistant'].includes(role);
  const campuses=records.filter(r=>r.kind==='campuses'&&r.status==='Active'),campus=campuses.find(r=>r.id===campusId)||campuses[0];
  const students=records.filter(r=>r.kind==='students'&&r.status!=='Withdrawn');
+ const customTemplates=records.filter(r=>r.kind==='templates'&&r.templateType==='Student communication'&&r.status==='Active');
+ const allTemplates=[...MESSAGE_TEMPLATES,...customTemplates.map(r=>({id:r.id,name:r.name,channel:r.templateChannel||'Email',subject:r.subject||'',body:r.body||''}))];
  const cohorts=[...new Set(students.filter(s=>!campus||s.campusId===campus.id).map(s=>String(s.cohort||'Unassigned')))].sort();
  const filtered=students.filter(s=>(!campus||s.campusId===campus.id)&&(cohort==='All classes'||String(s.cohort||'Unassigned')===cohort)&&[s.name,s.studentNumber,s.email,s.phone,s.cohort].some(v=>String(v||'').toLowerCase().includes(query.toLowerCase()))).sort((a,b)=>a.name.localeCompare(b.name));
  const chosen=students.filter(s=>selected.includes(s.id));
@@ -24,7 +26,20 @@ export default function StudentCommunications({records,role,demo,initialStudentI
  useEffect(()=>{if(currentConsent){setConsentEmail(currentConsent.emailConsent===true);setConsentSms(currentConsent.smsConsent===true);setConsentNote(currentConsent.consentNote||'');}},[currentConsent?.id]);
  useEffect(()=>{setPreview(null);setHash('');setResult(null);},[selected.join(','),body,subject,channel]);
  const canCheckAll=filtered.every(s=>selected.includes(s.id));
- function pickTemplate(id:string){const t=MESSAGE_TEMPLATES.find(x=>x.id===id);if(!t)return;setChannel(t.channel as 'Email'|'SMS');setSubject(t.subject);setBody(t.body);setTemplate(id);}
+ function pickTemplate(id:string){const t=allTemplates.find(x=>x.id===id);if(!t)return;setChannel(t.channel as 'Email'|'SMS');setSubject(t.subject);setBody(t.body);setTemplate(id);}
+ async function saveTemplate(){
+  setError('');setNotice('');
+  if(demo)return setError('Exit demonstration mode before saving school templates.');
+  if(role!=='Owner')return setError('Only the school owner can publish shared messaging templates.');
+  const name=templateName.trim();
+  if(name.length<3||name.length>100||!body.trim()||(channel==='Email'&&!subject.trim()))return setError('Enter a template name (3–100 characters), subject for email, and message body.');
+  if(channel==='SMS'&&body.length>480)return setError('Limit saved text message templates to 480 characters.');
+  const existing=customTemplates.find(t=>t.id===template);
+  const record:R={...(existing||{}),id:existing?.id||crypto.randomUUID(),kind:'templates',templateType:'Student communication',
+   name,status:'Active',templateChannel:channel,subject:channel==='Email'?subject:'',body,createdAt:existing?.createdAt||new Date().toISOString()};
+  if(await saveMany([record])){setTemplate(record.id);setNotice('Reusable '+channel+' message template saved for this school. No message was sent.');}
+  else setError('Template was not saved. Review the school error.');
+ }
  function selectAll(){setSelected(prev=>canCheckAll?prev.filter(id=>!filtered.some(s=>s.id===id)):[...new Set([...prev,...filtered.map(s=>s.id)])].slice(0,25));}
  async function saveConsent(){
   if(!currentConsent)return;
@@ -90,9 +105,11 @@ export default function StudentCommunications({records,role,demo,initialStudentI
   </section>
   <section className="panel outreach-compose"><div className="sectionhead"><div><p className="eyebrow">WRITE • REVIEW • SEND</p><h2>Message composer</h2></div><Send size={24}/></div>
    <div className="formgrid"><label>Contact method<select value={channel} onChange={e=>setChannel(e.target.value as 'Email'|'SMS')}><option>Email</option><option>SMS</option></select></label>
-   <label>Approved wording templates<select value={template} onChange={e=>pickTemplate(e.target.value)}><option value="">Start blank</option>{MESSAGE_TEMPLATES.map(t=><option key={t.id} value={t.id}>{t.name} · {t.channel}</option>)}</select></label></div>
+   <label>Approved wording templates<select value={template} onChange={e=>pickTemplate(e.target.value)}><option value="">Start blank</option>{allTemplates.map(t=><option key={t.id} value={t.id}>{t.name} · {t.channel}</option>)}</select></label></div>
    {channel==='Email'&&<label>Email subject<input maxLength={180} value={subject} onChange={e=>setSubject(e.target.value)} placeholder="Important Lone Star update"/></label>}
    <label>Message<textarea value={body} maxLength={channel==='SMS'?480:2500} rows={7} onChange={e=>setBody(e.target.value)} placeholder="Hi {{firstName}}, …"/></label>
+   {role==='Owner'&&<div className="formgrid"><label>Custom message template name<input value={templateName} maxLength={100} onChange={e=>setTemplateName(e.target.value)} placeholder="e.g. Permit test reminder"/></label><button type="button" disabled={busy||!templateName.trim()||!body.trim()||(channel==='Email'&&!subject.trim())} onClick={()=>void saveTemplate()}><FileText size={16}/> Save reusable template (no sending)</button></div>}
+   {onNavigate&&['Owner','Regional admin'].includes(role)&&<p className="muted">To connect delivery, open <button type="button" onClick={()=>onNavigate('integrations')}>Settings &amp; Connections → Integrations</button> and review Twilio for SMS and Resend for email. Provider credentials are configured securely by school administration, not entered in this message editor.</p>}
    <p className="footnote">Use only {{firstName}}, {{studentName}} and {{campusName}} placeholders. Never include SSNs, driver license numbers, medical details, assessment problems or funding eligibility in a mass message. SMS permitted only during Monday–Saturday 9 a.m.–6 p.m. in campus time, with recorded affirmative consent.</p>
    <div className="reportactions"><button className="primary" disabled={sending||busy||!selected.length||!body.trim()||(channel==='Email'&&!subject.trim())} onClick={runPreview}><FileText size={17}/> Preview recipients first</button>
     {preview&&<button disabled={sending||!preview.eligible} onClick={deliver}><Send size={17}/> {demo?'Simulate button — no sending':'Confirm & send '+preview.eligible+' eligible'}</button>}</div>
