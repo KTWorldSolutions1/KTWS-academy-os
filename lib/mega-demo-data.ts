@@ -1,4 +1,5 @@
 import type {RecordData as R} from './training.ts';
+import {DRIVER_TRAINING_DAYS} from './driver-training-plan.ts';
 
 /**
  * Fully synthetic presentation sandbox. Do not persist these records into the
@@ -63,7 +64,27 @@ export function megaCampusDemoRecords():R[]{
     evaluations:[],demoOnly:true
    });
   }
-  for(let index=0;index<campus.pending;index++){
+  // Synthetic signed-looking coach progress is still explicitly DEMO-only.
+  // Only a few days per student are prepopulated so the owner can see
+  // realistic missing topics and open each student's daily training checklist.
+  for(const student of output.filter(r=>r.kind==='students'&&r.campusId===campus.id)){
+   if(['Enrollment pending','Withdrawn'].includes(student.status))continue;
+   const milestones=student.status==='Classroom'?[1,3]
+    :student.status==='Yard'?[1,3,6,11]
+    :student.status==='Road'?[1,4,6,11,16,17]
+    :[1,3,4,6,11,16,17,18,19,20,21];
+   for(const day of milestones){
+    const blueprint=DRIVER_TRAINING_DAYS[day-1];
+    const results=Object.fromEntries(blueprint.steps.map((step,j)=>[step.id,(j+day)%6===0?'Needs practice':step.method==='Road discussion'?'Discussed':'Reviewed']));
+    output.push({id:'demo-daily-review-'+student.id+'-'+day,kind:'daily-lesson-reviews',name:student.name+' · DEMO Day '+day,
+     studentId:student.id,campusId:student.campusId,day,week:blueprint.week,phase:blueprint.phase,
+     date:'2026-11-05',status:'Reviewed',results,
+     notes:'Synthetic student-specific instructor observations. One review objective needs additional practice.',
+     nextSteps:'Demo follow-up: re-teach this weak concept in the next suitable lesson.',
+     recordedBy:'demo-instructor@example.invalid',recordedAt:'2026-11-05T16:00:00Z',demoOnly:true});
+   }
+  }
+    for(let index=0;index<campus.pending;index++){
    const id='demo-funding-lead-'+ci+'-'+String(index+1).padStart(3,'0');
    output.push({
     id,kind:'leads',campusId:campus.id,name:mockName(index+15,ci)+' · DEMO',
