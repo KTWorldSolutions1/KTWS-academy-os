@@ -4,6 +4,7 @@ import {database} from '../../../lib/storage';
 import {env} from '../../../lib/env';
 import {allowedStudentAccount,studentSelfView} from '../../../lib/student-self';
 import {calculateStudentLedger,publicBillingSummary} from '../../../lib/student-payments';
+import {stripeConfig} from '../../../lib/stripe-billing';
 const headers={'Cache-Control':'no-store','X-Content-Type-Options':'nosniff'};
 const reply=(v:any,status=200)=>Response.json(v,{status,headers});
 const error=(message:string,status:number)=>reply({error:message},status);
@@ -52,7 +53,7 @@ export async function GET(req:Request){
   ]);
   const paymentSummary=publicBillingSummary(calculateStudentLedger(chargeRows.results||[],paymentRows.results||[]));
   await markAudit(found.db,found.student.id,'Own progress portal viewed',found.user.email,{account:found.link.account,fields:'limited student progress'});
-  return reply({student:{...view,paymentSummary}});
+  return reply({student:{...view,paymentSummary,studentOnlinePaymentsReady:stripeConfig().ready}});
  }
  const admin=await getWorkspaceAccess();
  if(!admin||admin.role!=='Owner')return error('Owner access required',403);
