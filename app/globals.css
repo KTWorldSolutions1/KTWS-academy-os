@@ -1233,3 +1233,24 @@ button:focus-visible,a:focus-visible{outline:2px solid #68ccff}
 .integration-privacy{display:flex;align-items:flex-start;gap:7px;color:#99cddd!important}
 @media(max-width:830px){.integrations-hero{grid-template-columns:1fr}.integrations-counts{grid-template-columns:repeat(3,1fr)}.integrations-counts>div{border:0;display:grid}.integrations-counts small{text-align:left}.integration-controls{flex-direction:column;align-items:stretch}}
 @media(max-width:420px){.integration-cards{grid-template-columns:1fr}.integration-status{max-width:100px}.integrations-counts strong{font-size:26px}}
+
+
+/* Lone Star staff spotlight reference: midnight navy, electric blue, steel/silver,
+   bright white, and an intentionally restrained warm-gold highlight. */
+:root{--ls-reference-navy:#07152a;--ls-reference-blue:#0d4277;--ls-reference-white:#f7f9fc;--ls-reference-silver:#bfc7d0;--ls-reference-gold:#e5b965}
+.app-sidebar .nav-brand-button .brandmark,
+.student-self-header .brandmark{background:linear-gradient(145deg,#0b4d8d,#081d38);border:1px solid #71869a;color:#fff;box-shadow:0 5px 20px #030e22a0}
+.app-sidebar .nav-brand-button>div{color:var(--ls-reference-white)}
+.app-sidebar .nav-brand-button>div span{color:var(--ls-reference-silver)}
+.app-sidebar .sidebar-workspace-label{color:#a9bed3}
+.app-sidebar .sidebar-workspace-label:before{content:'';display:inline-block;width:3px;height:14px;background:var(--ls-reference-gold);border-radius:3px;box-shadow:0 0 12px #e5b96555}
+.app-sidebar .sidebar-section-label{color:#8daac4}
+.app-sidebar .sidebar-shortcuts button.selected{border-left:3px solid var(--ls-reference-gold);padding-left:10px}
+.demo-showcase-inner .eyebrow{color:var(--ls-reference-gold)}
+.demo-showcase-inner h2 em{color:#b7dfff}
+.demo-showcase-stats{border-top:2px solid #c4c9d0}
+.owner-film-dialog .film-logo-star{background:linear-gradient(140deg,#145488,#081d37);color:#fff;border:1px solid #a6b2bd}
+.film-eyebrow{color:var(--ls-reference-gold)}
+.journey-hero .eyebrow{color:var(--ls-reference-gold)}
+.journey-career .eyebrow{color:var(--ls-reference-gold)}
+.integrations-hero .eyebrow{color:var(--ls-reference-gold)}
