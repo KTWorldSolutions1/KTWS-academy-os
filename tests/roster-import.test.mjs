@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {previewDmvCsv,parseCsv} from '../lib/roster-import.ts';
+import {previewDmvCsv,previewBasicCohortCsv,parseCsv} from '../lib/roster-import.ts';
 const header='FIRST_NAME,LAST_NAME,DL_NUMBER,DL_STATE,DATE_OB,START_DATE,END_DATE,Phone Number:,Address:';
 const rows=['Avery,Demo,000012345678,NC,08/13/1997,"NOVEMBER 02, 2026","DECEMBER 04, 2026",336-555-0101,"100 Sample St Greensboro NC 27401"','Taylor,Sample,000098765432,NC,09/02/1987,"NOVEMBER 02, 2026","DECEMBER 04, 2026",336-555-0102,"101 Sample St Greensboro NC 27401"'];
 const result=previewDmvCsv([header,...rows].join('\n'));
@@ -12,3 +12,11 @@ assert.throws(()=>previewDmvCsv([header,rows[0],rows[0]].join('\n')),/Repeated d
 assert.throws(()=>previewDmvCsv(header+'\n'+rows[0].replace('000012345678','123=4')),/invalid name or DL number/);
 assert.throws(()=>parseCsv('A,B\n"bad'),/Unterminated/);
 console.log('Local-only DMV roster preview tests passed; no identifiable student fixtures.');
+
+const basic=previewBasicCohortCsv('FIRST_NAME,LAST_NAME,STUDENT_ID\nAvery,Example,102233\\nTaylor,Example,102234');
+assert.equal(basic.count,2);
+assert.equal(basic.candidates[0].studentNumber,'102233');
+assert.equal(basic.candidates[0].licenseNumber,'');
+assert.equal(basic.candidates[0].dob,'');
+assert.deepEqual(basic.dates,[]);
+assert.throws(()=>previewBasicCohortCsv('FIRST_NAME,LAST_NAME,STUDENT_ID\nAvery,Example,102233\\nAvery,Example,102234'),/Duplicate student name/);
