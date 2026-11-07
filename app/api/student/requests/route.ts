@@ -2,6 +2,7 @@ import {getWorkspaceAccess} from '../../../../lib/workspace-access';
 import {database} from '../../../../lib/storage';
 import {REQUESTABLE_DOCUMENTS,STUDENT_PHOTO_CATEGORY} from '../../../../lib/student-documents';
 import {campusAllowed} from '../../../../lib/enterprise';
+import {promoteEligibleStudent} from '../../../../lib/yard-promotion';
 const noStore={'Cache-Control':'no-store','X-Content-Type-Options':'nosniff'};
 const respond=(body:any,status=200)=>Response.json(body,{status,headers:noStore});
 export async function POST(req:Request){
@@ -14,7 +15,7 @@ export async function POST(req:Request){
  if(!row)return respond({error:'Student record not found.'},404);
  const student=JSON.parse(row.payload);
  if(!campusAllowed(access.role,access.campusIds,student,[student]))return respond({error:'Campus access denied.'},403);
- const at=new Date().toISOString(),next={...student};
+ const at=new Date().toISOString();let next={...student};
  if(action==='request'){
   const categories=Array.isArray(data.categories)?[...new Set(data.categories)]:[];
   if(!categories.length||categories.length>18||categories.some(c=>!REQUESTABLE_DOCUMENTS.includes(c)))return respond({error:'Select supported enrollment items.'},400);
@@ -28,8 +29,9 @@ export async function POST(req:Request){
   if(!Array.isArray(student.documents)||!student.documents.some((d:any)=>d.key===key&&d.category===proof.category))return respond({error:'Document has not been attached to this student.'},400);
   next.documents=student.documents.map((d:any)=>d.key===key?{...d,verified:true,reviewedBy:access.user.email,reviewedAt:at}:d);
  }else return respond({error:'Unsupported document action.'},400);
+ if(action==='verify')next=promoteEligibleStudent(next,at,access.user.email);
  const result=await db.prepare('UPDATE records SET payload=?,revision=revision+1,updated=? WHERE id=? AND owner=? AND revision=?').bind(JSON.stringify(next),at,student.id,access.scope,row.revision).run();
  if(!Number(result.meta?.changes??result.changes??0))return respond({error:'Student was updated by another user. Reload and retry.'},409);
  await db.prepare('INSERT INTO audit(id,owner,record_id,action,at,payload,actor) VALUES (?,?,?,?,?,?,?)').bind(crypto.randomUUID(),access.scope,student.id,action==='request'?'Student document requested in portal':'Student document verified',at,JSON.stringify(action==='request'?{categories:data.categories,delivery:'in-app only'}:{key:String(data.key||'')}),access.user.email).run();
- return respond({updated:true,notice:action==='request'?'Missing-item alerts are available in the student portal. No email or SMS was sent.':'Document marked verified.',revision:row.revision+1});
+ return respond({updated:true,notice:action==='request'?'Missing-item alerts are available in the student portal. No email or SMS was sent.':next.status==='Yard'&&student.status!=='Yard'?'Document verified and student automatically moved to Yard after clearance review.':'Document marked verified.',revision:row.revision+1});
 }
