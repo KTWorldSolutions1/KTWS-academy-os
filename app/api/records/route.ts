@@ -6,6 +6,7 @@ export const dynamic='force-dynamic';
 import {campusAllowed,campusOf,validateEnterprise,restrictedCategories} from '../../../lib/enterprise';
 import {graduationReadiness} from '../../../lib/enterprise';
 import {trainingFollowUps} from '../../../lib/actions';
+import {promoteEligibleStudent} from '../../../lib/yard-promotion';
 import {validateStaffShift,staffShiftConflicts} from '../../../lib/staff-scheduling';
 import {validateStaffUnavailability,availabilityRecordProblem,unavailableForLesson} from '../../../lib/staff-availability';
 import {validateTrainingDispatch,dispatchRecordProblem,unresolvedVehicleDefects} from '../../../lib/training-dispatch';
@@ -228,7 +229,7 @@ if(r.kind==='students'){
     if(r.status==='Retired'&&old?.status==='Approved')r={...r,approvedBy:old.approvedBy,approvedAt:old.approvedAt,retiredBy:access.user.email,retiredAt:now};
    }
   }
- const next={...r};if(next.kind==='shifts'&&next.status==='Cancelled'){next.cancelledBy=access.user.email;next.cancelledAt=now;}if(next.kind==='staff-unavailability'){next.recordedBy=access.user.email;next.recordedAt=now;}if(next.kind==='unit-evidence'){next.recordedBy=access.user.email;next.recordedAt=now;}if(next.kind==='daily-lesson-reviews'){next.recordedBy=access.user.email;next.recordedAt=now;}if(next.kind==='safety-incidents'){next.reportedBy=access.user.email;next.reportedAt=now;}if(next.kind==='safety-reviews'){next.reviewedBy=access.user.email;next.reviewedAt=now;}if(next.kind==='training-assignments'&&next.status==='Completed'){next.completedBy=access.user.email;next.completedAt=now;}if(['students','leads'].includes(next.kind)&&['smsConsent','emailConsent','smsOptOut','emailOptOut'].some(field=>next[field]!==old?.[field])){
+ const next= r.kind==='students'?promoteEligibleStudent({...r},now,access.user.email):{...r};if(next.kind==='shifts'&&next.status==='Cancelled'){next.cancelledBy=access.user.email;next.cancelledAt=now;}if(next.kind==='staff-unavailability'){next.recordedBy=access.user.email;next.recordedAt=now;}if(next.kind==='unit-evidence'){next.recordedBy=access.user.email;next.recordedAt=now;}if(next.kind==='daily-lesson-reviews'){next.recordedBy=access.user.email;next.recordedAt=now;}if(next.kind==='safety-incidents'){next.reportedBy=access.user.email;next.reportedAt=now;}if(next.kind==='safety-reviews'){next.reviewedBy=access.user.email;next.reviewedAt=now;}if(next.kind==='training-assignments'&&next.status==='Completed'){next.completedBy=access.user.email;next.completedAt=now;}if(['students','leads'].includes(next.kind)&&['smsConsent','emailConsent','smsOptOut','emailOptOut'].some(field=>next[field]!==old?.[field])){
   next.consentRecordedAt=old?.consentRecordedAt||now;
   next.consentRecordedBy=old?.consentRecordedBy||access.user.email;
   if(old){next.contactPreferencesUpdatedAt=now;next.contactPreferencesUpdatedBy=access.user.email;}
