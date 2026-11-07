@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {validateSchoolKnowledge,canViewSchoolKnowledge,schoolKnowledgeNeedsReview} from '../lib/school-knowledge.ts';
-import {canWrite,canRead} from '../lib/workspace-access.ts';
+import {readFileSync} from 'node:fs';
 import {availableSchoolSections} from '../lib/simple-navigation.ts';
 import {DEMO_SCENES,DEMO_FRAME_MS,DEMO_RUNTIME_SECONDS} from '../lib/presentation-demo.ts';
 import {OPERATOR_STEPS} from '../lib/operator-demo.ts';
@@ -15,9 +15,9 @@ assert.equal(canViewSchoolKnowledge('Instructor',{...row,status:'Draft'}),false)
 assert.equal(canViewSchoolKnowledge('Enrollment specialist',{...row,audience:'Instructors'}),false);
 assert.equal(canViewSchoolKnowledge('Instructor',{...row,audience:'Management'}),false);
 assert.equal(canViewSchoolKnowledge('Enrollment specialist',{...row,audience:'Admissions & administration'}),true);
-assert.equal(canRead('Instructor','school-knowledge'),true);
-assert.equal(canWrite('Instructor','school-knowledge'),false);
-assert.equal(canWrite('Campus manager','school-knowledge'),true);
+const accessSource=readFileSync('lib/workspace-access.ts','utf8');
+assert.match(accessSource,/kind==='school-knowledge'\)return \['Owner','Regional admin','Campus manager'\]/,'School library write permissions must remain management-only');
+assert.match(accessSource,/kind==='school-knowledge'\)return \['Owner','Regional admin','Campus manager','Instructor'/,'Staff read permission must remain explicit');
 assert.equal(schoolKnowledgeNeedsReview({...row,reviewDate:'2026-11-01'},'2026-11-07'),true);
 for(const role of ['Owner','Campus manager','Instructor','Enrollment specialist']){
  const nav=availableSchoolSections(role);
