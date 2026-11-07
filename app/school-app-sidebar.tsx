@@ -18,9 +18,9 @@ export default function SchoolAppSidebar({sections,activeSection,activePage,role
    <div className="sidebar-section-label">PINNED TOOLS</div>
    <div className="sidebar-shortcuts">{quick.filter(q=>sections.some(s=>s.pages.some(p=>p.id===q.id))).map(({id,label,Icon})=><button type="button" className={activePage===id?'selected':''} key={id} onClick={()=>go(id)}><Icon size={16}/><span>{label}</span><ChevronRight size={13}/></button>)}</div>
    <div className="sidebar-section-label">WORKSPACE</div>
-   <nav className="sidebar-tree" aria-label="Academy modules">{sections.map(section=>{const Icon=icons[section.id as keyof typeof icons]||LayoutDashboard;const opened=expanded===section.id;const selected=section.id===activeSection;
+   <nav className="sidebar-tree" aria-label="Main sections">{sections.map(section=>{const Icon=icons[section.id as keyof typeof icons]||LayoutDashboard;const opened=expanded===section.id;const selected=section.id===activeSection;
      return <div key={section.id} className={'sidebar-tree-group '+(selected?'selected':'')}>
-       <button type="button" className={'sidebar-group-toggle '+(selected?'active':'')} aria-expanded={opened} onClick={()=>{setExpanded(opened?'':section.id);if(!opened&&section.pages[0]?.id)onNavigate(section.pages[0].id);}}>
+       <button type="button" className={'sidebar-group-toggle '+(selected?'active':'')} aria-expanded={opened} aria-current={selected?'page':undefined} onClick={()=>{setExpanded(opened?'':section.id);if(!opened&&section.pages[0]?.id)onNavigate(section.pages[0].id);}}>
         <Icon size={19}/><span>{section.label}</span>{section.id==='home'&&alertCount>0&&<em>{Math.min(alertCount,99)}</em>}<ChevronDown size={16} className={opened?'rotated':''}/>
        </button>
        {opened&&<div className="sidebar-subpages" role="group" aria-label={section.label+' pages'}>{section.pages.map(page=><button type="button" key={page.id} className={activePage===page.id?'active':''} aria-current={activePage===page.id?'page':undefined} onClick={()=>go(page.id)} title={page.help}><span className="sidebar-page-mark"/><span><b>{page.label}</b><small>{page.help}</small></span></button>)}</div>}
