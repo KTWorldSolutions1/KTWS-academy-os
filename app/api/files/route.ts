@@ -54,10 +54,12 @@ export async function POST(req:Request){
   await bucket().put(key,await encrypt(bytes.buffer),{httpMetadata:{contentType:'application/octet-stream'}});
   try{
    await db.prepare('INSERT INTO school_files (key,owner,campus,student,category,name,mime,actor,created) VALUES (?,?,?,?,?,?,?,?,?)').bind(key,owner,campus,target?.id||null,category,name,file.type,admin?.user.email||student.user.email,at).run();
-   if(student||dailyLog){
-    // Student submissions and signed staff daily training logs attach atomically.
-    // A student's upload is attached to their own record immediately, pending campus review.
+   if(target){
+    // Every student-bound upload, including office agreements and ID portraits,
+    // attaches on the server with a revision guard. No client can set verified=true.
+    // R2 stays encrypted and private; verification is a separate manager action.
     const row:any=await db.prepare("SELECT payload,revision FROM records WHERE id=? AND owner=? AND kind='students'").bind(target.id,owner).first();
+    if(!row)throw Error('Student record disappeared during upload');
     const current=JSON.parse(row.payload);
     const docs=[...(current.documents||[]),{key,category,name,uploadedAt:at,uploadedBy:student?'Student portal':admin?.user.email,trainingDate:dailyLog?trainingDate:undefined,verified:false}];
     const updated=await db.prepare('UPDATE records SET payload=?,revision=revision+1,updated=? WHERE id=? AND owner=? AND revision=?')
