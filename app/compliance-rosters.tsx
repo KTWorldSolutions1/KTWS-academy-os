@@ -1,7 +1,7 @@
 'use client';
 import {useState} from 'react';
 import type {RecordData as R} from '../lib/training';
-import {classEnding,proposedBiweeklyStarts,FUNDING_TYPES} from '../lib/compliance-roster';
+import {classEnding,proposedBiweeklyStarts,FUNDING_TYPES,rosterGaps} from '../lib/compliance-roster';
 import {CalendarDays,Download,FileCheck2,ShieldCheck,AlertTriangle} from 'lucide-react';
 type Props={records:R[];role:string;demo:boolean;busy:boolean;saveMany:(rows:R[])=>Promise<boolean>};
 export default function ComplianceRosters({records,role,demo,busy,saveMany}:Props){
@@ -13,7 +13,8 @@ export default function ComplianceRosters({records,role,demo,busy,saveMany}:Prop
  const students=records.filter(s=>s.kind==='students'&&s.classId===klass?.id&&s.campusId===campus?.id&&s.status!=='Withdrawn');
  const canManage=['Owner','Regional admin','Campus manager'].includes(role);
  async function audit(){
-  if(!klass||demo)return;
+  if(!klass)return;
+  if(demo){const gaps=students.map(s=>({studentId:s.id,name:s.name,gaps:rosterGaps(s,klass)}));setPreview({count:students.length,ready:students.length>0&&gaps.every(s=>!s.gaps.length),draft:true,students:gaps,note:'Demo-only preflight; no protected files exported or submitted.'});setError('');return;}
   setLoading(true);setError('');setPreview(null);
   try{const r=await fetch('/api/compliance/roster?classId='+encodeURIComponent(klass.id),{cache:'no-store'}),body=await r.json();if(!r.ok)throw Error(body.error||'Roster review unavailable');setPreview(body);}
   catch(e:any){setError(e.message);}finally{setLoading(false);}
@@ -37,9 +38,9 @@ export default function ComplianceRosters({records,role,demo,busy,saveMany}:Prop
  return <div className="compliance-rosters"><section className="panel"><div className="sectionhead"><div><p className="eyebrow">REGULATORY REPORTS • LIMITED ACCESS</p><h2>First-day class rosters & enrollment agreements</h2><p className="muted">NC 19A NCAC 03J .0308 requires a roster as of the first day of class and copies of each student's signed contracts. Academy OS prepares a restricted ZIP packet containing the roster CSV and actual verified enrollment agreements. No automatic NCDMV submission is performed.</p></div><ShieldCheck size={26}/></div>
  <div className="formgrid"><label>Campus<select value={campus?.id||''} onChange={e=>{setSelectedCampus(e.target.value);setSelectedClass('');setPreview(null);}}>{campuses.map(c=><option value={c.id} key={c.id}>{c.name}{c.state?' • '+c.state:''}</option>)}</select></label><label>Class/select roster<select value={klass?.id||''} onChange={e=>{setSelectedClass(e.target.value);setPreview(null);}}>{!classes.length&&<option value="">No scheduled classes</option>}{classes.map(c=><option key={c.id} value={c.id}>{c.name} • {c.startDate||'Start pending'}</option>)}</select></label></div>
  {klass&&<div className="curriculum-metrics"><div><strong>{students.length}</strong><small>Students assigned to the class</small></div><div><strong>{klass.startDate||'—'}</strong><small>Class start date</small></div><div><strong>{klass.endDate||'—'}</strong><small>Class end date</small></div><div><strong>{klass.capacity||'—'}</strong><small>Planned capacity</small></div></div>}
- <div className="reportactions"><button disabled={!klass||busy||demo||loading||!canManage} onClick={audit}><FileCheck2 size={16}/> Check first-day packet readiness</button>
+ <div className="reportactions"><button disabled={!klass||busy||loading||!canManage} onClick={audit}><FileCheck2 size={16}/> Check first-day packet readiness</button>
  <button disabled={!klass||busy||demo||!canManage||!preview?.ready||preview.draft} className="primary" onClick={()=>{if(!klass||!window.confirm('This download contains unredacted DOBs, driver license numbers, addresses and signed contracts. Store and deliver only through the approved secure compliance channel. Continue?'))return;window.location.assign('/api/compliance/roster?download=1&classId='+encodeURIComponent(klass.id));}}><Download size={16}/> Download restricted compliance ZIP</button></div>
- {demo&&<p className="notice">Sample-mode students are fictional. Actual identity data and agreement downloads are disabled in demo mode.</p>}
+ {demo&&<p className="notice">Sample-mode students are fictional. Run the roster readiness check to see sample missing fields and contracts. Actual signed-agreement downloads and DMV submissions are disabled in demo mode.</p>}
  {preview&&<><p className={preview.ready?'notice':'error'}>{preview.ready?'All '+preview.count+' class records passed the packet preflight check.':'Missing data or agreements must be resolved before generating the packet.'}</p>{preview.draft&&<p className="notice">Before the class start date this is a planning preview; verify who is actually enrolled on the first instructional day before issuing the final report.</p>}
  {preview.students?.map((s:any)=><div className="vault-doc-row" key={s.studentId}><div><b>{s.name}</b><small>{s.gaps?.length?s.gaps.join(' • '):'Roster and signed agreement verified'}</small></div><span className={'badge '+(s.gaps?.length?'warn':'good')}>{s.gaps?.length?'Needs review':'Ready'}</span></div>)}</>}
  {!klass&&<p className="muted">Create a class from the calendar or add proposed class dates below.</p>}
