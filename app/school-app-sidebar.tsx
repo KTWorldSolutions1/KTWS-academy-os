@@ -4,7 +4,7 @@ import {BookOpen,CalendarDays,ChevronDown,ChevronRight,ClipboardCheck,Graduation
 import type {SchoolSection} from '../lib/simple-navigation';
 type Props={sections:SchoolSection[];activeSection:string;activePage:string;role:string;menu:boolean;alertCount:number;onNavigate:(page:string)=>void;onSearch:()=>void;onWebsite:()=>void;onClose:()=>void};
 const icons={home:LayoutDashboard,students:GraduationCap,admissions:UsersRound,training:BookOpen,team:ClipboardCheck,partners:Handshake,payments:Wallet,school:Settings2};
-const quick=[{id:'student-id-studio',label:'Student badges',Icon:IdCard},{id:'student-communications',label:'Message students',Icon:MessageSquareText},{id:'calendar',label:'School calendar',Icon:CalendarDays},{id:'school-notices',label:'Announcements',Icon:Mail}];
+const quick=[{id:'integrations',label:'Connections',Icon:Settings2},{id:'student-id-studio',label:'Student badges',Icon:IdCard},{id:'student-communications',label:'Message students',Icon:MessageSquareText},{id:'calendar',label:'School calendar',Icon:CalendarDays},{id:'school-notices',label:'Announcements',Icon:Mail}];
 export default function SchoolAppSidebar({sections,activeSection,activePage,role,menu,alertCount,onNavigate,onSearch,onWebsite,onClose}:Props){
  const [expanded,setExpanded]=useState(activeSection||'home');
  const [compact,setCompact]=useState(false);
