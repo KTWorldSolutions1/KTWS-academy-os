@@ -70,7 +70,7 @@ export function previewBasicCohortCsv(csv:string){
  rows.slice(1).forEach((row,i)=>{
   if(row.length!==rows[0].length)throw Error('Line '+(i+2)+' has an unexpected number of columns');
   const name=(row[first].trim()+' '+row[last].trim()).trim(), number=studentId<0?'':row[studentId].trim();
-  if(!name||name.split(/\\s+/).length<2)throw Error('Line '+(i+2)+' must contain a first and last name.');
+  if(!name||name.split(/\s+/).length<2)throw Error('Line '+(i+2)+' must contain a first and last name.');
   const key=normalize(name);if(seenNames.has(key))throw Error('Duplicate student name in line '+(i+2));
   seenNames.add(key);
   if(number){if(!/^[A-Za-z0-9-]{3,32}$/.test(number))throw Error('Invalid school student ID on line '+(i+2));
