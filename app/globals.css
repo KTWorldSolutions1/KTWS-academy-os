@@ -752,3 +752,15 @@ button:focus-visible,a:focus-visible{outline:2px solid #68ccff}
 .film-top,.film-controls{background:#101b25}
 .film-step,.film-buttons .film-play{background:#176fa8}
 .film-features button:hover{color:#90d8ff}
+
+
+.film-journey{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin:0 0 19px;padding:10px 13px;border:1px solid #315776;background:#12263999;border-radius:12px}
+.film-journey-persona{font-size:10px;letter-spacing:.65px;font-weight:800;white-space:nowrap;color:#ebf4fb}
+.film-journey-persona small{font-size:8px;font-weight:500;color:#90abc2;display:block;margin-top:2px}
+.film-journey-stages{display:flex;flex:1;gap:5px;min-width:340px;justify-content:flex-end;flex-wrap:wrap}
+.film-journey-stages span{font-size:9px;border:1px solid #294359;border-radius:16px;padding:5px 7px;color:#778e9f;background:#0f1d2c;white-space:nowrap}
+.film-journey-stages span.complete{background:#174265;color:#bed8e8;border-color:#2d6389}
+.film-journey-stages span.current{background:#217cb5;color:#fff;border-color:#69b9e5;font-weight:800;box-shadow:0 1px 12px #2c8bca99}
+.film-click-path{padding:9px 12px;margin:0 0 10px;border-radius:8px;background:#18364a;border:1px solid #315b7a;color:#c7d9e5;font-size:12px;line-height:1.4}
+.film-click-path strong{color:#9ed6fa;margin-right:7px;letter-spacing:.4px}
+@media(max-width:800px){.film-journey-stages{min-width:0;justify-content:flex-start}.film-journey-stages span{font-size:8px}.film-journey{gap:7px}.film-screen{min-height:635px}}
