@@ -37,6 +37,27 @@ export const OPERATOR_STEPS:OperatorStep[]=[
  {id:'student-progress',page:'students',stage:'22 · Student 360',title:'Open the same student’s full progress timeline',operatorAction:'The operator opens the same fictional student after their recorded milestones and diagnostic retest.',evidence:'Live student detail screen with attendance, grades and remaining completion gaps.',selector:'.drawer',studentDrawer:true,voice:'Here is the same student record with their notes and practice attempts. Remaining requirements are still visible; the school does not mark graduation early.'},
  {id:'graduation',page:'students',stage:'23 · Testing & graduation',title:'Review graduation tracking without false certification',operatorAction:'The operator displays the student list and existing fictional advanced-stage students, including graduates.',evidence:'Testing, results and graduation workflow—real skills evidence requires separate verification.',selector:'.toolbar',voice:'At the end of the program, approved records show testing and graduation progress. The sandbox includes graduates, but it does not claim the real student has satisfied federal or state requirements.'},
  {id:'billing',page:'funding-invoices',stage:'24 · Payer billing',title:'Review funding invoices and payer evidence',operatorAction:'The operator opens WIOA, WRLP and outside-payer invoice preparation and approval workflow.',evidence:'School billing interface; no real charge or agency authorization is created.',selector:'.titlebar',voice:'We also prepare payer documentation, invoices and funding records. The finance process connects to enrollment while remaining separate from actual payment collection.'},
+
+ {id:'tuition-charge',page:'student-payments',stage:'25 · Tuition billing',title:'Create a tuition charge in the real student ledger',
+ operatorAction:'The operator opens Student Payment Center and posts a fictional Class A $3,000 charge to the enrolled student.',
+ evidence:'One new tuition charge, its due date, funding source, and a $3,000 fictional balance.',selector:'.student-payment-center',action:'tuition-charge',
+ voice:'Now I create a tuition charge for the same student, on their actual Academy O S sample account. The school can use the listed funding category, but creating an invoice never means we received the money.'},
+ {id:'remittance',page:'student-payments',stage:'26 · Payment processing',title:'Record a partial $750 cash payment for approval',
+ operatorAction:'The operator records a synthetic cash remittance against the tuition charge. The balance stays unchanged until verification.',
+ evidence:'A pending $750 receipt, tied to the specific charge and student, with a sample receipt reference.',selector:'.student-payment-center',action:'payment-remit',
+ voice:'Here we log a seven hundred fifty dollar cash payment. The system requires a receipt reference and a second manager to verify actual remittances. Until then, it does not credit the account.'},
+ {id:'reconcile',page:'student-payments',stage:'27 · Payment review',title:'Verify payment evidence and adjust the remaining balance',
+ operatorAction:'The operator simulates second-manager approval of the fictional cash receipt.',
+ evidence:'The confirmed $750 payment reduces the demo balance to $2,250; history remains auditable.',selector:'.student-payment-center',action:'payment-verify',
+ voice:'Now a separate finance reviewer verifies that fictional receipt. The ledger subtracts seven hundred fifty dollars and preserves the approval history.'},
+ {id:'stripe',page:'student-payments',stage:'28 · Online checkout',title:'Connect Stripe to each individual student account',
+ operatorAction:'The operator demonstrates a signed, synthetic Stripe payment of the $2,250 remainder—no provider call or credit card charge.',
+ evidence:'The student ledger shows two payment sources and a zero outstanding demo balance.',selector:'.student-payment-center',action:'stripe-sim',
+ voice:'For online payments, Stripe hosted Checkout confirms a payment by a signed webhook. Here we simulate the verified event, with no real customer card and no money movement.'},
+ {id:'student-balance',page:'student-portal-preview',stage:'29 · Student self-service',title:'The student checks their own tuition balance',
+ operatorAction:'The operator opens the fictional student portal to connect tuition and training in the same experience.',
+ evidence:'Student-side experience; live authorized accounts see only their own school-posted balance.',selector:'.demo-student-shell',
+ voice:'Students can check their own school posted balance, follow their training progress, upload missing documents, practice for knowledge tests and open Driver Pulse without calling the campus every time.'},
  {id:'team',page:'tasks',stage:'25 · Work assignments',title:'Assign a campus task to the team',operatorAction:'The operator creates a fictional document-follow-up task for an authorized employee.',evidence:'Saved task appears in the school\'s staff-assignment board.',selector:'.team-assignments',action:'assign-task',voice:'Now I assign a follow up task to a real role at a single campus. Team members get their own work list and permissions.'},
  {id:'staff',page:'pilot-access',stage:'26 · Staff access',title:'Invite Texas or Greensboro staff without sharing a login',operatorAction:'The operator displays owner-only activation tools and campus-scoped access settings; it does not issue a live invite.',evidence:'Role and campus access controls with regional leadership permissions.',selector:'.pilot-access',tourRole:'Owner',voice:'School leadership can invite an employee with their own login and only the campuses they are permitted to see. Nobody has to share the owner password.'},
  {id:'dallas',page:'insights',stage:'27 · Texas campuses',title:'Switch to Dallas and compare campus results',operatorAction:'The operator switches the global campus filter to Dallas, keeping Greensboro students out of the local view.',evidence:'Campus-filtered schoolwide reporting.',selector:'.campusbar',campus:'Dallas',voice:'Now we switch to Dallas. Site managers see their own student records, and approved regional leadership can compare multiple campuses.'},
@@ -131,6 +152,29 @@ export function applyOperatorExample(action:string,records:R[]):OperatorExample{
   const exists=(person.sessions||[]).some((row:any)=>row.id===s.id);
   return {updates:[{...person,status:phase,sessions:exists?person.sessions:[...(person.sessions||[]),s]}],
     message:'Recorded a fictional 2-hour '+phase.toLowerCase()+' session. It is NOT real ELDT instruction evidence.',studentId:person.id};
+ }
+ if(['tuition-charge','payment-remit','payment-verify','stripe-sim'].includes(action)){
+  const base={charges:[...(person.demoBilling?.charges||[])],payments:[...(person.demoBilling?.payments||[])]};
+  const id='operator-tuition-'+person.id,receiptId='operator-receipt-'+person.id,stripeId='operator-stripe-'+person.id;
+  if(action==='tuition-charge'&&!base.charges.some((x:any)=>x.id===id)){
+   base.charges.push({id,owner:'academy-owner',student:person.id,campus:person.campusId,description:'Class A CDL tuition · fictional',category:'Tuition',
+    amount_cents:300000,due_date:'2026-11-16',funding_type:'Cash',status:'Open',created:'2026-11-07T17:30:00Z',demoOnly:true});
+  }
+  if(action==='payment-remit'&&!base.payments.some((x:any)=>x.id===receiptId)){
+   base.payments.push({id:receiptId,owner:'academy-owner',student:person.id,campus:person.campusId,charge_id:id,provider:'Cash',source:'Demo',
+    amount_cents:75000,refunded_cents:0,disputed_cents:0,status:'Pending',external_ref:'DEMO-RECEIPT-0750',created:'2026-11-07T17:32:00Z',demoOnly:true});
+  }
+  if(action==='payment-verify'){
+   base.payments=base.payments.map((x:any)=>x.id===receiptId?{...x,status:'Confirmed',verified_at:'2026-11-07T17:34:00Z',verified_by:'Fictional separate manager'}:x);
+  }
+  if(action==='stripe-sim'&&!base.payments.some((x:any)=>x.id===stripeId)){
+   base.payments.push({id:stripeId,owner:'academy-owner',student:person.id,campus:person.campusId,charge_id:id,provider:'Stripe',source:'Demo',
+    amount_cents:225000,refunded_cents:0,disputed_cents:0,status:'Confirmed',external_ref:'DEMO-ONLY-PI',created:'2026-11-07T17:35:00Z',demoOnly:true});
+  }
+  return {updates:[{...person,demoBilling:base}],message:action==='tuition-charge'?'Posted a $3,000 fictional tuition charge.':
+   action==='payment-remit'?'Receipt for $750 awaiting verification; no credit was posted.':
+   action==='payment-verify'?'Confirmed $750 fictional cash receipt; remaining tuition is $2,250.':
+   'A fictional signed Stripe payment paid the remaining $2,250. No real charge.',studentId:person.id};
  }
  if(action==='assign-task'){
   if(records.some(r=>r.id===taskId))return {updates:[],message:'Demo team task already saved.'};
