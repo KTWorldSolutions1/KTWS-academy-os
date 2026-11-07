@@ -16,7 +16,8 @@ export const schoolSections:SchoolSection[]=[
  {id:'students',label:'Students',help:'Find students and check their records.',pages:[
   {id:'students',label:'Student List',help:'Profiles, paperwork and progress'},
   {id:'document-center',label:'Secure Document Vault',help:'Student photos, IDs, agreements and missing paperwork'},
-  {id:'student-access',label:'Student Portal Access',help:'Owner-approved private student logins'}
+  {id:'student-access',label:'Student Portal Access',help:'Owner-approved private student logins'},
+  {id:'student-portal-preview',label:'Student Portal Demo',help:'Fictional student document requests and knowledge practice'}
  ]},
  {id:'admissions',label:'Admissions',help:'Handle new inquiries and appointments.',pages:[
   {id:'leads',label:'New Inquiries',help:'Follow up with future students'},
