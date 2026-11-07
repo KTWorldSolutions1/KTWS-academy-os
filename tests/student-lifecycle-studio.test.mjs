@@ -26,6 +26,18 @@ assert.ok(OPERATOR_STEPS.length>=30,'Owner tour must cover the complete student 
 assert.ok(OPERATOR_STEPS.every(s=>s.page&&s.title&&s.operatorAction&&s.evidence));
 const demoStudent=sample.find(r=>r.kind==='students'&&r.id==='demo-mega-student-0-001');
 assert.ok(demoStudent);
+for(const id of ['school-announcement','school-closure','staff-birthday','student-career'])assert.ok(OPERATOR_STEPS.some(s=>s.id===id),'Operator tour must cover '+id);
+const savedNotice=applyOperatorExample('demo-announcement',sample);
+const savedClosure=applyOperatorExample('demo-closure',sample);
+const savedBirthday=applyOperatorExample('demo-birthday',sample);
+assert.equal(savedNotice.updates[0].kind,'announcements');
+assert.equal(savedClosure.updates[0].kind,'closures');
+assert.equal(savedBirthday.updates[0].birthdayCalendarOptIn,true);
+assert.equal(validateCalendarRecord(savedNotice.updates[0]),null);
+assert.equal(validateCalendarRecord(savedClosure.updates[0]),null);
+const campusForDemo=savedNotice.updates[0].campusId;
+assert.equal(studentFacingNotices([...savedNotice.updates,...savedClosure.updates],campusForDemo,'2026-11-12').length,2);
+assert.ok(calendarEntries([...savedNotice.updates,...savedClosure.updates,...savedBirthday.updates],2026,11).some(e=>e.category==='Closure'));
 const created=applyOperatorExample('request-files',sample);
 assert.equal(created.updates.length,1);assert.equal(created.updates[0].documentRequests.filter(r=>r.status==='Requested').length,3);
 const tomorrow='2026-11-08';
