@@ -2,7 +2,7 @@
 import {useState} from 'react';
 import {ArrowRight,Bell,CheckCircle2,FileCheck2,LockKeyhole,RotateCcw,Upload,UserRound} from 'lucide-react';
 const states=[
- {name:'Open student file',staff:'Enrollment agreement missing. Campus manager can see the required-file checklist.',student:'The fictional student's private portal has not received a new request.',next:'Request agreement'},
+ {name:'Open student file',staff:'Enrollment agreement missing. Campus manager can see the required-file checklist.',student:"The fictional student's private portal has not received a new request.",next:'Request agreement'},
  {name:'Send the missing-item alert',staff:'In-app request recorded for this student. Not an email or SMS.',student:'Portal alert: Please submit your signed enrollment agreement.',next:'Show student upload'},
  {name:'Student reviews request',staff:'The manager sees an outstanding document request.',student:'The student signs in under their own authorization and chooses the requested file.',next:'Simulate secure upload'},
  {name:'Secure upload for review',staff:'An encrypted uploaded file would be attached to this student and marked review pending.',student:'Submitted — awaiting management verification. The student can track the status.',next:'Verify submitted agreement'},
