@@ -64,19 +64,28 @@ export function previewBasicCohortCsv(csv:string){
  const rows=parseCsv(csv);
  if(rows.length<2)throw Error('CSV needs a heading and at least one student.');
  const keys=rows[0].map(normalize);
- const first=keys.findIndex(k=>k==='FIRSTNAME'),last=keys.findIndex(k=>k==='LASTNAME'),studentId=keys.findIndex(k=>['STUDENTID','STUDENTNUMBER'].includes(k));
- if(first<0||last<0)throw Error('Basic roster must contain FIRST_NAME and LAST_NAME columns.');
- const seenNames=new Set<string>(),seenIds=new Set<string>(),warnings:string[]=[],candidates: (Candidate&{studentNumber?:string})[]=[];
+ const col=(...names:string[])=>keys.findIndex(k=>names.includes(k));
+ const first=col('FIRSTNAME'),last=col('LASTNAME'),studentId=col('STUDENTID','STUDENTNUMBER');
+ if(first<0||last<0)throw Error('Roster must contain FIRST_NAME and LAST_NAME columns.');
+ const get=(row:string[],...names:string[])=>{const i=col(...names);return i<0?'':row[i]?.trim()||'';};
+ const seenNames=new Set<string>(),seenIds=new Set<string>(),warnings:string[]=[],candidates:(Candidate&{studentNumber?:string;email?:string})[]=[];
  rows.slice(1).forEach((row,i)=>{
   if(row.length!==rows[0].length)throw Error('Line '+(i+2)+' has an unexpected number of columns');
-  const name=(row[first].trim()+' '+row[last].trim()).trim(), number=studentId<0?'':row[studentId].trim();
+  const name=(row[first].trim()+' '+row[last].trim()).trim(),number=studentId<0?'':row[studentId].trim();
   if(!name||name.split(/\s+/).length<2)throw Error('Line '+(i+2)+' must contain a first and last name.');
-  const key=normalize(name);if(seenNames.has(key))throw Error('Duplicate student name in line '+(i+2));
-  seenNames.add(key);
+  const key=normalize(name);
+  if(seenNames.has(key))throw Error('Duplicate student name in line '+(i+2));seenNames.add(key);
   if(number){if(!/^[A-Za-z0-9-]{3,32}$/.test(number))throw Error('Invalid school student ID on line '+(i+2));
-   if(seenIds.has(number))throw Error('Duplicate student ID in line '+(i+2));seenIds.add(number);}
-  candidates.push({name,studentNumber:number,licenseNumber:'',licenseState:'',dob:'',startDate:'',endDate:'',phone:'',address:'',city:'',state:'',zip:''});
+   if(seenIds.has(number))throw Error('Duplicate school student ID in line '+(i+2));seenIds.add(number);}
+  const phone=get(row,'PHONE','PHONENUMBER'),zip=get(row,'ZIP','ZIPCODE'),state=get(row,'STATE').toUpperCase();
+  const email=get(row,'EMAIL','EMAILADDRESS');
+  if(phone&&!/^[0-9()+ .-]{7,24}$/.test(phone))throw Error('Invalid telephone on line '+(i+2));
+  if(zip&&!/^\d{5}(?:-\d{4})?$/.test(zip))throw Error('Invalid ZIP on line '+(i+2));
+  if(state&&!/^[A-Z]{2}$/.test(state))throw Error('Invalid state on line '+(i+2));
+  if(email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))throw Error('Invalid email on line '+(i+2));
+  candidates.push({name,studentNumber:number,licenseNumber:'',licenseState:'',dob:'',startDate:'',endDate:'',
+   phone,address:get(row,'ADDRESS','STREETADDRESS'),city:get(row,'CITY'),state,zip,email});
  });
- warnings.push('Basic roster creates profiles only. Driver license, birth date, mailing address, funding, permit, attendance and signed agreements require separate verification.');
+ warnings.push('Unsigned/unverified documents, DOB, driver license, permit, attendance and funding remain unverified. Review handwritten entries against source agreements.');
  return {count:candidates.length,candidates,warnings,dates:[] as string[]};
 }
