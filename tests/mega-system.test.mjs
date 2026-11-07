@@ -16,7 +16,7 @@ const student={id:'student',kind:'students',classId:'class',campusId:'gre',name:
 assert.deepEqual(rosterGaps(student,klass),[]);
 assert.ok(rosterGaps({...student,licenseNumber:''},klass).some(x=>x.includes('driver license')));
 assert.ok(rosterGaps({...student,documents:[]},klass).some(x=>x.includes('enrollment')));
-assert.match(studentRosterCsv(klass,[student]),/\u0027\u0027=HYPERLINK/);
+assert.match(studentRosterCsv(klass,[student]),/\u0027=HYPERLINK/);
 assert.equal(profilePhotoKey(student),null);
 assert.equal(profilePhotoKey({...student,documents:[...student.documents,{key:'approvedphoto',category:'Student profile photo',verified:true}]}),'approvedphoto');
 assert.ok(documentChecklist(student).some(x=>x.category==='Enrollment agreement'&&x.status==='Verified'));
