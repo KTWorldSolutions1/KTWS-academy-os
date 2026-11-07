@@ -29,7 +29,7 @@ export async function POST(req:Request){
   next.documents=student.documents.map((d:any)=>d.key===key?{...d,verified:true,reviewedBy:access.user.email,reviewedAt:at}:d);
  }else return respond({error:'Unsupported document action.'},400);
  const result=await db.prepare('UPDATE records SET payload=?,revision=revision+1,updated=? WHERE id=? AND owner=? AND revision=?').bind(JSON.stringify(next),at,student.id,access.scope,row.revision).run();
- if(!result.meta?.changes)return respond({error:'Student was updated by another user. Reload and retry.'},409);
+ if(!Number(result.meta?.changes??result.changes??0))return respond({error:'Student was updated by another user. Reload and retry.'},409);
  await db.prepare('INSERT INTO audit(id,owner,record_id,action,at,payload,actor) VALUES (?,?,?,?,?,?,?)').bind(crypto.randomUUID(),access.scope,student.id,action==='request'?'Student document requested in portal':'Student document verified',at,JSON.stringify(action==='request'?{categories:data.categories,delivery:'in-app only'}:{key:String(data.key||'')}),access.user.email).run();
  return respond({updated:true,notice:action==='request'?'Missing-item alerts are available in the student portal. No email or SMS was sent.':'Document marked verified.',revision:row.revision+1});
 }
