@@ -1,6 +1,6 @@
 'use client';
 import {useState} from 'react';
-import type {RecordData as R} from '../lib/training';
+import {instructionHours,type RecordData as R} from '../lib/training';
 import {classEnding,proposedBiweeklyStarts,FUNDING_TYPES,rosterGaps} from '../lib/compliance-roster';
 import {CalendarDays,Download,FileCheck2,ShieldCheck,AlertTriangle} from 'lucide-react';
 import {previewDmvCsv,previewBasicCohortCsv,previewStudentReconciliationCsv} from '../lib/roster-import';
@@ -54,6 +54,29 @@ export default function ComplianceRosters({records,role,demo,busy,saveMany}:Prop
    setReconcilePreview(null);setReconcileConfirmed(false);
   }catch(e:any){setReconcileError(e.message||'Unable to reconcile existing students');}
   finally{setReconcileSaving(false);}
+ }
+ const [hoursConfirmed,setHoursConfirmed]=useState(false);
+ const [hoursSaving,setHoursSaving]=useState(false);
+ async function saveReported40(){
+  setError('');setMessage('');
+  if(!canManage||demo||!campus||!klass)return;
+  if(!/greensboro/i.test(campus.name||'')||klass.startDate!=='2026-11-02'||klass.program!=='Class A'){setError('This action is available only for the Greensboro November 2 Class A cohort.');return;}
+  if(students.length!==11){setError('Expected exactly 11 existing students, but found '+students.length+'. Review class assignment before applying hours.');return;}
+  if(!hoursConfirmed){setError('Review and confirm that all 11 students attended the reported hours.');return;}
+  const updates:R[]=students.map(student=>({
+   ...student,
+   reportedClassroomHours:40,
+   reportedClassroomHoursStatus:'Pending instructor log verification',
+   reportedClassroomHoursSource:'Campus management-reported prior classroom attendance; not yet backed by dated signed instructor logs',
+  }));
+  setHoursSaving(true);
+  try{
+   const ok=await saveMany(updates);
+   if(!ok)throw Error('The school did not save the updates. Check the red system error for the specific reason.');
+   setMessage('40 reported classroom hours saved to all 11 Greensboro November 2 profiles, pending instructor verification. Refresh Student Records and Attendance to check. No verified instruction logs were generated.');
+   setHoursConfirmed(false);
+  }catch(e:any){setError(e.message||'Could not save classroom hour reports.');}
+  finally{setHoursSaving(false);}
  }
  const [importPreview,setImportPreview]=useState<ReturnType<typeof previewDmvCsv>|ReturnType<typeof previewBasicCohortCsv>|null>(null);
  const [importError,setImportError]=useState('');
@@ -170,6 +193,15 @@ export default function ComplianceRosters({records,role,demo,busy,saveMany}:Prop
  {demo&&<p className="notice">Leave sample/demo mode to import real students.</p>}
  {importPreview.warnings.map((w,i)=><p key={i} className="muted"><AlertTriangle size={14}/> {w}</p>)}
  <p className="footnote">Candidate records stay only in this open page's memory. Closing or refreshing clears them; no download or background sync occurs. Do not use browser developer tools or screenshots to share sensitive entries.</p></div>}
+ </section>
+ <section className="panel"><div className="sectionhead"><div><p className="eyebrow">NOVEMBER 2 COHORT · REPORTED HOURS AUDIT</p><h2>40 classroom hours — pending verification</h2><p className="muted">Shows the actual saved reported-hour field, alongside the verified attendance total. A blank or zero reported field means the last student update was not saved; do not infer it from the class start date. This is not FMCSA training evidence.</p></div><FileCheck2 size={24}/></div>
+ <p className="notice">Selected class: {klass?.name||'None'} · {students.length} saved students · {students.filter(s=>Number(s.reportedClassroomHours||0)===40).length} have 40 reported hours recorded · {students.filter(s=>Number(s.reportedClassroomHours||0)!==40).length} still missing that entry.</p>
+ <div className="tablewrap"><table><thead><tr><th>Student</th><th>Reported classroom hours</th><th>Instructor-verified hours</th><th>Status</th></tr></thead><tbody>
+ {students.map(s=><tr key={s.id}><td>{s.name}</td><td>{Number(s.reportedClassroomHours||0)>0?Number(s.reportedClassroomHours)+' h (pending)':'Not saved'}</td><td>{instructionHours(s,'Classroom')} h verified from recorded sessions</td><td>{s.status}</td></tr>)}
+ </tbody></table></div>
+ {canManage&&!demo&&<><label className="checkboxlabel"><input type="checkbox" checked={hoursConfirmed} onChange={e=>setHoursConfirmed(e.target.checked)}/> I confirm campus management has a basis for reporting 40 prior classroom hours for each of these 11 students. This is not a verified attendance or ELDT certification entry.</label>
+ <button type="button" disabled={hoursSaving||busy||!hoursConfirmed||students.length!==11||klass?.startDate!=='2026-11-02'||klass?.program!=='Class A'} onClick={()=>void saveReported40()}>{hoursSaving?'Saving reported hours…':'Save 40 reported hours to these 11 existing student profiles'}</button></>}
+ {error&&<p className="error" role="alert">{error}</p>}
  </section>
  <section className="panel"><div className="sectionhead"><div><p className="eyebrow">EXISTING STUDENTS · CORRECT PROFILE DATA</p>
  <h2>ALREADY ENROLLED? Update existing student profiles here</h2><p className="muted">Use the November 2 student profile UPDATE file here, not in the new-student import box above. It matches students by school ID and updates funding, contact details and enrollment/permit status without creating duplicates. Reported classroom hours are kept separate from verified instructor attendance logs.</p></div><FileCheck2 size={24}/></div>
