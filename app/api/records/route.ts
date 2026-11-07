@@ -183,6 +183,10 @@ if(r.kind==='employment-offers'){
   }else{r={...r,reviewedBy:old?.reviewedBy,reviewedAt:old?.reviewedAt};}
  }
 if(r.kind==='students'){
+  // Portal missing-file requests are created exclusively by the audited
+  // /api/student/requests management workflow, never by a generic record edit.
+  if(JSON.stringify(r.documentRequests||[])!==JSON.stringify(old?.documentRequests||[]))
+   return Response.json({error:'Student document requests must be issued through the audited campus document center.'},{status:403});
   const savedDocuments=old?.documents||[];
   for(const document of r.documents||[]){
    if(!document||typeof document.key!=='string')return Response.json({error:'Student files must be uploaded before being attached.'},{status:400});
