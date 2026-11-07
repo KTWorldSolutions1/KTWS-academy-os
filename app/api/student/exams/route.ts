@@ -57,7 +57,7 @@ export async function POST(req:Request){
  const issue=validateRecord({...updated,id:access.student.id,kind:'students'});
  if(issue)return reply({error:'Cannot record assessment: '+issue},400);
  const saved=await db.prepare('UPDATE records SET payload=?,revision=revision+1,updated=? WHERE id=? AND owner=? AND revision=?').bind(JSON.stringify(updated),at,access.student.id,'academy-owner',row.revision).run();
- if(!saved.meta?.changes)return reply({error:'Your record changed. Refresh and retry.'},409);
+ if(!Number(saved.meta?.changes??saved.changes??0))return reply({error:'Your record changed. Refresh and retry.'},409);
  await db.prepare('INSERT INTO audit(id,owner,record_id,action,at,payload,actor) VALUES (?,?,?,?,?,?,?)').bind(crypto.randomUUID(),'academy-owner',access.student.id,'Student knowledge diagnostic completed',at,JSON.stringify({quizId,score,subjects:[...new Set(itemResults.map((i:any)=>i.subject))]}),access.user.email).run();
  return reply({score,correct,total,reviewTopics:objectives,notice:'This is a school practice assessment, not an official FMCSA ELDT or DMV knowledge exam.'});
 }
