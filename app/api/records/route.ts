@@ -218,6 +218,12 @@ if(r.kind==='students'){
     if(!meta||meta.category!==document.category)return Response.json({error:'Uploaded document does not belong to this student or category.'},{status:400});
    }else if(existing.category!==document.category)return Response.json({error:'Uploaded document categories cannot be changed.'},{status:400});
   }
+  // Sensitive files must be attached by the encrypted upload service and
+  // verified via the separately audited manager review endpoint. Prevent a
+  // generic record edit (even by management) from manufacturing a signed file.
+  const signature=(docs:any[])=>docs.map(d=>JSON.stringify(d)).sort().join('\\n');
+  if(signature(r.documents||[])!==signature(old?.documents||[]))
+   return Response.json({error:'Student document attachments and reviews can only be changed in the secure Document Vault.'},{status:403});
  }
  if(['students','leads'].includes(r.kind)&&r.smsConsent===true&&!old?.smsConsent&&(!r.consentNote||String(r.consentNote).trim().length<12)&&r.eventIntake!==true)return Response.json({error:'Record where and how the student expressly agreed to school text messages (at least 12 characters).'}, {status:400});
  if(['curriculum-units','unit-evidence'].includes(r.kind)){
