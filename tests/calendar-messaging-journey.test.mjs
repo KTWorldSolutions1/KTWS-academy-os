@@ -5,8 +5,8 @@ import {MESSAGE_TEMPLATES,expandMessageTemplate,checkBatchRequest} from '../lib/
 import {availableSchoolSections} from '../lib/simple-navigation.ts';
 const campus={id:'campus-gso',kind:'campuses',name:'Greensboro',state:'NC',status:'Active'};
 const d={id:'student',kind:'students',campusId:campus.id,status:'Waiting for permit',name:'Demo Student',dob:'2000-11-07',program:'Class A',documents:[],sessions:[],assessments:[]};
-assert.equal(currentJourneyStage(d),1);
-assert.equal(studentJourney(d,[campus]).stageName,'Permit preparation');
+assert.equal(currentJourneyStage(d),2);
+assert.equal(studentJourney(d,[campus]).stageName,'Commercial learner permit preparation');
 assert.ok(studentJourney({...d,status:'Road'},[campus]).stageIndex>studentJourney(d,[campus]).stageIndex);
 assert.equal(monthDay('2000-02-29'),'02-29');assert.equal(monthDay('2001-02-29'),null);
 const announcement={id:'announce',kind:'announcements',campusId:campus.id,status:'Published',name:'Weather check',body:'Please check the classroom schedule before travel.',priority:'Important',audience:'Students',startDate:'2026-11-07',endDate:'2026-11-09',publishOnPortal:true};
