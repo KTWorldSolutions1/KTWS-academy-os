@@ -3,6 +3,8 @@ import {identity} from '../../../server/context';
 import {database} from '../../../lib/storage';
 import {env} from '../../../lib/env';
 import {allowedStudentAccount,studentSelfView} from '../../../lib/student-self';
+import {calculateStudentLedger,publicBillingSummary} from '../../../lib/student-payments';
+import {stripeConfig} from '../../../lib/stripe-billing';
 const headers={'Cache-Control':'no-store','X-Content-Type-Options':'nosniff'};
 const reply=(v:any,status=200)=>Response.json(v,{status,headers});
 const error=(message:string,status:number)=>reply({error:message},status);
@@ -42,11 +44,16 @@ export async function GET(req:Request){
  if(path==='/api/student/portal'){
   const found=await self();
   if(!found)return error('Student portal access unavailable',401);
-  const rows:any=await found.db.prepare("SELECT payload FROM records WHERE owner='academy-owner' AND ((kind='campuses' AND id=?) OR (kind='classes' AND id=?) OR (kind='training-assignments' AND json_extract(payload,'$.studentId')=?) OR (kind='curriculum-units' AND json_extract(payload,'$.campusId')=? AND json_extract(payload,'$.program')=?) OR (kind='unit-evidence' AND json_extract(payload,'$.studentId')=?))").bind(found.student.campusId,found.student.classId||'__no_class__',found.student.id,found.student.campusId,found.student.program||'',found.student.id).all();
+  const rows:any=await found.db.prepare("SELECT payload FROM records WHERE owner='academy-owner' AND ((kind='campuses' AND id=?) OR (kind='classes' AND id=?) OR (kind='training-assignments' AND json_extract(payload,'$.studentId')=?) OR (kind='curriculum-units' AND json_extract(payload,'$.campusId')=? AND json_extract(payload,'$.program')=?) OR (kind='unit-evidence' AND json_extract(payload,'$.studentId')=?) OR (kind IN ('announcements','closures') AND json_extract(payload,'$.campusId')=?))").bind(found.student.campusId,found.student.classId||'__no_class__',found.student.id,found.student.campusId,found.student.program||'',found.student.id,found.student.campusId).all();
   const records=rows.results.map((r:any)=>JSON.parse(r.payload));
   const view=studentSelfView(found.student,records);
+  const [chargeRows,paymentRows]=await Promise.all([
+   found.db.prepare('SELECT * FROM billing_charges WHERE owner=? AND student=? AND campus=? AND status=?').bind('academy-owner',found.student.id,found.campus.id,'Open').all(),
+   found.db.prepare('SELECT * FROM billing_payments WHERE owner=? AND student=? AND campus=?').bind('academy-owner',found.student.id,found.campus.id).all()
+  ]);
+  const paymentSummary=publicBillingSummary(calculateStudentLedger(chargeRows.results||[],paymentRows.results||[]));
   await markAudit(found.db,found.student.id,'Own progress portal viewed',found.user.email,{account:found.link.account,fields:'limited student progress'});
-  return reply({student:view});
+  return reply({student:{...view,paymentSummary,studentOnlinePaymentsReady:stripeConfig().ready}});
  }
  const admin=await getWorkspaceAccess();
  if(!admin||admin.role!=='Owner')return error('Owner access required',403);

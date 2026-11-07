@@ -1,0 +1,43 @@
+import assert from 'node:assert/strict';
+import {STUDENT_JOURNEY_STAGES,currentJourneyStage,studentJourney} from '../lib/student-journey.ts';
+import {profilePhotoKey,documentChecklist} from '../lib/student-documents.ts';
+import {studentFacingNotices,calendarEntries,validateCalendarRecord} from '../lib/school-calendar.ts';
+import {OPERATOR_STEPS,applyOperatorExample} from '../lib/operator-demo.ts';
+import {megaCampusDemoRecords} from '../lib/mega-demo-data.ts';
+import {moduleAllowed} from '../lib/roles.ts';
+import {availableSchoolSections} from '../lib/simple-navigation.ts';
+
+assert.equal(STUDENT_JOURNEY_STAGES.length,7);
+assert.deepEqual(STUDENT_JOURNEY_STAGES.map(s=>s.id),['Enrolling','Classroom','Permit','Yard','Road','Testing','Graduated']);
+for(const [state,index] of [['Enrollment pending',0],['Classroom',1],['Waiting for permit',2],['Yard',3],['Road',4],['Test preparation',5],['Graduated',6]]){
+ assert.equal(currentJourneyStage({kind:'students',status:state}),index,'Student milestone '+state);
+}
+const student={id:'sample-student',kind:'students',name:'Demo Student',status:'Waiting for permit',campusId:'sample-campus',
+  documents:[{key:'p-approved',category:'Student profile photo',verified:true},{key:'p-new',category:'Student profile photo',verified:false}]};
+assert.equal(profilePhotoKey(student),'p-approved','Unverified replacement must not hide approved school ID photo');
+assert.equal(currentJourneyStage(student),2);
+const stage=studentJourney(student,[]);
+assert.equal(stage.stageIndex,2);assert.equal(stage.stages[2].selected,true);
+assert.equal(stage.stages[1].completed,false,'Theory stage requires evidence and a passing final');
+const sample=megaCampusDemoRecords();
+assert.equal(sample.filter(r=>r.kind==='students').length,98);
+assert.equal(sample.filter(r=>r.kind==='leads'&&r.status==='Funding pending').length,50);
+assert.ok(OPERATOR_STEPS.length>=30,'Owner tour must cover the complete student lifecycle');
+assert.ok(OPERATOR_STEPS.every(s=>s.page&&s.title&&s.operatorAction&&s.evidence));
+const demoStudent=sample.find(r=>r.kind==='students'&&r.id==='demo-mega-student-0-001');
+assert.ok(demoStudent);
+const created=applyOperatorExample('request-files',sample);
+assert.equal(created.updates.length,1);assert.equal(created.updates[0].documentRequests.filter(r=>r.status==='Requested').length,3);
+const tomorrow='2026-11-08';
+const ann={id:'n',kind:'announcements',name:'Schedule update',status:'Published',priority:'Urgent',campusId:'sample-campus',audience:'Students',body:'We have changed the training time.',publishOnPortal:true,startDate:'2026-11-07',endDate:'2026-11-09'};
+const closure={id:'c',kind:'closures',name:'Training closed',status:'Confirmed',reason:'Weather',campusId:'sample-campus',body:'No school training sessions today.',publishOnPortal:true,startDate:'2026-11-07',endDate:'2026-11-09'};
+assert.equal(validateCalendarRecord(ann),null);assert.equal(validateCalendarRecord(closure),null);
+assert.equal(studentFacingNotices([ann,closure],student.campusId,tomorrow).length,2);
+assert.equal(studentFacingNotices([ann,closure], 'other-campus',tomorrow).length,0,'Never show announcements from another campus');
+assert.equal(calendarEntries([ann,closure],2026,11).filter(x=>x.category==='Closure').length,3);
+assert.equal(moduleAllowed('Campus manager','student-id-studio'),true);
+assert.equal(moduleAllowed('Front desk','student-id-studio'),false);
+assert.equal(moduleAllowed('Owner','student-id-studio'),true);
+const links=availableSchoolSections('Owner','Owner').flatMap(s=>s.pages.map(p=>p.id));
+assert.ok(links.includes('student-id-studio'));
+console.log('Student lifecycle, new sidebar ID studio, school notices and real operator demo tests passed');

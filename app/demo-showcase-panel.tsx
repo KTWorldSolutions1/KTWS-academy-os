@@ -2,7 +2,7 @@
 import {BarChart3,BookOpen,CalendarClock,ChevronRight,FileCheck2,GraduationCap,Play,ShieldCheck,Users} from 'lucide-react';
 import type {RecordData as R} from '../lib/training';
 type Props={records:R[];onPlay:()=>void;onNavigate:(page:string)=>void};
-const statuses=['Enrollment pending','Classroom','Yard','Road','Test preparation','Graduated','Withdrawn'];
+const statuses=['Enrollment pending','Waiting for permit','Classroom','Yard','Road','Test preparation','Graduated','Withdrawn'];
 export default function DemoShowcasePanel({records,onPlay,onNavigate}:Props){
  const students=records.filter(r=>r.kind==='students'),pending=records.filter(r=>r.kind==='leads'&&r.status==='Funding pending');
  const campuses=records.filter(r=>r.kind==='campuses'&&r.status==='Active');

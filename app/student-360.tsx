@@ -1,4 +1,6 @@
 'use client';
+import {useEffect,useState} from 'react';
+import {profilePhotoKey} from '../lib/student-documents';
 import {ArrowRight,BookOpen,CalendarDays,CheckCircle2,ClipboardCheck,FileCheck2,GraduationCap,ShieldAlert,Truck,UserRound} from 'lucide-react';
 import type {RecordData as R} from '../lib/training';
 import {activeSessions,skills,theoryState,instructionHours,latestSkill} from '../lib/training';
@@ -10,11 +12,22 @@ import {lessonProgress} from '../lib/lesson-checkoffs';
 import {reviewProgress,FEDERAL_THEORY_CODES,FEDERAL_RANGE_CODES,FEDERAL_ROAD_CODES} from '../lib/driver-training-plan';
 import {moduleAllowed} from '../lib/roles';
 type Props={student:R;records:R[];role:string;onPage:(page:string)=>void};
-const stepLabels=['Enrollment pending','Classroom','Yard','Road','Test preparation','Graduated'];
+function VerifiedStudentPhoto({student,role}:{student:R;role:string}){
+ const key=['Owner','Regional admin','Campus manager'].includes(role)?profilePhotoKey(student):null;
+ const [photo,setPhoto]=useState('');
+ useEffect(()=>{
+  let active=true,resource='';
+  setPhoto('');if(!key)return;
+  fetch('/api/files?key='+encodeURIComponent(key),{cache:'no-store'}).then(r=>{if(!r.ok)throw Error('Unavailable');return r.blob();}).then(blob=>{resource=URL.createObjectURL(blob);if(active)setPhoto(resource);else URL.revokeObjectURL(resource);}).catch(()=>{});
+  return()=>{active=false;if(resource)URL.revokeObjectURL(resource);};
+ },[key]);
+ return photo?<img className="student-profile-card-photo" src={photo} alt={student.name+' verified profile photo'}/>:<GraduationCap size={26}/>;
+}
+const stepLabels=['Enrollment pending','Waiting for permit','Classroom','Yard','Road','Test preparation','Graduated'];
 function percent(achieved:number,target:number){return target>0?Math.min(100,Math.max(0,Math.round(achieved/target*100))):0;}
 export default function Student360({student:s,records,role,onPage}:Props){
  const date=new Date().toLocaleDateString('en-CA',{timeZone:'America/New_York'});
- if(!moduleAllowed(role,'courses'))return <div className="student-360"><div className="s360-hero"><div className="s360-mark"><GraduationCap size={26}/></div><div><h3>Student at a glance</h3><p>{s.name} · {s.program||'Program not specified'} · {s.status}</p></div></div><div className="s360-block"><h3>Basic school information</h3><p>Class: {records.find(r=>r.id===s.classId)?.name||s.cohort||'Not assigned'}</p><p>Campus: {records.find(r=>r.id===s.campusId)?.name||'Assigned campus'}</p><small>Open the student's permitted contact details in Overview. Training, funding and restricted documents are available only to authorized school roles.</small></div></div>;
+ if(!moduleAllowed(role,'courses'))return <div className="student-360"><div className="s360-hero"><div className="s360-mark"><VerifiedStudentPhoto student={s} role={role}/></div><div><h3>Student at a glance</h3><p>{s.name} · {s.program||'Program not specified'} · {s.status}</p></div></div><div className="s360-block"><h3>Basic school information</h3><p>Class: {records.find(r=>r.id===s.classId)?.name||s.cohort||'Not assigned'}</p><p>Campus: {records.find(r=>r.id===s.campusId)?.name||'Assigned campus'}</p><small>Open the student's permitted contact details in Overview. Training, funding and restricted documents are available only to authorized school roles.</small></div></div>;
   const plan=studentPlan(s,records,date),theory=theoryState(s),ready=graduationReadiness(s,records);
  const road=drivingTimeSummary(s),sessions=activeSessions(s);
  const assigned=scheduleForStudent(s.id,records).filter(x=>x.date>=date&&['Planned','Confirmed'].includes(x.status)).slice(0,5);
@@ -52,6 +65,6 @@ export default function Student360({student:s,records,role,onPage}:Props){
    {assigned.length>0&&<section className="s360-block"><h3><CalendarDays size={18}/> Next training lessons</h3>{assigned.map(a=>{const instructor=records.find(r=>r.id===a.employeeId)?.name||'Instructor not available',vehicle=records.find(r=>r.id===a.unitId),held=!!a.unitId&&unresolvedVehicleDefects(records,a.unitId).length>0;return <div className="s360-next" key={a.id}><div><strong>{a.date} · {a.start}–{a.end}</strong><small>{a.phase} · {instructor}{vehicle?' · '+vehicle.name:''}</small><small>{a.lessonObjective||'Lesson goal pending'}</small>{held&&<small className="s360-alert">Truck defect needs manager review before training.</small>}</div><span className="badge">{a.status}</span></div>;})}</section>}
   <section className="s360-block"><h3>Paperwork and next steps</h3><div className="s360-mini-stats"><span><FileCheck2 size={15}/> {checklist.length} file(s) visible to your role</span><span><CheckCircle2 size={15}/> {checklist.filter((d:any)=>d.verified===true).length} reviewed</span></div>{nextSteps.length?<div className="s360-todo">{nextSteps.map((step,index)=><p key={index}><span>○</span>{step}</p>)}</div>:<p className="muted">No additional automatic next steps from the available records. The school still needs its full manual review.</p>}{viewSupport&&plan.tasks.length>0&&<><h4>Open help requests</h4>{plan.tasks.slice(0,5).map(task=><p key={task.id} className="s360-next"><strong>{task.name}</strong><small>Due {task.due||'Not recorded'} · {task.status}</small></p>)}</>}{viewPayments&&s.fundingStatus&&<p className="muted">Funding status: {s.fundingStatus} — confirm original source documentation.</p>}</section>
   <section className="s360-block"><h3><ShieldAlert size={19}/> Before graduation</h3><p>{ready.ready?'School training checklist has no recorded gaps.':'School checklist still shows '+ready.gaps.length+' item(s) needing review.'}</p>{ready.gaps.length>0&&<details><summary>View school training checklist</summary><div className="s360-todo">{ready.gaps.map((gap,i)=><p key={i}><span>○</span>{gap}</p>)}</div></details>}<small>Not a CDL eligibility decision, state inspection clearance, or FMCSA TPR submission.</small></section>
-  <div className="s360-actions">{moduleAllowed(role,'courses')&&<button onClick={()=>onPage('courses')}><ClipboardCheck size={17}/> Go to training <ArrowRight size={15}/></button>}{viewSupport&&<button onClick={()=>onPage('operations')}>View student help <ArrowRight size={15}/></button>}</div>
+  <div className="s360-actions">{moduleAllowed(role,'student-payments')&&<button onClick={()=>onPage('student-payments')}><CalendarDays size={17}/> Tuition & payments <ArrowRight size={15}/></button>}{moduleAllowed(role,'student-id-studio')&&<button onClick={()=>onPage('student-id-studio')}><UserRound size={17}/> Upload profile photo / create badge <ArrowRight size={15}/></button>}{moduleAllowed(role,'student-communications')&&<button onClick={()=>onPage('student-communications')}><CalendarDays size={17}/> Email or text this student <ArrowRight size={15}/></button>}{moduleAllowed(role,'document-center')&&<button onClick={()=>onPage('document-center')}><FileCheck2 size={17}/> Open private enrollment files <ArrowRight size={15}/></button>}{moduleAllowed(role,'courses')&&<button onClick={()=>onPage('courses')}><ClipboardCheck size={17}/> Go to training <ArrowRight size={15}/></button>}{viewSupport&&<button onClick={()=>onPage('operations')}>View student help <ArrowRight size={15}/></button>}</div>
  </div>;
 }

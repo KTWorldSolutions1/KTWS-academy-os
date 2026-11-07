@@ -8,6 +8,7 @@ export type SchoolSection={id:string;label:string;help:string;pages:SchoolPage[]
 export const schoolSections:SchoolSection[]=[
  {id:'home',label:'Home',help:'See what needs attention today.',pages:[
   {id:'overview',label:'Today',help:'Your school at a glance'},
+  {id:'school-notices',label:'Announcements & Closures',help:'Publish student portal banners and emergency closures'},
   {id:'operations',label:'Student Help',help:'Follow up when someone needs support'},
   {id:'manager-brief',label:'Weekly Report',help:'A summary for school leaders'},
   {id:'insights',label:'School Numbers',help:'Compare student progress, inquiries, and campuses'},
@@ -15,13 +16,15 @@ export const schoolSections:SchoolSection[]=[
  ]},
  {id:'students',label:'Students',help:'Find students and check their records.',pages:[
   {id:'students',label:'Student List',help:'Profiles, paperwork and progress'},
-  {id:'document-center',label:'Secure Document Vault',help:'Student photos, IDs, agreements and missing paperwork'},
+  {id:'document-center',label:'Secure Document Vault',help:'Enrollment agreements, licenses and private student paperwork'},
+  {id:'student-id-studio',label:'Student Photos & Badges',help:'Upload, review, save portraits and print student ID cards'},
+  {id:'student-communications',label:'Email & Text Students',help:'Message one student or an opt-in class group'},
   {id:'student-access',label:'Student Portal Access',help:'Owner-approved private student logins'},
   {id:'student-portal-preview',label:'Student Portal Demo',help:'Fictional student document requests and knowledge practice'}
  ]},
  {id:'admissions',label:'Admissions',help:'Handle new inquiries and appointments.',pages:[
   {id:'leads',label:'New Inquiries',help:'Follow up with future students'},
-  {id:'calendar',label:'Calendar',help:'Appointments and school dates'},
+  {id:'calendar',label:'School Calendar',help:'Appointments, birthdays, class dates and closures'},
   {id:'event-intake',label:'Event Signups',help:'Save contacts from fairs and events'},
   {id:'rosters',label:'DMV Roster Packets',help:'First-day class rosters and signed enrollment agreements'}
  ]},
@@ -54,11 +57,13 @@ export const schoolSections:SchoolSection[]=[
  ]},
  {id:'payments',label:'Payments',help:'Review tuition amounts and balances.',pages:[
   {id:'finance',label:'Tuition & Balances',help:'Manual payment records, not a bank connection'},
-  {id:'funding-invoices',label:'Funding Invoices',help:'Draft school invoices for WIOA, WRLP and authorized funding'}
+  {id:'funding-invoices',label:'Funding Invoices',help:'Draft school invoices for WIOA, WRLP and authorized funding'},
+  {id:'student-payments',label:'Student Payment Center',help:'Stripe, cash, WIOA, WRLP and reconciled tuition balances'}
  ]},
  {id:'school',label:'School Setup',help:'Manage campuses and school settings.',pages:[
   {id:'setup',label:'Get Started',help:'Complete the school setup checklist'},
   {id:'pilot-access',label:'Pilot User Access',help:'Owner creates staff logins and pilot access'},
+  {id:'integrations',label:'Integrations & Connections',help:'Configure Microsoft, school systems, messaging, payments and career links'},
   {id:'campuses',label:'Campus Locations',help:'Greensboro, Mansfield and Dallas'},
   {id:'templates',label:'Saved Forms',help:'Message and agreement templates'},
   {id:'compliance',label:'School Readiness',help:'Review missing items and approvals'},

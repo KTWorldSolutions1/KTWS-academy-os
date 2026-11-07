@@ -21,9 +21,23 @@ export default function StudentLearningDocuments({documents,notices,onUploaded}:
    setMessage('Uploaded successfully. Your campus can review it in the student file vault.');e.currentTarget.reset();await onUploaded();
   }catch(e:any){setError(e.message||'Upload failed');}finally{setBusy(false);}
  }
+ async function submitPortrait(e:React.FormEvent<HTMLFormElement>){
+  e.preventDefault();setError('');setMessage('');setBusy(true);
+  try{
+   const form=e.currentTarget,body=new FormData(form);
+   const file=body.get('file');
+   if(!(file instanceof File)||!['image/jpeg','image/png'].includes(file.type)||file.size>2_000_000)throw Error('Select a JPG/PNG portrait smaller than 2 MB.');
+   body.set('category','Student profile photo');
+   const res=await fetch('/api/files',{method:'POST',body}),payload=await res.json();
+   if(!res.ok)throw Error(payload.error||'School photo uploads are not enabled.');
+   setMessage('Portrait uploaded privately. Campus management must review and approve it before your photo appears on your profile or badge.');
+   form.reset();await onUploaded();
+  }catch(e:any){setError(e.message||'Photo upload was not saved.');}finally{setBusy(false);}
+ }
  return <><section className="panel student-file-panel"><div className="sectionhead"><div><h2><Bell size={20}/> My enrollment documents</h2><p className="muted">Only your own authorized document checklist is visible here. Documents you submit go directly to your campus's encrypted record vault for review.</p></div><span className={'badge '+(notices.length?'warn':'')}>{notices.length} requested</span></div>
  {notices.length>0&&<div className="student-file-alerts">{notices.map(n=><p key={n.category}><Bell size={15}/> <b>{n.category} requested</b> — {n.message}</p>)}</div>}
  {documents.map(d=><div className="reportrow" key={d.category}><div><b>{d.category}</b><small>{d.required?'Standard enrollment item':'Additional requested item'}{d.uploadedAt?' • Uploaded '+d.uploadedAt.slice(0,10):''}</small></div><span className={'badge '+(d.status==='Verified'?'good':d.status.startsWith('Submitted')?'':'warn')}>{d.status}</span></div>)}
+ <section className="student-photo-upload"><h3>📸 My student profile picture</h3><p className="muted">Upload your own clear head-and-shoulders portrait. It will be private until the school reviews it and can then appear on your student portal and school ID card. The campus prints and issues ID badges.</p><p className="badge">{documents.find(d=>d.category==='Student profile photo')?.status||'No photo submitted'}</p><form onSubmit={submitPortrait}><label>Photo — JPG/PNG under 2 MB<input type="file" name="file" accept="image/jpeg,image/png" required/></label><button type="submit" disabled={busy}><Upload size={16}/> Submit profile photo for campus review</button></form></section>
  {toUpload.length>0?<form onSubmit={submit} className="student-file-upload"><h3><Upload size={16}/> Upload a requested file</h3><label>Requested document<select value={category} onChange={e=>setCategory(e.target.value)}>{toUpload.map(d=><option key={d.category}>{d.category}</option>)}</select></label><label>PDF or photo (10 MB maximum)<input type="file" name="file" accept=".pdf,.jpg,.jpeg,.png" required/></label><button type="submit" disabled={busy} className="primary">{busy?'Uploading securely…':'Upload securely'}</button></form>:<p className="muted"><CheckCircle2 size={16}/> No outstanding document upload requests. Your campus may still be reviewing previously submitted items.</p>}
  {message&&<p className="notice">{message}</p>}{error&&<p className="error" role="alert">{error}</p>}<p className="footnote">Do not send Social Security cards or driver licenses by ordinary email or text. Use this private school portal only. Document reviews are completed by authorized campus personnel.</p></section>
  {resources.length>0&&<section className="panel"><h2><FileText size={20}/> Campus forms & classroom resources</h2>{resources.map(file=><div className="reportrow" key={file.key}><b>{file.name}</b><a href={'/api/files?key='+encodeURIComponent(file.key)}>Open</a></div>)}</section>}</>;

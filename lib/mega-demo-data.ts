@@ -8,7 +8,7 @@ import {DRIVER_TRAINING_DAYS} from './driver-training-plan.ts';
  * Plus 50 fictional applicants awaiting funding across three campuses.
  */
 export const PRESENTATION_DEMO_TARGETS={studentsTotal:100,baseStudents:2,generatedStudents:98,fundingPending:50};
-export const DEMO_STATUSES=['Enrollment pending','Classroom','Yard','Road','Test preparation','Graduated','Withdrawn'] as const;
+export const DEMO_STATUSES=['Enrollment pending','Waiting for permit','Classroom','Yard','Road','Test preparation','Graduated','Withdrawn'] as const;
 export const DEMO_CAMPUSES=[
  {id:'demo-campus-1',name:'Greensboro',city:'Greensboro',state:'NC',students:32,pending:17},
  {id:'demo-campus-dallas',name:'Dallas',city:'Dallas',state:'TX',students:33,pending:17},
@@ -19,8 +19,8 @@ const lastNames=['Brooks','Carter','Fields','Johnson','Reed','Morris','Ellis','H
 const funding=['Cash','WIOA','WRLP','Vocational Rehabilitation','Employer-sponsored','Scholarship','Other outside funding'];
 const studyAreas=['General Knowledge','Combination Vehicles','Air Brakes'] as const;
 const objectives=['Safe stopping distance and sight distance','Trailer hookup and coupling checks','Air pressure warning and service-brake checks'];
-const starts=['2026-11-16','2026-11-02','2026-10-19','2026-10-05','2026-09-28','2026-09-14','2026-09-07'];
-const ends=['2026-12-18','2026-12-04','2026-11-20','2026-11-06','2026-10-30','2026-10-16','2026-10-09'];
+const starts=['2026-11-16','2026-11-16','2026-11-02','2026-10-19','2026-10-05','2026-09-28','2026-09-14','2026-09-07'];
+const ends=['2026-12-18','2026-12-18','2026-12-04','2026-11-20','2026-11-06','2026-10-30','2026-10-16','2026-10-09'];
 const cls=(campus:number,stage:number)=>'demo-mega-class-'+campus+'-'+stage;
 function mockName(idx:number,site:number){
  // deterministic combinations, not personal data.
@@ -41,7 +41,7 @@ export function megaCampusDemoRecords():R[]{
  for(const [ci,campus] of DEMO_CAMPUSES.entries()){
   for(let stage=0;stage<DEMO_STATUSES.length;stage++)output.push({
    id:cls(ci,stage),kind:'classes',campusId:campus.id,name:campus.name+' · Class A · '+starts[stage],
-   status:stage>=5?'Complete':stage===0?'Open for enrollment':'In progress',program:'Class A',
+   status:stage>=6?'Complete':stage===0?'Open for enrollment':'In progress',program:'Class A',
    startDate:starts[stage],endDate:ends[stage],capacity:36,schedule:'Weekdays · five-week training',
    fundingOptions:funding,tuition:3000,theoryHours:50,yardHours:50,roadHours:60
   });
@@ -59,7 +59,7 @@ export function megaCampusDemoRecords():R[]{
     notes:[],documents:[],documentRequests:needsDocument?[{category:'Enrollment agreement',status:'Requested',requestedAt:'2026-11-07T10:00:00Z',requestedBy:'Demo administrator',
       message:'Demonstration: signed agreement is missing. Upload securely in the student portal.'}]:[],
     assessments:[diagnostic],
-    sessions:stage>=2&&stage<=5?[{id:'demo-session-'+id,date:'2026-11-04',phase:stage>=3?'Yard':'Classroom',start:'08:00',end:'12:00',breakMinutes:0,hours:4,attendance:'Present',mode:'Instruction',
+    sessions:stage>=2&&stage<=5?[{id:'demo-session-'+id,date:'2026-11-04',phase:stage===4?'Road':stage===3?'Yard':'Classroom',start:'08:00',end:'12:00',breakMinutes:0,hours:4,attendance:'Present',mode:'Instruction',
      mood:diagnostic.score<80?'yellow':'green',skill:'Knowledge / pre-trip readiness',notes:'Fictional school progress; for walkthrough only.',instructor:'Demo instructor'}]:[],
     evaluations:[],demoOnly:true
    });
@@ -97,6 +97,8 @@ export function megaCampusDemoRecords():R[]{
    });
   }
   output.push(
+   {id:'demo-mega-announcement-'+ci,kind:'announcements',campusId:campus.id,name:'DEMO · Student orientation reminders',status:'Published',priority:'Important',audience:'Students',publishOnPortal:true,startDate:'2026-11-07',endDate:'2026-11-18',body:'FICTIONAL CAMPUS NOTICE: Prepare for your orientation and bring your requested paperwork. This is not a real campus schedule.',demoOnly:true},
+   {id:'demo-mega-closure-'+ci,kind:'closures',campusId:campus.id,name:'DEMO · Training yard closed for setup',status:'Confirmed',reason:'Maintenance',publishOnPortal:true,startDate:'2026-11-12',endDate:'2026-11-12',body:'FICTIONAL CLOSURE FOR PRESENTATION: Please check with your instructor about rescheduled yard lessons. No actual school closure is announced.',demoOnly:true},
    {id:'demo-mega-staff-'+ci,kind:'staff',campusIds:[campus.id],name:'Fictional '+campus.name+' coordinator',status:'Active',accessRole:'Admin assistant',email:'demo-'+campus.name.toLowerCase()+'@example.invalid',demoOnly:true},
    {id:'demo-mega-task-'+ci,kind:'tasks',campusId:campus.id,name:'Prepare November 16 funding and DMV preflight · DEMO',status:'Open',owner:'Sample coordinator',
     assignedTo:'demo-mega-staff-'+ci,priority:'High',due:'2026-11-13',demoOnly:true},
