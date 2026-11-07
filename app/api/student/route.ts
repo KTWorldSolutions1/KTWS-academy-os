@@ -34,6 +34,11 @@ export async function GET(req:Request){
   if(!found)return error('Student portal sign-in or access is unavailable',401);
   return reply({email:found.user.email,role:'Student',name:found.student.name,campus:found.campus.name});
  }
+ if(path==='/api/student/resources'){
+  const found=await self();if(!found)return error('Student portal access unavailable',401);
+  const rows:any=await found.db.prepare("SELECT key,name,created FROM school_files WHERE owner='academy-owner' AND campus=? AND category='Public school resource' ORDER BY created DESC LIMIT 50").bind(found.student.campusId).all();
+  return reply({files:rows.results});
+ }
  if(path==='/api/student/portal'){
   const found=await self();
   if(!found)return error('Student portal access unavailable',401);
