@@ -1,8 +1,8 @@
 /** Cloudflare-compatible Stripe Checkout interface and webhook verification.
  * Secret keys are server-only. Never use frontend metadata to credit tuition.
  */
-import {env as runtime} from '../cloudflare/runtime';
-import {env as local} from './env';
+import {env as runtime} from '../cloudflare/runtime.ts';
+import {env as local} from './env.ts';
 export function stripeConfig(){
  const pick=(key:string)=>String((runtime as any)[key]||(local as any)[key]||'');
  const secret=pick('STRIPE_SECRET_KEY'),webhook=pick('STRIPE_WEBHOOK_SECRET');
