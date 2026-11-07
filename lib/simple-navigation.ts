@@ -8,6 +8,7 @@ export type SchoolSection={id:string;label:string;help:string;pages:SchoolPage[]
 export const schoolSections:SchoolSection[]=[
  {id:'home',label:'Dashboard & Reports',help:'Daily overview, alerts, school results and reports',pages:[
   {id:'overview',label:'Today',help:'Your school at a glance'},
+  {id:'attention',label:'Active Alerts & Resolutions',help:'See why each school flag remains open and exactly how to resolve it'},
   {id:'school-notices',label:'Announcements & Closures',help:'Publish student portal banners and emergency closures'},
   {id:'operations',label:'Student Help',help:'Follow up when someone needs support'},
   {id:'manager-brief',label:'Weekly Report',help:'A summary for school leaders'},
