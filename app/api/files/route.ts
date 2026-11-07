@@ -81,6 +81,9 @@ export async function GET(req:Request){
   const meta:any=await db.prepare('SELECT * FROM school_files WHERE key=? AND owner=?').bind(key,owner).first();
   if(!meta)return new Response('Document not found',{status:404,headers});
   if(student&&(meta.campus!==student.student.campusId||(meta.category!==PUBLIC_RESOURCE_CATEGORY&&meta.student!==student.student.id)))return new Response('Forbidden',{status:403,headers});
+  // The student may retrieve shared resources, a file uploaded through their own portal,
+  // or a school-verified profile photo. Other internal school evidence is staff-only.
+  if(student&&meta.category!==PUBLIC_RESOURCE_CATEGORY&&meta.actor!==student.user.email&&!(meta.category===STUDENT_PHOTO_CATEGORY&&(student.student.documents||[]).some((d:any)=>d.key===meta.key&&d.verified===true)))return new Response('Student document unavailable',{status:403,headers});
   if(admin&&(!['Owner','Regional admin'].includes(admin.role)&&!admin.campusIds.includes(meta.campus)||restrictedCategories.includes(meta.category)&&!['Owner','Campus manager'].includes(admin.role)||['Instructor','Front desk'].includes(admin.role)))return new Response('Forbidden',{status:403,headers});
   const file=await bucket().get(key);if(!file)return new Response('Not found',{status:404,headers});
   const body=await decrypt(await file.arrayBuffer());
