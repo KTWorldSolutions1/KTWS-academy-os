@@ -32,8 +32,8 @@ export async function POST(req:Request){
   if(category===STUDENT_PHOTO_CATEGORY&&(!['image/jpeg','image/png'].includes(file.type)||file.size>2000000))return respond({error:'ID photos must be JPG or PNG, under 2 MB.'},400);
   if(student&&(publicResource||category!==STUDENT_PHOTO_CATEGORY&&!REQUESTABLE_DOCUMENTS.includes(category)))return respond({error:'Students may only submit requested enrollment documents or profile photos.'},403);
   if(student&&category!=='Student profile photo'&&!(student.student.documentRequests||[]).some((r:any)=>r.status==='Requested'&&r.category===category))return respond({error:'Ask your campus to request this document before uploading.'},403);
-  if(publicResource&&(!admin||!['Owner','Campus manager'].includes(admin.role)||studentId))return respond({error:'Only school management can publish a campus resource.'},403);
-  if(admin&&restrictedCategories.includes(category)&&!['Owner','Campus manager'].includes(admin.role))return respond({error:'Restricted enrollment records require campus management access.'},403);
+  if(publicResource&&(!admin||!['Owner','Regional admin','Campus manager'].includes(admin.role)||studentId))return respond({error:'Only school management can publish a campus resource.'},403);
+  if(admin&&restrictedCategories.includes(category)&&!['Owner','Regional admin','Campus manager'].includes(admin.role))return respond({error:'Restricted enrollment records require campus management access.'},403);
   const bytes=new Uint8Array(await file.arrayBuffer());
   if(!validSignature(bytes,file.type))return respond({error:'File contents did not match the selected type.'},400);
   const db=database(),owner=admin?.scope||'academy-owner',person=student?.student;
@@ -45,7 +45,7 @@ export async function POST(req:Request){
   if(target&&admin&&!campusAllowed(admin.role,admin.campusIds,target,records))return respond({error:'Student is outside your campus.'},403);
   const campus=publicResource?String(data.get('campusId')||''):target?.campusId||campusOf(target,records);
   if(!campus||campus==='__legacy__'||!records.some((r:any)=>r.kind==='campuses'&&r.id===campus&&r.status==='Active'))return respond({error:'Choose an active school campus.'},400);
-  if(publicResource&&admin.role!=='Owner'&&!admin.campusIds.includes(campus))return respond({error:'Resource campus is outside your access.'},403);
+  if(publicResource&&!['Owner','Regional admin'].includes(admin.role)&&!admin.campusIds.includes(campus))return respond({error:'Resource campus is outside your access.'},403);
   const key=owner+'/'+crypto.randomUUID(),at=new Date().toISOString(),name=cleanName(file.name);
   await bucket().put(key,await encrypt(bytes.buffer),{httpMetadata:{contentType:'application/octet-stream'}});
   try{
@@ -81,7 +81,7 @@ export async function GET(req:Request){
   const meta:any=await db.prepare('SELECT * FROM school_files WHERE key=? AND owner=?').bind(key,owner).first();
   if(!meta)return new Response('Document not found',{status:404,headers});
   if(student&&(meta.campus!==student.student.campusId||(meta.category!==PUBLIC_RESOURCE_CATEGORY&&meta.student!==student.student.id)))return new Response('Forbidden',{status:403,headers});
-  if(admin&&(admin.role!=='Owner'&&!admin.campusIds.includes(meta.campus)||restrictedCategories.includes(meta.category)&&!['Owner','Campus manager'].includes(admin.role)||['Instructor','Front desk'].includes(admin.role)))return new Response('Forbidden',{status:403,headers});
+  if(admin&&(!['Owner','Regional admin'].includes(admin.role)&&!admin.campusIds.includes(meta.campus)||restrictedCategories.includes(meta.category)&&!['Owner','Campus manager'].includes(admin.role)||['Instructor','Front desk'].includes(admin.role)))return new Response('Forbidden',{status:403,headers});
   const file=await bucket().get(key);if(!file)return new Response('Not found',{status:404,headers});
   const body=await decrypt(await file.arrayBuffer());
   await db.prepare('INSERT INTO audit(id,owner,record_id,action,at,payload,actor) VALUES (?,?,?,?,?,?,?)').bind(crypto.randomUUID(),owner,key,'Document accessed',new Date().toISOString(),JSON.stringify({category:meta.category,kind:'files'}),admin?.user.email||student?.user.email).run();
