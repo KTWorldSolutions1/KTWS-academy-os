@@ -97,6 +97,8 @@ export function megaCampusDemoRecords():R[]{
    });
   }
   output.push(
+   {id:'demo-mega-announcement-'+ci,kind:'announcements',campusId:campus.id,name:'DEMO · Student orientation reminders',status:'Published',priority:'Important',audience:'Students',publishOnPortal:true,startDate:'2026-11-07',endDate:'2026-11-18',body:'FICTIONAL CAMPUS NOTICE: Prepare for your orientation and bring your requested paperwork. This is not a real campus schedule.',demoOnly:true},
+   {id:'demo-mega-closure-'+ci,kind:'closures',campusId:campus.id,name:'DEMO · Training yard closed for setup',status:'Confirmed',reason:'Maintenance',publishOnPortal:true,startDate:'2026-11-12',endDate:'2026-11-12',body:'FICTIONAL CLOSURE FOR PRESENTATION: Please check with your instructor about rescheduled yard lessons. No actual school closure is announced.',demoOnly:true},
    {id:'demo-mega-staff-'+ci,kind:'staff',campusIds:[campus.id],name:'Fictional '+campus.name+' coordinator',status:'Active',accessRole:'Admin assistant',email:'demo-'+campus.name.toLowerCase()+'@example.invalid',demoOnly:true},
    {id:'demo-mega-task-'+ci,kind:'tasks',campusId:campus.id,name:'Prepare November 16 funding and DMV preflight · DEMO',status:'Open',owner:'Sample coordinator',
     assignedTo:'demo-mega-staff-'+ci,priority:'High',due:'2026-11-13',demoOnly:true},
