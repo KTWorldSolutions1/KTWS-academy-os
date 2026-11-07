@@ -28,7 +28,8 @@ function drawScene(ctx:CanvasRenderingContext2D,scene:DemoScene,sequence:number,
  ctx.fillStyle='#20334a';ctx.fillRect(0,706,w,14);ctx.fillStyle='#2184c6';ctx.fillRect(0,706,w*progress,14);
 }
 export default function OwnerDemoFilm({onClose,onNavigate}:Props){
- const [recordedMime,setRecordedMime]=useState('video/webm');\n const [playing,setPlaying]=useState(true),[index,setIndex]=useState(0),[fraction,setFraction]=useState(0),[narrate,setNarrate]=useState(true),[speed,setSpeed]=useState(1),[recording,setRecording]=useState(false),[recordedUrl,setRecordedUrl]=useState(''),[error,setError]=useState('');
+ const [recordedMime,setRecordedMime]=useState('video/webm');
+ const [playing,setPlaying]=useState(true),[index,setIndex]=useState(0),[fraction,setFraction]=useState(0),[narrate,setNarrate]=useState(true),[speed,setSpeed]=useState(1),[recording,setRecording]=useState(false),[recordedUrl,setRecordedUrl]=useState(''),[error,setError]=useState('');
  const lastClock=useRef<number>(0),canvasRef=useRef<HTMLCanvasElement|null>(null),videoRef=useRef<HTMLVideoElement|null>(null);
  const scene=DEMO_SCENES[index];
  const indexRef=useRef(index),playingRef=useRef(playing),progressRef=useRef(fraction),speedRef=useRef(speed);
