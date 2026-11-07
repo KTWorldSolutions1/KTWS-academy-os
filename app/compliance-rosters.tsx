@@ -3,6 +3,7 @@ import {useState} from 'react';
 import type {RecordData as R} from '../lib/training';
 import {classEnding,proposedBiweeklyStarts,FUNDING_TYPES,rosterGaps} from '../lib/compliance-roster';
 import {CalendarDays,Download,FileCheck2,ShieldCheck,AlertTriangle} from 'lucide-react';
+import {previewDmvCsv} from '../lib/roster-import';
 type Props={records:R[];role:string;demo:boolean;busy:boolean;saveMany:(rows:R[])=>Promise<boolean>};
 export default function ComplianceRosters({records,role,demo,busy,saveMany}:Props){
  const campuses=records.filter(c=>c.kind==='campuses'&&c.status==='Active');
@@ -12,6 +13,15 @@ export default function ComplianceRosters({records,role,demo,busy,saveMany}:Prop
  const klass=classes.find(c=>c.id===selectedClass)||classes[0];
  const students=records.filter(s=>s.kind==='students'&&s.classId===klass?.id&&s.campusId===campus?.id&&s.status!=='Withdrawn');
  const canManage=['Owner','Regional admin','Campus manager'].includes(role);
+ const [importPreview,setImportPreview]=useState<ReturnType<typeof previewDmvCsv>|null>(null);
+ const [importError,setImportError]=useState('');
+ async function previewImport(file:File|undefined){
+  setImportError('');setImportPreview(null);
+  if(!file)return;
+  if(file.size>250_000){setImportError('File too large. Choose a CSV smaller than 250 KB.');return;}
+  try{const preview=previewDmvCsv(await file.text());setImportPreview(preview);}
+  catch(e:any){setImportError(e.message||'Invalid CSV');}
+ }
  async function audit(){
   if(!klass)return;
   if(demo){const gaps=students.map(s=>({studentId:s.id,name:s.name,gaps:rosterGaps(s,klass)}));setPreview({count:students.length,ready:students.length>0&&gaps.every(s=>!s.gaps.length),draft:true,students:gaps,note:'Demo-only preflight; no protected files exported or submitted.'});setError('');return;}
@@ -46,6 +56,14 @@ export default function ComplianceRosters({records,role,demo,busy,saveMany}:Prop
  {!klass&&<p className="muted">Create a class from the calendar or add proposed class dates below.</p>}
  {message&&<p className="notice">{message}</p>}{error&&<p className="error" role="alert">{error}</p>}
  <p className="footnote">Regulatory roster fields: legal name, driver license number, postal address, telephone and enrollment agreement(s); school-requested extras: DOB, class dates and funding type. SSNs and drug screening records are deliberately excluded. Do not transmit unencrypted ZIPs over ordinary email. Texas reports need a separate Texas-specific approval and template.</p></section>
+ <section className="panel"><div className="sectionhead"><div><p className="eyebrow">SECURE ROSTER INTAKE • LOCAL PREVIEW</p><h2>Review a DMV enrollment CSV</h2><p className="muted">Select your enrollment spreadsheet exported as CSV. This checks columns, date formats, and duplicated license numbers in memory, without uploading, saving, or entering real students into the fictional owner presentation.</p></div><ShieldCheck size={25}/></div>
+ {canManage?<label>Choose DMV roster CSV<input type="file" accept=".csv,text/csv" onChange={e=>{void previewImport(e.target.files?.[0]);e.currentTarget.value='';}}/></label>:<p className="muted">Only the Owner, Regional admin or Campus manager can inspect a roster.</p>}
+ {importError&&<p className="error" role="alert">{importError}</p>}
+ {importPreview&&<div role="status"><p className="notice">{importPreview.count} student rows checked. Proposed class date range: {importPreview.dates.join(', ')}.</p>
+ <p className="muted">Preview only. Real enrollment creation and agreement attachment remain blocked until the school approves protected-data operation and verifies encryption-key recovery and backup restoration.</p>
+ {importPreview.warnings.map((w,i)=><p key={i} className="muted"><AlertTriangle size={14}/> {w}</p>)}
+ <p className="footnote">Candidate records stay only in this open page's memory. Closing or refreshing clears them; no download or background sync occurs. Do not use browser developer tools or screenshots to share sensitive entries.</p></div>}
+ </section>
  <section className="panel"><div className="sectionhead"><div><p className="eyebrow">ADMISSIONS PLANNING</p><h2>Class start calendar • every two weeks</h2><p className="muted">Suggested Class A starts begin Monday, November 16, 2026. Dates are proposals, not a promise that a campus has available instructors, trucks or approved capacity. Five-week end dates assume a Monday start and Friday of Week 5.</p></div><CalendarDays size={25}/></div>
  <div className="biweekly-grid">{proposedBiweeklyStarts().map(d=><div className="biweekly-date" key={d}><b>{d}</b><small>Testing week ends {classEnding(d)}</small><span className="badge">{classes.some(c=>c.startDate===d&&c.program==='Class A')?'Configured':'Proposed'}</span></div>)}</div>
  <button disabled={busy||!canManage||!campus||demo} onClick={createDates} className="primary">Add missing biweekly start dates to this campus</button>
