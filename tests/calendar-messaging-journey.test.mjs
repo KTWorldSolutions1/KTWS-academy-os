@@ -33,7 +33,7 @@ assert.ok(checkBatchRequest({...request,studentIds:Array(26).fill('student-a')})
 assert.ok(checkBatchRequest({...request,action:'send',confirmSend:false}));
 assert.ok(checkBatchRequest({...request,channel:'SMS',body:'X'.repeat(481)}));
 const pages=availableSchoolSections('Owner').flatMap(s=>s.pages.map(p=>p.id));
-for(const p of ['student-communications','student-id-studio','calendar','school-notices','student-portal-preview'])assert.ok(pages.includes(p),p+' must be discoverable');
+for(const p of ['integrations','student-communications','student-id-studio','calendar','school-notices','student-portal-preview'])assert.ok(pages.includes(p),p+' must be discoverable');
 assert.equal(pages.length,new Set(pages).size,'Sidebar should not have duplicate routes');
 const instructor=availableSchoolSections('Instructor').flatMap(s=>s.pages.map(p=>p.id));
 assert.ok(!instructor.includes('student-communications'));
