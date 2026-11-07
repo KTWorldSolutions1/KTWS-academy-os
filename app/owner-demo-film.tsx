@@ -33,12 +33,14 @@ export default function OwnerDemoFilm({onClose,onNavigate}:Props){
  const lastClock=useRef<number>(0),canvasRef=useRef<HTMLCanvasElement|null>(null),videoRef=useRef<HTMLVideoElement|null>(null);
  const scene=DEMO_SCENES[index];
  const stages=['Inquiry','Enrollment','Classroom','Yard','Road','Testing','Graduate'];
- const stageIndex=[0,0,0,1,1,1,1,2,2,3,4,5,6,6,6][index]||0;
+ const stageIndex=[0,0,0,1,1,1,1,2,2,3,4,5,6,6,6,6,6][index]||0;
  const clickPaths:Record<string,string>={
   network:'Choose a campus in the top filter → review student and school counts',
   lead:'Admissions → New Inquiries → add applicant → set next contact date',
   funding:'Partners → Funding Approvals → verify written funding source',
   docs:'Students → Secure Document Vault → select student → request a missing file',
+  payments:'Payments → Student Payment Center → record a sample charge → verify receipt',
+  notices:'Home → Announcements & Closures → publish a campus student banner',
   portal:'Students → Student Portal Demo → Documents → simulate upload → Practice',
   portrait:'Secure Document Vault → add portrait → verify → save ID number → print',
   roster:'Admissions → DMV Roster Packets → select NC class → run preflight',
