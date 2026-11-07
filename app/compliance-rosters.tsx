@@ -15,6 +15,38 @@ export default function ComplianceRosters({records,role,demo,busy,saveMany}:Prop
  const canManage=['Owner','Regional admin','Campus manager'].includes(role);
  const [importPreview,setImportPreview]=useState<ReturnType<typeof previewDmvCsv>|null>(null);
  const [importError,setImportError]=useState('');
+ const [importSaving,setImportSaving]=useState(false);
+ const [confirmImport,setConfirmImport]=useState(false);
+ async function saveImportedStudents(){
+  if(!importPreview||!campus||!klass||!confirmImport||!canManage||demo)return;
+  setImportError('');setImportSaving(true);
+  try{
+   if(!/greensboro/i.test(campus.name||''))throw Error('Select the Greensboro campus for this roster.');
+   if(klass.program!=='Class A')throw Error('Choose a Class A cohort.');
+   if(importPreview.candidates.some(s=>s.startDate!==klass.startDate||s.endDate!==klass.endDate))
+    throw Error('Roster dates do not match the selected class. Verify the correct cohort first.');
+   const normalized=(name:string)=>name.trim().replace(/\\s+/g,' ').toLowerCase();
+   const existing=records.filter(r=>r.kind==='students'&&r.campusId===campus.id);
+   const duplicates=importPreview.candidates.filter(s=>existing.some(r=>normalized(r.name)===normalized(s.name)));
+   if(duplicates.length)throw Error('Students already exist at Greensboro: '+duplicates.map(x=>x.name).join(', ')+'. Review them before importing to prevent duplicate accounts.');
+   const currentCount=records.filter(r=>r.kind==='students'&&r.classId===klass.id&&r.status!=='Withdrawn').length;
+   if(currentCount+importPreview.count>Number(klass.capacity||0))throw Error('The selected class does not have enough seats. Adjust its approved class capacity first.');
+   const rows:R[]=importPreview.candidates.map(s=>({
+    id:crypto.randomUUID(),kind:'students',name:s.name,campusId:campus.id,classId:klass.id,
+    cohort:klass.name,program:'Class A',status:'Enrollment pending',phone:s.phone,
+    driverLicenseNumber:s.licenseNumber,driverLicenseState:s.licenseState,dob:s.dob,address:s.address,
+    startDate:klass.startDate,finishDate:klass.endDate,studentNumber:'',sessions:[],assessments:[],evaluations:[],
+    documents:[],notes:[],documentRequests:[{category:'Enrollment agreement',status:'Requested',
+     requestedAt:new Date().toISOString(),message:'School staff must upload and verify the signed enrollment agreement.'}],
+    fundingStatus:'Not verified',registrationStatus:'Needs administrative review',targetTheory:50,targetYard:50,targetRoad:60
+   }));
+   const okay=await saveMany(rows);
+   if(!okay)throw Error('The school rejected the import. Review the notification above and try again.');
+   setMessage('Saved '+rows.length+' actual Greensboro student profiles under '+klass.name+'. Training hours, CLPs, funding and enrollment agreements remain unverified. Open Student Records to manage statuses and upload agreements.');
+   setImportPreview(null);setConfirmImport(false);
+  }catch(e:any){setImportError(e.message||'Import failed');}
+  finally{setImportSaving(false);}
+ }
  async function previewImport(file:File|undefined){
   setImportError('');setImportPreview(null);
   if(!file)return;
@@ -60,7 +92,13 @@ export default function ComplianceRosters({records,role,demo,busy,saveMany}:Prop
  {canManage?<label>Choose DMV roster CSV<input type="file" accept=".csv,text/csv" onChange={e=>{void previewImport(e.target.files?.[0]);e.currentTarget.value='';}}/></label>:<p className="muted">Only the Owner, Regional admin or Campus manager can inspect a roster.</p>}
  {importError&&<p className="error" role="alert">{importError}</p>}
  {importPreview&&<div role="status"><p className="notice">{importPreview.count} student rows checked. Proposed class date range: {importPreview.dates.join(', ')}.</p>
- <p className="muted">Preview only. Real enrollment creation and agreement attachment remain blocked until the school approves protected-data operation and verifies encryption-key recovery and backup restoration.</p>
+ <p className="muted">This file is parsed in your browser. Choose the correct Greensboro class above; the Save button submits records through the authenticated, campus-restricted school record API. Signed agreements must still be uploaded separately in the protected document vault after storage recovery approval.</p>
+ {!demo&&canManage&&<div className="vault-upload"><p><b>Save these students into the real school</b></p>
+ <p className="muted">Selected campus: {campus?.name||'None'} · Class: {klass?.name||'None'} · Start: {klass?.startDate||'Not set'} · Class capacity: {klass?.capacity||'Not set'}</p>
+ <label className="checkboxlabel"><input type="checkbox" checked={confirmImport} onChange={e=>setConfirmImport(e.target.checked)}/> I reviewed the class and understand that newly imported students begin with no verified attendance, documents, permits, funding or graduation.</label>
+ <button type="button" className="primary" disabled={!confirmImport||!klass||busy||importSaving} onClick={()=>void saveImportedStudents()}>{importSaving?'Saving student profiles…':'Save '+importPreview.count+' students to selected class'}</button>
+ </div>}
+ {demo&&<p className="notice">Leave sample/demo mode to import real students.</p>}
  {importPreview.warnings.map((w,i)=><p key={i} className="muted"><AlertTriangle size={14}/> {w}</p>)}
  <p className="footnote">Candidate records stay only in this open page's memory. Closing or refreshing clears them; no download or background sync occurs. Do not use browser developer tools or screenshots to share sensitive entries.</p></div>}
  </section>
