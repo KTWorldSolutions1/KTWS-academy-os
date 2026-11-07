@@ -57,7 +57,7 @@ export async function POST(req:Request){
     const docs=[...(current.documents||[]),{key,category,name,uploadedAt:at,uploadedBy:'Student portal',verified:false}];
     const updated=await db.prepare('UPDATE records SET payload=?,revision=revision+1,updated=? WHERE id=? AND owner=? AND revision=?')
      .bind(JSON.stringify({...current,documents:docs}),at,target.id,owner,row.revision).run();
-    if(!updated.meta?.changes)throw Error('Concurrent student record update');
+    if(!Number(updated.meta?.changes??updated.changes??0))throw Error('Concurrent student record update');
    }
    await db.prepare('INSERT INTO audit(id,owner,record_id,action,at,payload,actor) VALUES (?,?,?,?,?,?,?)').bind(crypto.randomUUID(),owner,target?.id||campus,'Encrypted file uploaded',at,JSON.stringify({category,publicResource,studentId:target?.id||null}),admin?.user.email||student.user.email).run();
   }catch(e){await db.prepare('DELETE FROM school_files WHERE key=?').bind(key).run();await bucket().delete(key);throw e;}
