@@ -11,7 +11,7 @@ export default function SchoolAppSidebar({sections,activeSection,activePage,role
  useEffect(()=>setExpanded(activeSection),[activeSection]);
  const go=(id:string)=>{onNavigate(id);onClose();};
  return <aside className={(menu?'sidebar open':'sidebar')+(compact?' academy-sidebar-compact':'')+' app-sidebar'} aria-label="School navigation">
-  <div className="nav-brand-row"><button className="brand nav-brand-button" onClick={()=>go('overview')} aria-label="Lone Star Academy OS home"><span className="brandmark" aria-hidden="true">★</span><div>LONE STAR<span>TRUCK DRIVING ACADEMY</span></div></button><button className="nav-close" onClick={onClose} aria-label="Close navigation"><X size={20}/></button></div>
+  <div className="nav-brand-row"><button className="brand nav-brand-button" onClick={()=>go('overview')} aria-label="Lone Star Academy OS home"><div className="ls-wordmark"><strong>LONE <span aria-label="star" className="ls-wordmark-star">★</span> STAR</strong><span className="ls-wordmark-subtitle">TRUCK DRIVING ACADEMY</span></div></button><button className="nav-close" onClick={onClose} aria-label="Close navigation"><X size={20}/></button></div>
   <div className="sidebar-intro"><span className="sidebar-workspace-label">SCHOOL WORKSPACE <span className="sidebar-live-dot"/></span><p>Choose a section to see its tools. Select a tool to open it.</p></div>
   <button className="sidebar-command" onClick={onSearch}><Search size={17}/><span>Find a tool or student</span><kbd>⌘ K</kbd></button>
   <div className="sidebar-scroll">
