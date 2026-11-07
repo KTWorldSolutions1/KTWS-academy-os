@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {webcrypto} from 'node:crypto';
-import {BILLING_PROVIDERS,CHARGE_TYPES,calculateStudentLedger,chargeIssue,manualPaymentIssue,publicBillingSummary,creditedPayment} from '../lib/student-payments.ts';
+import {BILLING_PROVIDERS,CHARGE_TYPES,calculateStudentLedger,chargeIssue,manualPaymentIssue,publicBillingSummary,staffBillingChargeRows,creditedPayment} from '../lib/student-payments.ts';
 import {verifyStripeSignature,stripePaymentIntent} from '../lib/stripe-billing.ts';
 import {OPERATOR_STEPS,applyOperatorExample} from '../lib/operator-demo.ts';
 import {megaCampusDemoRecords} from '../lib/mega-demo-data.ts';
@@ -24,6 +24,15 @@ assert.equal(ledger.paid_cents,300000);assert.equal(ledger.outstanding_cents,0);
 ledger=calculateStudentLedger([charge],[{...receipt,status:'Confirmed'},{...receipt,id:'p2',provider:'Stripe',amount_cents:225000,refunded_cents:25000,status:'Confirmed'}]);
 assert.equal(ledger.paid_cents,275000);assert.equal(ledger.outstanding_cents,25000);
 assert.deepEqual(Object.keys(publicBillingSummary(ledger)).sort(),['charges','notice','outstandingCents','paidCents','totalCents'].sort());
+const staffRows=staffBillingChargeRows(ledger);
+assert.equal(staffRows.length,1);
+assert.equal(staffRows[0].amountCents,300000);
+assert.equal(staffRows[0].paidCents,275000);
+assert.equal(staffRows[0].outstandingCents,25000);
+assert.equal(staffRows[0].description,'Class A tuition');
+assert.equal(staffRows[0].dueDate,'2026-11-16');
+assert.ok(!('amount_cents' in staffRows[0]),'Staff charge results must use camelCase response fields');
+
 assert.equal(stripePaymentIntent({id:'pi_12345'}),'pi_12345');
 assert.equal(stripePaymentIntent(null),'');
 const subtle=globalThis.crypto?.subtle||webcrypto.subtle;
