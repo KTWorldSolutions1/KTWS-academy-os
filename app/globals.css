@@ -764,3 +764,21 @@ button:focus-visible,a:focus-visible{outline:2px solid #68ccff}
 .film-click-path{padding:9px 12px;margin:0 0 10px;border-radius:8px;background:#18364a;border:1px solid #315b7a;color:#c7d9e5;font-size:12px;line-height:1.4}
 .film-click-path strong{color:#9ed6fa;margin-right:7px;letter-spacing:.4px}
 @media(max-width:800px){.film-journey-stages{min-width:0;justify-content:flex-start}.film-journey-stages span{font-size:8px}.film-journey{gap:7px}.film-screen{min-height:635px}}
+
+
+/* Click-through enrollment story for the safe, fictional presentation sandbox. */
+.sample-enrollment-flow{padding:22px;background:linear-gradient(125deg,#122b3b,#101b26);border:1px solid #3c7397;border-radius:14px;margin:18px 0 28px}
+.sample-enrollment-flow .sectionhead{align-items:flex-start}
+.sample-enrollment-flow .sectionhead h3{font-size:18px}
+.sample-enrollment-flow .muted{margin:8px 0 0}
+.sample-enrollment-flow h4{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin:19px 0;font-size:16px;color:#e7f6ff}
+.sample-flow-progress{display:flex;gap:7px;margin:20px 0;align-items:center}
+.sample-flow-progress button{display:grid;place-items:center;min-width:32px;width:37px;height:37px;border:1px solid #456578;background:#182e3c;border-radius:50%;color:#a9c3d4;font-weight:700}
+.sample-flow-progress button.active{background:#157cb4;border-color:#68bfea;color:#fff}
+.sample-flow-cards{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin:18px 0}
+.sample-flow-cards article{background:#0d1b27;border:1px solid #355870;padding:16px 17px;border-radius:10px;min-height:145px}
+.sample-flow-label{display:flex;align-items:center;gap:8px;color:#89c9e9;font-weight:750;font-size:12px;letter-spacing:.7px}
+.sample-flow-cards article p{color:#f4f8fc;font-size:14px;line-height:1.6;margin:14px 0}
+.sample-flow-cards article small{font-size:11px;color:#9babb9}
+.sample-enrollment-flow .reportactions{display:flex;flex-wrap:wrap;gap:10px}
+@media(max-width:750px){.sample-flow-cards{grid-template-columns:1fr}.sample-enrollment-flow{padding:15px}.sample-flow-progress button{width:30px;min-width:30px;height:30px}}
