@@ -46,6 +46,11 @@ export function manualPaymentIssue(body:any,remaining:number){
  if(typeof body.note!=='string'||body.note.length>500)return 'Payment notes cannot exceed 500 characters.';
  return null;
 }
+export function staffBillingChargeRows(summary:ReturnType<typeof calculateStudentLedger>){
+ return summary.charges.map(c=>({id:c.id,description:c.description,category:c.category,
+  amountCents:c.amount_cents,paidCents:c.paid_cents,outstandingCents:c.outstanding_cents,
+  label:c.label,dueDate:c.due_date,fundingType:c.funding_type||null}));
+}
 export function publicBillingSummary(summary:ReturnType<typeof calculateStudentLedger>){
  return {totalCents:summary.total_cents,paidCents:summary.paid_cents,outstandingCents:summary.outstanding_cents,
   charges:summary.charges.map(c=>({id:c.id,description:c.description,category:c.category,dueDate:c.due_date,
