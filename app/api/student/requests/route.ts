@@ -6,7 +6,7 @@ const noStore={'Cache-Control':'no-store','X-Content-Type-Options':'nosniff'};
 const respond=(body:any,status=200)=>Response.json(body,{status,headers:noStore});
 export async function POST(req:Request){
  const access=await getWorkspaceAccess();
- if(!access||!['Owner','Campus manager'].includes(access.role))return respond({error:'School management authorization required.'},403);
+ if(!access||!['Owner','Regional admin','Campus manager'].includes(access.role))return respond({error:'School management authorization required.'},403);
  if(req.headers.get('origin')!==new URL(req.url).origin)return respond({error:'Invalid origin.'},403);
  let data:any;try{data=await req.json();}catch{return respond({error:'Invalid request.'},400);}
  const studentId=String(data.studentId||''),action=String(data.action||'');
