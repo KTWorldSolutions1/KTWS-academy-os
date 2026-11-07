@@ -1,3 +1,4 @@
+import {studentJourney} from './student-journey.ts';
 import {studentFacingNotices} from './school-calendar.ts';
 import {safeStudentDocuments,profilePhotoKey} from './student-documents.ts';
 import {activeSessions,instructionHours,latestSkill,skills,theoryState,type RecordData as R} from './training.ts';
@@ -25,6 +26,7 @@ export function studentSelfView(s:R,records:R[]){
   lessonProgress:lessonProgress(records,s).map(x=>({name:x.name,phase:x.phase,status:x.status,completedOn:x.completedOn})),
   studyLibrary:studentStudyLibrary(s,records),
   driverDevelopment:(()=>{const p=reviewProgress(records,s);return {daysReviewed:p.daysReviewed,topicsReviewed:49-p.federalTopicsNotYetReviewed.length,totalTopics:49,needsAttention:p.openGaps};})(),
+  journey:studentJourney(s,records),
   enrollmentDocuments:safeStudentDocuments(s),
   profilePhotoKey:profilePhotoKey(s),
   documentNotices:(s.documentRequests||[]).filter((r:any)=>r.status==='Requested'&&!(s.documents||[]).some((d:any)=>d.category===r.category&&d.verified)).map((r:any)=>({category:r.category,requestedAt:r.requestedAt,message:r.message||'Please upload this missing document.'})),
