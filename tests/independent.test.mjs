@@ -110,7 +110,7 @@ try{
  assert.equal(uploadedRelease.status,200);
  assert.equal((await send('/api/files?key='+uploadedRelease.body.key,null,adminAccount.cookie)).status,403);
  const releaseStudent=(await json(await send('/api/records',null,cookie))).body.records.find(r=>r.id===sa.id);
- assert.equal((await send('/api/records',{records:[{...releaseStudent,documents:[...(releaseStudent.documents||[]),{...uploadedRelease.body,verified:false}]}]},cookie)).status,200);
+ assert.equal(releaseStudent.documents.filter(d=>d.key===uploadedRelease.body.key).length,1,'Consent evidence is attached by the upload endpoint, not duplicated by clients');
  const officeView=(await json(await send('/api/records',null,adminAccount.cookie))).body.records.find(r=>r.id===sa.id);
  assert.equal(officeView.documents.some(d=>d.key===uploadedRelease.body.key),false);
  assert.equal((await send('/api/records',{records:[{...officeView,documents:[...(officeView.documents||[]),{...uploadedRelease.body,verified:true}]}]},adminAccount.cookie)).status,403);
