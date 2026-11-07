@@ -27,13 +27,13 @@ export function requestedDocumentCategories(student:any){
 }
 export function documentChecklist(student:any){
  const requests=(student?.documentRequests||[]).filter((r:any)=>r?.status==='Requested');
- const names=[...new Set([...REQUIRED_ENROLLMENT_CATEGORIES,...requests.map((r:any)=>r.category).filter((n:any)=>REQUESTABLE_DOCUMENTS.includes(n))])];
+ const names=[...new Set([...REQUIRED_ENROLLMENT_CATEGORIES,...requests.map((r:any)=>r.category).filter((n:any)=>REQUESTABLE_DOCUMENTS.includes(n)),...(latestEvidence(student,STUDENT_PHOTO_CATEGORY)?[STUDENT_PHOTO_CATEGORY]:[])])];
  return names.map(category=>{
   const evidence=latestEvidence(student,category);
-  return {category,required:REQUIRED_ENROLLMENT_CATEGORIES.includes(category as any),requested:requests.some((r:any)=>r.category===category),status:evidence?.verified?'Verified':evidence?.key?'Submitted — review pending':'Missing',key:evidence?.key||null,uploadedAt:evidence?.uploadedAt||null};
+  return {category,required:REQUIRED_ENROLLMENT_CATEGORIES.includes(category as any),requested:requests.some((r:any)=>r.category===category)&&!evidence?.verified,status:evidence?.verified?'Verified':evidence?.key?'Submitted — review pending':'Missing',key:evidence?.key||null,uploadedAt:evidence?.uploadedAt||null};
  });
 }
 export function safeStudentDocuments(student:any){
  return documentChecklist(student).map(({category,required,requested,status,uploadedAt})=>({category,required,requested,status,uploadedAt}));
 }
-export function profilePhotoKey(student:any){return latestEvidence(student,STUDENT_PHOTO_CATEGORY)?.key||null;}
+export function profilePhotoKey(student:any){const last=latestEvidence(student,STUDENT_PHOTO_CATEGORY);return last?.verified?last.key:null;}
