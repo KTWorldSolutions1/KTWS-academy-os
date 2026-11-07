@@ -49,7 +49,7 @@ if(r.kind==='staff-unavailability'&&['recordedBy','recordedAt'].some(k=>r[k]!=nu
  if(old&&['safety-incidents','safety-reviews'].includes(r.kind))return Response.json({error:'Original safety reports and management decisions cannot be edited. Add a new management review instead.'},{status:403});
  if(['safety-incidents','safety-reviews'].includes(r.kind)&&r.date>today())return Response.json({error:'Future safety incidents and reviews cannot be recorded as completed.'},{status:400});
  if(['safety-incidents','safety-reviews'].includes(r.kind)&&['reportedBy','reportedAt','reviewedBy','reviewedAt'].some(k=>r[k]!=null))return Response.json({error:'Safety author identity and time are recorded by the server.'},{status:403});
- if(old&&r.kind==='tpr'&&old.status==='Confirmed'&&!['Owner','Campus manager'].includes(access.role))return Response.json({error:'Only school management can correct an externally confirmed FMCSA tracking record.'},{status:403});if(old&&r.kind==='tpr'&&old.status==='Confirmed'&&r.status!=='Confirmed'&&(!r.correctionReason||String(r.correctionReason).trim().length<12))return Response.json({error:'Document the reason before changing a previously confirmed external submission.'},{status:400});if(r.kind==='messages'){
+ if(old&&r.kind==='tpr'&&old.status==='Confirmed'&&!['Owner','Regional admin','Campus manager'].includes(access.role))return Response.json({error:'Only school management can correct an externally confirmed FMCSA tracking record.'},{status:403});if(old&&r.kind==='tpr'&&old.status==='Confirmed'&&r.status!=='Confirmed'&&(!r.correctionReason||String(r.correctionReason).trim().length<12))return Response.json({error:'Document the reason before changing a previously confirmed external submission.'},{status:400});if(r.kind==='messages'){
   // Sender services alone may create delivery evidence. Staff can create
   // and edit drafts but cannot impersonate a provider or manufacture receipts.
   if(r.status!=='Draft'||old&&old.status!=='Draft')return Response.json({error:'Delivered, accepted and failed message records are created only by the sending service.'},{status:403});
@@ -133,7 +133,7 @@ if(r.kind==='safety-incidents'&&r.unitId){
   if(old&&['campusId','area'].some(k=>old[k]!==r[k]))return Response.json({error:'Readiness check campus and section cannot be changed after creation.'},{status:403});
   if(old?.status==='Manager reviewed'&&['status','sourceReference','sourceCheckedOn','reviewDue','notes'].some(k=>JSON.stringify(old[k])!==JSON.stringify(r[k]))&&String(r.correctionReason||'').trim().length<12)return Response.json({error:'Explain changes to an already reviewed school readiness item.'},{status:400});
   if(r.status==='Manager reviewed'){
-   if(!['Owner','Campus manager'].includes(access.role))return Response.json({error:'Only authorized management can review a campus readiness item.'},{status:403});
+   if(!['Owner','Regional admin','Campus manager'].includes(access.role))return Response.json({error:'Only authorized management can review a campus readiness item.'},{status:403});
    r={...r,reviewedBy:old?.status==='Manager reviewed'?old.reviewedBy:access.user.email,reviewedAt:old?.status==='Manager reviewed'?old.reviewedAt:now};
   }else r={...r,reviewedBy:old?.reviewedBy,reviewedAt:old?.reviewedAt};
  }
