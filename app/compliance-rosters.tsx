@@ -36,13 +36,12 @@ export default function ComplianceRosters({records,role,demo,busy,saveMany}:Prop
     cohort:klass.name,program:'Class A',status:'Enrollment pending',phone:s.phone,email:('email' in s?String(s.email||''):''),
     licenseNumber:s.licenseNumber,driverLicenseState:s.licenseState,dob:s.dob,address:s.address,city:s.city,state:s.state,zip:s.zip,
     startDate:klass.startDate,finishDate:klass.endDate,studentNumber:('studentNumber' in s?String(s.studentNumber||''):'') ,sessions:[],assessments:[],evaluations:[],
-    documents:[],notes:[],documentRequests:[{category:'Enrollment agreement',status:'Requested',
-     requestedAt:new Date().toISOString(),message:'School staff must upload and verify the signed enrollment agreement.'}],
+    documents:[],notes:[],
     fundingStatus:'Not verified',registrationStatus:'Needs administrative review',targetTheory:50,targetYard:50,targetRoad:60
    }));
    const okay=await saveMany(rows);
-   if(!okay)throw Error('The school rejected the import. Review the notification above and try again.');
-   setMessage('Saved '+rows.length+' actual Greensboro student profiles under '+klass.name+'. Training hours, CLPs, funding and enrollment agreements remain unverified. Open Student Records to manage statuses and upload agreements.');
+   if(!okay)throw Error('The record save was declined. Read the red error message at the top of Academy OS for the exact validation failure. No enrollment agreement or document request is issued by this import.');
+   setMessage('Saved '+rows.length+' actual Greensboro student profiles under '+klass.name+'. Training hours, CLPs, funding and enrollment agreements remain unverified. Open Enrollment Forms & Files to request agreements through the audited document center. Open Student Records to manage statuses and upload agreements.');
    setImportPreview(null);setConfirmImport(false);
   }catch(e:any){setImportError(e.message||'Import failed');}
   finally{setImportSaving(false);}
