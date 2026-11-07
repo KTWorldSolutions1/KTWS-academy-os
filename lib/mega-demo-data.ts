@@ -18,11 +18,12 @@ export function megaCampusDemoRecords():R[]{
   output.push({id:'demo-mega-class-next-'+site.city.toLowerCase(),kind:'classes',campusId:site.id,name:'November 30 • Class A • '+site.city,status:'Open for enrollment',program:'Class A',startDate:'2026-11-30',endDate:'2027-01-01',capacity:15});
   mockNames[campusIndex].forEach((name,i)=>{
    const studentId='demo-mega-student-'+campusIndex+'-'+i,categoryScore=(i+campusIndex)%3;
-   const assessments=[
-    {id:'demo-mega-quiz-'+studentId,name:'Fictional Friday CDL knowledge check',type:'Quiz',studentPractice:true,week:1,date:'2026-11-06',correct:categoryScore===0?6:categoryScore===1?8:10,total:12,score:categoryScore===0?50:categoryScore===1?66.67:83.33,instructor:'Sample instructor',remediation:categoryScore===2?'':'Review subject learning objectives with instructor.',itemResults:mockSubjects.flatMap((subject,sj)=>Array.from({length:4},(_,q)=>({
-     questionId:studentId+'-'+sj+'-'+q,subject,objective:(['Safe stopping distance','Brake system air pressure','Trailer coupling / inspections'][sj]),correct:q<(categoryScore===2?4:categoryScore===1?2:1)||sj===categoryScore
-    })))}
-   ];
+   const itemResults=mockSubjects.flatMap((subject,sj)=>Array.from({length:4},(_,q)=>({
+     questionId:studentId+'-'+sj+'-'+q,subject,objective:(['Safe stopping distance','Combination trailer control','Brake system air pressure'][sj]),correct:q<(categoryScore===2?4:categoryScore===1?2:1)||sj===categoryScore
+    })));
+   const total=itemResults.length,correct=itemResults.filter(item=>item.correct).length,score=Math.round(correct/total*10000)/100;
+   const assessments=[{id:'demo-mega-quiz-'+studentId,name:'Fictional Friday CDL knowledge check',type:'Quiz',studentPractice:true,week:1,date:'2026-11-06',
+    correct,total,score,instructor:'Sample instructor',remediation:score>=80?'':'Review subject learning objectives with instructor.',itemResults}];
    output.push({id:studentId,kind:'students',campusId:site.id,classId,cohort:'November 16 • Class A • '+site.city,name,status:'Classroom',program:'Class A',
     studentNumber:'TEST-'+site.city.toUpperCase()+'-'+String(i+1).padStart(2,'0'),address:'DEMO STUDENT ADDRESS',city:site.city,state:site.state,zip:'00000',phone:'555-010-'+String(1000+campusIndex*100+i),
     licenseNumber:'TEST LICENSE — NOT REAL',dob:'2000-01-01',fundingType:['Cash','WIOA','WRLP','Vocational Rehabilitation','Employer-sponsored','Other outside funding'][i],
