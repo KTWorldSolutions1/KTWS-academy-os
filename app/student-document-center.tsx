@@ -10,6 +10,7 @@ export default function StudentDocumentCenter({records,role,demo,busy,saveMany,s
  const students=records.filter(s=>s.kind==='students'&&s.campusId&&s.campusId!=='__legacy__');
  const campuses=records.filter(r=>r.kind==='campuses'&&r.status==='Active');
  const [batchOverrides,setBatchOverrides]=useState<Record<number,string>>({});
+ const [batchSkipped,setBatchSkipped]=useState<Record<number,boolean>>({});
  const [batchFiles,setBatchFiles]=useState<File[]>([]),[batchConfirmed,setBatchConfirmed]=useState(false),[batchBusy,setBatchBusy]=useState(false),[batchResults,setBatchResults]=useState<string[]>([]);
  const [selected,setSelected]=useState(selectedStudentId||''),[category,setCategory]=useState('Enrollment agreement'),[pending,setPending]=useState<string[]>([]),[notice,setNotice]=useState(''),[error,setError]=useState(''),[photo,setPhoto]=useState(''),[schoolFiles,setSchoolFiles]=useState<any[]>([]),[resourceCampus,setResourceCampus]=useState(''),[studentNumber,setStudentNumber]=useState('');
  const student=students.find(s=>s.id===selected)||students[0],campus=campuses.find(c=>c.id===(resourceCampus||student?.campusId))||campuses[0];
@@ -67,38 +68,47 @@ export default function StudentDocumentCenter({records,role,demo,busy,saveMany,s
  }
 
  const batchMatches=batchFiles.map((file,index)=>{
-  const stem=file.name.replace(/\.pdf$/i,'').replace(/\s+EA(?:\s*\(\d+\))?$/i,'').trim();
+  // Common contract filename conventions; automatic matching requires a unique full name.
+  const stem=file.name.replace(/\.pdf$/i,'')
+   .replace(/\s*(?:\(\d+\)|copy\s*\d*|final|signed)\s*$/ig,'')
+   .replace(/(?:^|[\s_\-])(?:enrollment[\s_\-]*agreement|agreement|contract|EA)(?:[\s_\-]|$)/ig,' ')
+   .replace(/[_\-]+/g,' ').replace(/\s+/g,' ').trim();
   const norm=(v:string)=>v.toLowerCase().replace(/[^a-z0-9]/g,'');
   const matches=students.filter(student=>norm(student.name)===norm(stem));
   const selectedId=batchOverrides[index];
   const person=selectedId?students.find(student=>student.id===selectedId)||null:matches.length===1?matches[0]:null;
   const already=person?.documents?.some((d:any)=>d.category==='Enrollment agreement'&&d.name===file.name);
-  return {file,person,issue:!file.name.toLowerCase().endsWith('.pdf')?'PDF only':file.size>10000000?'Over 10 MB':!person?'Choose matching student':already?'File already attached':null};
+  const skipped=!!batchSkipped[index];
+  return {file,index,person,skipped,issue:skipped?null:!file.name.toLowerCase().endsWith('.pdf')?'PDF only':file.size>10000000?'Over 10 MB':!person?'Select the matching student':already?'This PDF is already attached':null};
  });
+ const uploadableBatch=batchMatches.filter(x=>!x.skipped);
+ const duplicateStudentAssignments=new Set(uploadableBatch.filter((a,i)=>a.person&&uploadableBatch.some((b,j)=>j<i&&b.person?.id===a.person?.id)).map(x=>x.person!.id));
+ const unmatchedBatch=uploadableBatch.filter(x=>x.issue).length;
+ const batchReady=uploadableBatch.length>0&&unmatchedBatch===0&&duplicateStudentAssignments.size===0;
  async function attachAgreementBatch(){
-  if(!batchConfirmed||demo||!['Owner','Regional admin','Campus manager'].includes(role)||batchBusy)return;
+  if(!batchConfirmed||!batchReady||demo||!['Owner','Regional admin','Campus manager'].includes(role)||batchBusy)return;
   setBatchBusy(true);setError('');setBatchResults([]);
   const result:string[]=[];
   try{
-   const issues=batchMatches.filter(x=>x.issue);
-   if(issues.length)throw Error('Resolve every unmatched or duplicate file before starting. No files were sent.');
-   for(const entry of batchMatches){
+   for(const entry of uploadableBatch){
     const person=entry.person!;
     const form=new FormData();
     form.set('file',entry.file);form.set('studentId',person.id);form.set('category','Enrollment agreement');
     const response=await fetch('/api/files',{method:'POST',body:form});
-    const body=await response.json();
-    if(!response.ok){result.push(person.name+': '+(body.error||'Upload blocked'));break;}
+    const body=await response.json().catch(()=>({error:'The server did not return a valid upload result.'}));
+    if(!response.ok){result.push(person.name+': '+(body.error||'Secure upload rejected'));break;}
+    // The secure API stores encrypted bytes and school_file metadata; this step links the reference to the profile.
     const updated={...person,documents:[...(person.documents||[]),{...body,verified:false}]};
     const attached=await saveMany([updated]);
-    result.push(person.name+': '+(attached?'Encrypted document attached · awaiting verification':'Encrypted upload stored, but student file needs manual reconciliation'));
+    result.push(person.name+': '+(attached?'Encrypted agreement attached; verification pending':'Secure file received, but the student record needs reconciliation'));
     if(!attached)break;
    }
    setBatchResults(result);
-   if(result.length===batchMatches.length&&result.every(x=>x.includes('attached'))){
-    setBatchFiles([]);setBatchConfirmed(false);setNotice('Batch documents uploaded to students. Campus management must inspect the actual signed pages before verifying agreements.');
+   if(result.length===uploadableBatch.length&&result.every(x=>x.includes('agreement attached'))){
+    setBatchFiles([]);setBatchSkipped({});setBatchOverrides({});setBatchConfirmed(false);
+    setNotice('Agreements attached. School management must review each signed document before verification.');
    }
-  }catch(e:any){setError(e.message||'Upload failed');setBatchResults(result);}
+  }catch(e:any){setError(e.message||'Secure agreement upload failed');setBatchResults(result);}
   finally{setBatchBusy(false);}
  }
  function printId(){
@@ -115,11 +125,13 @@ export default function StudentDocumentCenter({records,role,demo,busy,saveMany,s
  return <div className="student-document-center"><section className="panel"><div className="sectionhead"><div><p className="eyebrow">SCHOOL RECORDS • PRIVATE VAULT</p><h2>Student documents, ID cards and missing-item notices</h2><p className="muted">All uploads use protected, encrypted school storage and are scoped to a campus and individual student. Social Security and licensing documents never appear on a student ID card or in public school resources.</p></div><ShieldCheck size={26}/></div>
  {!demo&&canManage&&<section className="panel" aria-label="Batch attach enrollment agreements"><h3>Attach multiple signed enrollment agreements</h3>
  <p className="muted">Select PDFs named like <b>Student Name EA.pdf</b> or <b>Student Name EA(3).pdf</b>. Exact student names match automatically; if a spelling differs, select the correct student manually by name and school ID. Nothing is uploaded until you review the matches and confirm. Every document remains pending management verification.</p>
- <label>Choose signed agreements<input type="file" accept="application/pdf,.pdf" multiple disabled={batchBusy} onChange={e=>{setBatchFiles(Array.from(e.target.files||[]));setBatchOverrides({});setBatchConfirmed(false);setBatchResults([]);}}/></label>
- {batchFiles.length>0&&<><p className="notice">{batchFiles.length} PDFs selected for private student matching:</p>
- {batchMatches.map((item,i)=><div className="vault-doc-row" key={i}><div><b>{item.file.name}</b><small>{item.person?item.person.name+' · '+(item.person.cohort||'Campus profile'):'No exact filename match — select the student below'}</small><select aria-label={'Match '+item.file.name+' to student'} value={item.person?.id||''} onChange={e=>{setBatchOverrides(previous=>({...previous,[i]:e.target.value}));setBatchConfirmed(false);}}><option value="">Choose correct student</option>{students.map(s=><option key={s.id} value={s.id}>{s.name} · {s.studentNumber||'No student ID'}</option>)}</select></div><span className={item.issue?'badge warn':'badge good'}>{item.issue||'Ready to upload'}</span></div>)}
+ <label>Choose signed agreements<input type="file" accept="application/pdf,.pdf" multiple disabled={batchBusy} onChange={e=>{setBatchFiles(Array.from(e.target.files||[]));setBatchOverrides({});setBatchSkipped({});setBatchConfirmed(false);setBatchResults([]);}}/></label>
+ {batchFiles.length>0&&<><p className="notice">{batchFiles.length} files selected · {uploadableBatch.length-unmatchedBatch} matched/ready · {unmatchedBatch} need a student · {batchMatches.filter(x=>x.skipped).length} excluded.</p>
+ {batchMatches.map((item,i)=><div className="vault-doc-row" key={i}><div><b>{item.file.name}</b><small>{item.skipped?'Excluded from this batch':item.person?item.person.name+' · '+(item.person.cohort||'Campus profile'):'No exact filename match — select the student below'}</small><select aria-label={'Match '+item.file.name+' to student'} disabled={item.skipped} value={item.person?.id||''} onChange={e=>{setBatchOverrides(previous=>({...previous,[i]:e.target.value}));setBatchConfirmed(false);}}><option value="">Choose correct student</option>{students.map(s=><option key={s.id} value={s.id}>{s.name} · {s.studentNumber||'No student ID'}</option>)}</select><label className="checkboxlabel"><input type="checkbox" checked={item.skipped} onChange={e=>{setBatchSkipped(previous=>({...previous,[i]:e.target.checked}));setBatchConfirmed(false);}}/> Skip this PDF for now</label></div><span className={item.issue?'badge warn':'badge good'}>{item.skipped?'Skipped':item.issue||'Ready to upload'}</span></div>)}
+ {duplicateStudentAssignments.size>0&&<p className="error">Two or more PDFs are assigned to the same student in this batch. Review the selections or skip duplicates.</p>}
+ {!batchReady&&<p className="muted">Choose a student using the dropdown on each unmatched PDF. You can skip PDFs you do not have a confident match for and upload the matched set.</p>}
  <label className="checkboxlabel"><input type="checkbox" checked={batchConfirmed} onChange={e=>setBatchConfirmed(e.target.checked)}/> I checked each filename and matching student account. Attach these as unverified enrollment agreements.</label>
- <button type="button" className="primary" disabled={batchBusy||!batchConfirmed||batchMatches.some(x=>x.issue)||busy} onClick={()=>void attachAgreementBatch()}>{batchBusy?'Attaching documents…':'Upload and attach '+batchFiles.length+' agreement(s)'}</button></>}
+ <button type="button" className="primary" disabled={batchBusy||!batchConfirmed||!batchReady||busy} onClick={()=>void attachAgreementBatch()}>{batchBusy?'Attaching documents…':'Upload and attach '+uploadableBatch.length+' agreement(s)'}</button></>}
  {batchResults.map((line,i)=><p key={i} className="notice">{line}</p>)}
  </section>}
  {demo&&<SampleEnrollmentWalkthrough/>}<label>Student<select value={student?.id||''} onChange={e=>{setSelected(e.target.value);setNotice('');setError('');}}>{students.map(s=><option key={s.id} value={s.id}>{s.name} • {s.cohort||s.program||'CDL'}</option>)}</select></label>
