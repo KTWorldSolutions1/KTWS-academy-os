@@ -25,7 +25,7 @@ export default function ComplianceRosters({records,role,demo,busy,saveMany}:Prop
    if(klass.program!=='Class A')throw Error('Choose a Class A cohort.');
    if(importPreview.candidates.some(s=>s.startDate!==klass.startDate||s.endDate!==klass.endDate))
     throw Error('Roster dates do not match the selected class. Verify the correct cohort first.');
-   const normalized=(name:string)=>name.trim().replace(/\\s+/g,' ').toLowerCase();
+   const normalized=(name:string)=>name.trim().replace(/\s+/g,' ').toLowerCase();
    const existing=records.filter(r=>r.kind==='students'&&r.campusId===campus.id);
    const duplicates=importPreview.candidates.filter(s=>existing.some(r=>normalized(r.name)===normalized(s.name)));
    if(duplicates.length)throw Error('Students already exist at Greensboro: '+duplicates.map(x=>x.name).join(', ')+'. Review them before importing to prevent duplicate accounts.');
@@ -34,7 +34,7 @@ export default function ComplianceRosters({records,role,demo,busy,saveMany}:Prop
    const rows:R[]=importPreview.candidates.map(s=>({
     id:crypto.randomUUID(),kind:'students',name:s.name,campusId:campus.id,classId:klass.id,
     cohort:klass.name,program:'Class A',status:'Enrollment pending',phone:s.phone,
-    driverLicenseNumber:s.licenseNumber,driverLicenseState:s.licenseState,dob:s.dob,address:s.address,
+    licenseNumber:s.licenseNumber,driverLicenseState:s.licenseState,dob:s.dob,address:s.address,city:s.city,state:s.state,zip:s.zip,
     startDate:klass.startDate,finishDate:klass.endDate,studentNumber:'',sessions:[],assessments:[],evaluations:[],
     documents:[],notes:[],documentRequests:[{category:'Enrollment agreement',status:'Requested',
      requestedAt:new Date().toISOString(),message:'School staff must upload and verify the signed enrollment agreement.'}],
@@ -64,12 +64,13 @@ export default function ComplianceRosters({records,role,demo,busy,saveMany}:Prop
  async function createDates(){
   if(!campus)return;
   setError('');setMessage('');
-  const dates=proposedBiweeklyStarts();
+  const dates=proposedBiweeklyStarts('2026-11-16',16);
   const existing=new Set(classes.map(c=>c.startDate+'|'+c.program));
-  const missing=dates.filter(d=>!existing.has(d+'|Class A')).map(startDate=>({
+  const starts=[...(campus.name.toLowerCase().includes('greensboro')&&!existing.has('2026-11-02|Class A')?['2026-11-02']:[]),...dates.filter(d=>!existing.has(d+'|Class A'))];
+  const missing=starts.map(startDate=>({
    id:crypto.randomUUID(),kind:'classes',campusId:campus.id,name:'Class A • '+startDate,
    status:'Open for enrollment',program:'Class A',startDate,endDate:classEnding(startDate),
-   schedule:'Monday–Friday • Five-week program • Week 5 testing',capacity:8,tuition:'',pricingStatus:'Pending campus-approved tuition and funding terms',
+   schedule:'Monday–Friday • Five-week program • Week 5 testing',capacity:startDate==='2026-11-02'?11:8,tuition:'',pricingStatus:'Pending campus-approved tuition and funding terms',
    theoryHours:50,yardHours:50,roadHours:60,fundingOptions:[...FUNDING_TYPES],
    schedulingNote:'Proposed two-week start cadence; verify staffing, fleet availability, state approval, holidays and training calendar.'
   }));
@@ -102,8 +103,8 @@ export default function ComplianceRosters({records,role,demo,busy,saveMany}:Prop
  {importPreview.warnings.map((w,i)=><p key={i} className="muted"><AlertTriangle size={14}/> {w}</p>)}
  <p className="footnote">Candidate records stay only in this open page's memory. Closing or refreshing clears them; no download or background sync occurs. Do not use browser developer tools or screenshots to share sensitive entries.</p></div>}
  </section>
- <section className="panel"><div className="sectionhead"><div><p className="eyebrow">ADMISSIONS PLANNING</p><h2>Class start calendar • every two weeks</h2><p className="muted">Suggested Class A starts begin Monday, November 16, 2026. Dates are proposals, not a promise that a campus has available instructors, trucks or approved capacity. Five-week end dates assume a Monday start and Friday of Week 5.</p></div><CalendarDays size={25}/></div>
- <div className="biweekly-grid">{proposedBiweeklyStarts().map(d=><div className="biweekly-date" key={d}><b>{d}</b><small>Testing week ends {classEnding(d)}</small><span className="badge">{classes.some(c=>c.startDate===d&&c.program==='Class A')?'Configured':'Proposed'}</span></div>)}</div>
+ <section className="panel"><div className="sectionhead"><div><p className="eyebrow">ADMISSIONS PLANNING</p><h2>Class start calendar • every two weeks</h2><p className="muted">Greensboro includes the November 2, 2026 cohort for the existing class; new Class A starts begin Monday, November 16, 2026 and repeat every 14 days. Dates are proposals, not a promise that a campus has available instructors, trucks or approved capacity. Five-week end dates assume a Monday start and Friday of Week 5.</p></div><CalendarDays size={25}/></div>
+ <div className="biweekly-grid">{proposedBiweeklyStarts('2026-11-16',16).map(d=><div className="biweekly-date" key={d}><b>{d}</b><small>Testing week ends {classEnding(d)}</small><span className="badge">{classes.some(c=>c.startDate===d&&c.program==='Class A')?'Configured':'Proposed'}</span></div>)}</div>
  <button disabled={busy||!canManage||!campus||demo} onClick={createDates} className="primary">Add missing biweekly start dates to this campus</button>
- <p className="footnote">Each class supports cash, WIOA, WRLP, Vocational Rehabilitation, scholarships, employer-funded training and an additional outside-funding category. Authorization, funding amounts and approval still require their own verified records.</p></section></div>;
+ <p className="footnote">The November 2 Greensboro class is created with 11 proposed seats; new classes default to 8 planning seats. Confirm approved instructional capacity before enrolling. Each class supports cash, WIOA, WRLP, Vocational Rehabilitation, scholarships, employer-funded training and an additional outside-funding category. Authorization, funding amounts and approval still require their own verified records.</p></section></div>;
 }
