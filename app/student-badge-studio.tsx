@@ -3,7 +3,7 @@ import {useEffect,useState} from 'react';
 import type {RecordData as R} from '../lib/training';
 import {latestEvidence,profilePhotoKey,STUDENT_PHOTO_CATEGORY} from '../lib/student-documents';
 import {Camera,CheckCircle2,FileImage,IdCard,Printer,ShieldCheck,Upload,UserRound} from 'lucide-react';
-type Props={records:R[];role:string;demo:boolean;busy:boolean;saveMany:(rows:R[])=>Promise<boolean>};
+type Props={records:R[];role:string;demo:boolean;busy:boolean;initialStudentId?:string;saveMany:(rows:R[])=>Promise<boolean>};
 function escapeHtml(text:string){return String(text).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]!));}
 function syntheticPortrait(name:string){
  const initials=name.split(' ').map(s=>s[0]||'').join('').slice(0,2).toUpperCase();
@@ -15,15 +15,16 @@ function htmlCard(s:R,place:string,photo:string,id:string){
  const portrait=escapeHtml(photo);
  return '<!doctype html><html><head><meta charset="utf-8"><title>Lone Star Student ID</title><style>@page{size:3.375in 2.125in;margin:0}*{box-sizing:border-box}body{margin:0;font:11px Arial,sans-serif;color:#122033}.id{width:3.375in;height:2.125in;border:2px solid #1a5b90;background:#f8fafc;position:relative;overflow:hidden}.stripe{background:#102f4e;color:#fff;padding:7px 12px;letter-spacing:1px;font-weight:800;font-size:13px}.stripe small{display:block;letter-spacing:.8px;font-size:7px;font-weight:500}.main{display:flex;padding:10px 12px;gap:13px}.face{width:78px;height:94px;object-fit:cover;object-position:50% 22%;background:#bdc9d2;border:1px solid #96acc0}.info{flex:1}.info b{font-size:14px;display:block;overflow-wrap:anywhere;margin-bottom:8px}.info p{font-size:10px;margin:0 0 6px}.foot{position:absolute;bottom:5px;left:12px;color:#506579;font-size:7px}</style></head><body><div class="id"><div class="stripe">LONE STAR <small>TRUCK DRIVING ACADEMY • STUDENT IDENTIFICATION</small></div><div class="main"><img class="face" src="'+portrait+'"/><div class="info"><b>'+name+'</b><p>STUDENT ID: '+number+'</p><p>'+program+'</p><p>'+campus+'</p></div></div><div class="foot">School ID only • Not a driver license • Not proof of qualification</div></div></body></html>';
 }
-export default function StudentBadgeStudio({records,role,demo,busy,saveMany}:Props){
+export default function StudentBadgeStudio({records,role,demo,busy,saveMany,initialStudentId}:Props){
  const students=records.filter(s=>s.kind==='students'&&s.campusId&&s.campusId!=='__legacy__').sort((a,b)=>a.name.localeCompare(b.name));
- const [query,setQuery]=useState(''),[studentId,setStudentId]=useState(''),[idNumber,setIdNumber]=useState(''),[photo,setPhoto]=useState(''),[pendingPhoto,setPendingPhoto]=useState(''),[message,setMessage]=useState(''),[error,setError]=useState(''),[working,setWorking]=useState(false);
+ const [query,setQuery]=useState(''),[studentId,setStudentId]=useState(initialStudentId||''),[idNumber,setIdNumber]=useState(''),[photo,setPhoto]=useState(''),[pendingPhoto,setPendingPhoto]=useState(''),[message,setMessage]=useState(''),[error,setError]=useState(''),[working,setWorking]=useState(false);
  const choices=students.filter(s=>!query||s.name.toLowerCase().includes(query.toLowerCase())||String(s.studentNumber||'').toLowerCase().includes(query.toLowerCase()));
  const student=students.find(s=>s.id===studentId)||choices[0]||students[0];
  const campus=records.find(c=>c.id===student?.campusId&&c.kind==='campuses');
  const approvedKey=student?profilePhotoKey(student):null;
  const pending=(student?.documents||[]).filter((d:any)=>d.category===STUDENT_PHOTO_CATEGORY&&d.key&&d.verified!==true).at(-1);
  const canManage=['Owner','Regional admin','Campus manager'].includes(role);
+ useEffect(()=>{if(initialStudentId)setStudentId(initialStudentId);},[initialStudentId]);
  useEffect(()=>{setIdNumber(student?.studentNumber||'');setMessage('');setError('');},[student?.id,student?.studentNumber]);
  useEffect(()=>{
   let alive=true,objectUrl='';
