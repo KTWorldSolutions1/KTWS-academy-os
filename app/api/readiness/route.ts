@@ -1,6 +1,7 @@
 import {getWorkspaceAccess} from '../../../lib/workspace-access';
 import {database} from '../../../lib/storage';
 import {env} from '../../../lib/env';
+import {stripeConfig} from '../../../lib/stripe-billing';
 
 /** Owner-only operational evidence. Does not certify legal or data-security compliance. */
 export async function GET(){
@@ -25,6 +26,9 @@ export async function GET(){
    {code:'STUDENT_PORTAL',label:'Private student portal',state:String(e.STUDENT_PORTAL_ENABLED||'')==='true'?'manual':'optional',detail:String(e.STUDENT_PORTAL_ENABLED||'')==='true'?'Separate read-only student portal is enabled. Owner must test verified identity, consent, authorization revocation, campus isolation and training projection before inviting real learners.':'Student account invitations are disabled by default until consent, privacy, backup/recovery and acceptance policies are approved.'},
    {code:'AI',label:'OpenAI provider',state:e.OPENAI_API_KEY?'attention':'optional',detail:e.OPENAI_API_KEY?'API key detected; a real authorized, non-sensitive provider call still needs verification.':'OpenAI drafting remains disabled until the API key and billing are set.'},
    {code:'COMMUNICATIONS',label:'Outbound messaging',state:e.TWILIO_ACCOUNT_SID&&e.TWILIO_AUTH_TOKEN&&e.TWILIO_FROM_NUMBER&&e.RESEND_API_KEY&&e.SCHOOL_EMAIL_FROM?'attention':'optional',detail:'Credentials alone do not establish delivery or consent. Test opted-in recipients.'},
+   {code:'PAYMENTS',label:'Online student tuition payment reconciliation',
+    state:stripeConfig().ready?'manual':'optional',
+    detail:stripeConfig().ready?'Stripe credentials and webhook secret are present and online payments are enabled. Before live use, execute controlled test Checkout, signed payment notification, partial payment, refund, dispute and double-submit tests.':'Hosted Stripe payments remain disabled until owner-approved processor credentials, webhook secret and STRIPE_PAYMENTS_ENABLED are configured. Manual agency remittance verification is separate.'},
    {code:'SIGNATURES',label:'External e-signature provider',state:'manual',detail:'No independent e-signature integration or signed workflow audit has been verified.'},
    {code:'TPR',label:'FMCSA TPR and NC/TX regulatory approval',state:'manual',detail:'Verify location registration, training records, instructor and yard authority, permit/testing rules with authorities. No live TPR submission.'},
    {code:'BACKUP',label:'Data backup and restore drill',state:'manual',detail:'Document and test recovery from D1/R2 backups before treating the platform as production-ready for protected student data.'},
