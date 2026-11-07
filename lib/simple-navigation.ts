@@ -30,6 +30,7 @@ export const schoolSections:SchoolSection[]=[
   {id:'dispatch',label:'Daily Training Plan',help:'Assign students, instructors, trucks and training areas'},
   {id:'courses',label:'Take Attendance',help:'Daily training, driving hours and tests'},
   {id:'lesson-checkoffs',label:'Lesson Checkoffs',help:'Approved lessons and student progress'},
+  {id:'driver-playbook',label:'25-Day Instructor Playbook',help:'Daily instructor steps, student coverage and log checks'},
   {id:'learning-diagnostics',label:'Knowledge Diagnostics',help:'Detect weak CDL subjects before Friday testing'},
   {id:'classes',label:'Classes & Dates',help:'Start dates, schedules and class lists'},
   {id:'fleet',label:'Trucks & Equipment',help:'Training vehicles and maintenance'},
@@ -52,7 +53,8 @@ export const schoolSections:SchoolSection[]=[
   {id:'mous',label:'Agreements',help:'Partnership documents and terms'}
  ]},
  {id:'payments',label:'Payments',help:'Review tuition amounts and balances.',pages:[
-  {id:'finance',label:'Tuition & Balances',help:'Manual payment records, not a bank connection'}
+  {id:'finance',label:'Tuition & Balances',help:'Manual payment records, not a bank connection'},
+  {id:'funding-invoices',label:'Funding Invoices',help:'Draft school invoices for WIOA, WRLP and authorized funding'}
  ]},
  {id:'school',label:'School Setup',help:'Manage campuses and school settings.',pages:[
   {id:'setup',label:'Get Started',help:'Complete the school setup checklist'},
