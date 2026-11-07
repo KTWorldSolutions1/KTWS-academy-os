@@ -20,3 +20,11 @@ assert.equal(basic.candidates[0].licenseNumber,'');
 assert.equal(basic.candidates[0].dob,'');
 assert.deepEqual(basic.dates,[]);
 assert.throws(()=>previewBasicCohortCsv('FIRST_NAME,LAST_NAME,STUDENT_ID\nAvery,Example,102233\nAvery,Example,102234'),/Duplicate student name/);
+
+const contact=previewBasicCohortCsv('FIRST_NAME,LAST_NAME,STUDENT_ID,PHONE,EMAIL,ADDRESS,CITY,STATE,ZIP,REVIEW_NOTES\nAvery,Example,102233,336-555-0101,example@example.com,12 Sample Rd,Greensboro,NC,27401,Review source agreement');
+assert.equal(contact.candidates[0].phone,'336-555-0101');
+assert.equal(contact.candidates[0].email,'example@example.com');
+assert.equal(contact.candidates[0].address,'12 Sample Rd');
+assert.equal(contact.candidates[0].city,'Greensboro');
+assert.equal(contact.candidates[0].zip,'27401');
+assert.throws(()=>previewBasicCohortCsv('FIRST_NAME,LAST_NAME,STATE\nAvery,Example,XXY'),/Invalid state/);
