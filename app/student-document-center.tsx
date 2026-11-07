@@ -56,8 +56,9 @@ export default function StudentDocumentCenter({records,role,demo,busy,saveMany,s
    const res=await fetch('/api/files',{method:'POST',body}),data=await res.json();
    if(!res.ok)throw Error(data.error||'Upload failed');
    if(!publicResource&&student){
-    const okay=await saveMany([{...student,documents:[...(student.documents||[]),{...data,verified:false}]}]);
-    if(!okay)throw Error('File was encrypted but student attachment was not saved. Ask management to reconcile the file.');
+    // The upload route attaches encrypted document evidence atomically on the server.
+    // Reload instead of writing a stale, duplicate copy from the browser.
+    await reload();
    }
    setNotice(publicResource?'Campus resource uploaded. Students with portal access can view it.':'Encrypted file uploaded, awaiting management verification.');
    form.reset();await resourceList();
