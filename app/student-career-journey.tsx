@@ -30,10 +30,14 @@ export default function StudentCareerJourney({journey,studentName,demo=false,onD
    <span className="journey-stage-emoji">{x.emoji}</span><div><h3>{x.title}</h3><p>{x.description}</p><small>{x.evidence}</small></div><span className={'badge '+(x.completed?'good':x.selected?'warn':'')}>{x.completed?'Verified':x.selected?'Current stage':'Not verified'}</span></article>)}</div></details>
   <section className="journey-career"><div className="journey-career-brand"><BriefcaseBusiness size={26}/><div><p className="eyebrow">NEXT CHAPTER · CDL CAREERS</p><h3>Get job-ready with Driver Pulse</h3></div></div><p>Start your driver profile, prepare an employment history, build your reusable Tenstreet IntelliApp application, find CDL jobs and apply directly to carriers. You control what you share with employers.</p>
    <div className="journey-job-steps"><span>1 <b>Create your free driver profile</b></span><span>2 <b>Complete experience & employment history</b></span><span>3 <b>Search carriers & apply</b></span></div>
-   <a href={PULSE_URL} target="_blank" rel="noopener noreferrer" onClick={()=>setOpened(true)} className="journey-driverpulse-link"><ExternalLink size={18}/> Open Driver Pulse — build profile & apply <ArrowUpRight size={17}/></a>
+   <div className="journey-pulse-actions">
+   <a href="https://apps.apple.com/us/app/driver-pulse-by-tenstreet/id996176201" target="_blank" rel="noopener noreferrer" onClick={()=>setOpened(true)} className="journey-driverpulse-link"><ExternalLink size={17}/> Driver Pulse for iPhone</a>
+   <a href="https://play.google.com/store/apps/details?id=com.mobile.tenstreet.driverpulse" target="_blank" rel="noopener noreferrer" onClick={()=>setOpened(true)} className="journey-driverpulse-link"><ExternalLink size={17}/> Driver Pulse for Android</a>
+   <a href={PULSE_URL} target="_blank" rel="noopener noreferrer" onClick={()=>setOpened(true)} className="journey-driverpulse-link"><ExternalLink size={18}/> Open on desktop <ArrowUpRight size={16}/></a>
+   </div>
    <p className="footnote">Driver Pulse is a separate Tenstreet service. It opens outside Academy OS. Your school documents, grades, SSN and enrollment data are never sent there automatically. Applications and hiring status are managed by Driver Pulse and the carrier, not by this portal.</p>
    <label className="checkboxlabel"><input type="checkbox" checked={checked} onChange={e=>setChecked(e.target.checked)}/> I have started my Driver Pulse profile (personal planning only; not verified by school).</label>
-   {opened&&<p className="notice">Driver Pulse opened in a new tab. On iPhone or Android, follow its instructions to use the mobile app; some desktop-browser features work best with Chrome or Firefox.</p>}
+   {opened&&<p className="notice">Driver Pulse opened in a new tab. On iPhone or Android, follow its instructions to use the mobile app; Tenstreet recommends its mobile app on iPhone and Android; use Chrome or Firefox for the web version rather than Safari.</p>}
   </section>
   <p className="footnote">{journey.note}</p>
  </section>;
