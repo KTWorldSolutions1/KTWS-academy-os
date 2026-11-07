@@ -68,7 +68,7 @@ export default function OwnerDemoFilm({onClose,onNavigate}:Props){
   if(!narrate||!playing||typeof speechSynthesis==='undefined')return;
   speechSynthesis.cancel();
   const utterance=new SpeechSynthesisUtterance(scene.narration);
-  utterance.rate=Math.min(1.25,Math.max(.85,speed));utterance.pitch=1;utterance.volume=.9;
+  utterance.rate=Math.min(1.8,Math.max(1.05,1.35*speed));utterance.pitch=1;utterance.volume=.9;
   speechSynthesis.speak(utterance);
   return()=>speechSynthesis.cancel();
  },[index,narrate,playing,speed]);
