@@ -55,3 +55,28 @@ export function previewDmvCsv(csv:string){
  if(dates.size>1)warnings.push('Multiple class date ranges found; review assignments before enrolling');
  return {count:candidates.length,candidates,warnings,dates:[...dates]};
 }
+
+/** Minimal school roster for authenticated profile creation.
+ * Contains names and optional school-issued student numbers only; never
+ * assumes compliance fields, financial approval, licenses or training evidence.
+ */
+export function previewBasicCohortCsv(csv:string){
+ const rows=parseCsv(csv);
+ if(rows.length<2)throw Error('CSV needs a heading and at least one student.');
+ const keys=rows[0].map(normalize);
+ const first=keys.findIndex(k=>k==='FIRSTNAME'),last=keys.findIndex(k=>k==='LASTNAME'),studentId=keys.findIndex(k=>['STUDENTID','STUDENTNUMBER'].includes(k));
+ if(first<0||last<0)throw Error('Basic roster must contain FIRST_NAME and LAST_NAME columns.');
+ const seenNames=new Set<string>(),seenIds=new Set<string>(),warnings:string[]=[],candidates: (Candidate&{studentNumber?:string})[]=[];
+ rows.slice(1).forEach((row,i)=>{
+  if(row.length!==rows[0].length)throw Error('Line '+(i+2)+' has an unexpected number of columns');
+  const name=(row[first].trim()+' '+row[last].trim()).trim(), number=studentId<0?'':row[studentId].trim();
+  if(!name||name.split(/\\s+/).length<2)throw Error('Line '+(i+2)+' must contain a first and last name.');
+  const key=normalize(name);if(seenNames.has(key))throw Error('Duplicate student name in line '+(i+2));
+  seenNames.add(key);
+  if(number){if(!/^[A-Za-z0-9-]{3,32}$/.test(number))throw Error('Invalid school student ID on line '+(i+2));
+   if(seenIds.has(number))throw Error('Duplicate student ID in line '+(i+2));seenIds.add(number);}
+  candidates.push({name,studentNumber:number,licenseNumber:'',licenseState:'',dob:'',startDate:'',endDate:'',phone:'',address:'',city:'',state:'',zip:''});
+ });
+ warnings.push('Basic roster creates profiles only. Driver license, birth date, mailing address, funding, permit, attendance and signed agreements require separate verification.');
+ return {count:candidates.length,candidates,warnings,dates:[] as string[]};
+}
