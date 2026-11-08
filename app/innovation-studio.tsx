@@ -2,7 +2,7 @@
 import {useMemo,useState} from 'react';
 import {Activity,ArrowRight,BookOpen,CheckCircle2,ClipboardList,Clock3,GraduationCap,Lock,Play,RotateCcw,ShieldAlert,Sparkles,Truck,Users,WandSparkles} from 'lucide-react';
 import {simulatedTime,innovationCounts,studentPhases as phases,phaseOf,type StudioRecord as Rec,type SimState,type PunchEvent} from '../lib/innovation-analytics';
-type Props={records:Rec[];onNavigate:(page:string)=>void};
+type Props={records:Rec[];onNavigate:(page:string,recordId?:string)=>void;saveMany:(rows:any[])=>Promise<boolean>;busy:boolean};
 const tabs=['Safe Playground','Command Center','Student Journey','Yard & Fleet','Admissions Autopilot','Compliance Tower','Workflow Studio','Ask Academy OS'] as const;
 type Tab=typeof tabs[number];
 const fmt=(n:number)=>{const h=Math.floor(n/60),m=n%60;return h+':'+String(m).padStart(2,'0');};
@@ -15,8 +15,8 @@ const roleHelp:Record<string,string>={
  'Student':'My own program milestones and learning resources'
 };
 function MiniStat({label,value,hint}:{label:string;value:number;hint:string}){return <div className="panel" style={{padding:18,flex:'1 1 145px',minWidth:145}}><p className="eyebrow">{label}</p><h2 style={{margin:'8px 0'}}>{value}</h2><p className="muted">{hint}</p></div>;}
-export default function InnovationStudio({records,onNavigate}:Props){
- const [tab,setTab]=useState<Tab>('Safe Playground'),[role,setRole]=useState('Campus manager'),[student,setStudent]=useState(''),[events,setEvents]=useState<PunchEvent[]>([]),[clock,setClock]=useState(8*60),[query,setQuery]=useState(''),[question,setQuestion]=useState(''),[workflows,setWorkflows]=useState<string[]>([]);
+export default function InnovationStudio({records,onNavigate,saveMany,busy}:Props){
+ const [automationNotice,setAutomationNotice]=useState(''),[tab,setTab]=useState<Tab>('Safe Playground'),[role,setRole]=useState('Campus manager'),[student,setStudent]=useState(''),[events,setEvents]=useState<PunchEvent[]>([]),[clock,setClock]=useState(8*60),[query,setQuery]=useState(''),[question,setQuestion]=useState(''),[workflows,setWorkflows]=useState<string[]>([]);
  const counts=useMemo(()=>innovationCounts(records),[records]);
  const sim=simulatedTime(events,clock);
  const activeStudent=counts.students.find(s=>s.id===student)||counts.students[0];
@@ -26,6 +26,23 @@ export default function InnovationStudio({records,onNavigate}:Props){
   {id:'tpr',name:'Federal reporting review',description:'Route unconfirmed TPR records to the compliance manager; never auto-submit',count:counts.pendingTpr.length,destination:'tpr'},
   {id:'admissions',name:'Admissions contact queue',description:'Review open leads for follow-up rather than claiming messages were sent',count:counts.leads.length,destination:'leads'},
   {id:'truck',name:'Vehicle readiness check',description:'Send fleet availability for instructor review before assignments',count:counts.trucks.length,destination:'dispatch'}];
+ const actionable=rules.filter(r=>workflows.includes(r.id)).flatMap(rule=>{
+  const sources=rule.id==='permit'?counts.clpWaiting:rule.id==='tpr'?counts.pendingTpr:rule.id==='admissions'?counts.leads:counts.trucks;
+  return sources.filter(src=>!!src.campusId).map(src=>({
+   id:crypto.randomUUID(),kind:'tasks',name:(rule.id==='permit'?'Review student permit record: ':rule.id==='tpr'?'Verify federal TPR submission: ':rule.id==='admissions'?'Follow up with applicant: ':'Review training vehicle readiness: ')+(src.name||src.id).slice(0,105),
+   status:'Open',campusId:src.campusId,owner:'Campus operations',due:new Date().toLocaleDateString('en-CA',{timeZone:'America/New_York'}),
+   category:rule.id==='tpr'?'Compliance review':'Operations review',operationsCase:true,
+   signalKey:'innovation:'+rule.id+':'+src.id,
+   plan:rule.description+'. Review authoritative documents and record resolution; this task is not itself proof of compliance.',
+   ...(src.kind==='students'?{studentId:src.id}:src.kind==='leads'?{leadId:src.id}:src.kind==='fleet'?{unitId:src.id}:{})
+  }));
+ }).filter(row=>!records.some(existing=>existing.kind==='tasks'&&existing.signalKey===row.signalKey&&existing.status!=='Complete'));
+ async function createReviewTasks(){
+  if(!actionable.length||busy)return;
+  if(actionable.length>60){setAutomationNotice('Too many matches for one operation. Narrow the selection before saving.');return;}
+  const success=await saveMany(actionable);
+  setAutomationNotice(success?'Created '+actionable.length+' auditable campus review task(s); open Tasks & Appointments to assign and resolve them.':'Could not create tasks; review the error shown in Academy OS and check campus assignments.');
+ }
  const answer=(()=>{const q=question.toLowerCase();if(!q)return '';
   if(q.includes('permit')||q.includes('clp'))return counts.clpWaiting.length+' visible students lack a recorded CLP/license reference. This is a data-entry flag, not proof that they lack a permit.';
   if(q.includes('tpr')||q.includes('fmcsa'))return counts.pendingTpr.length+' visible TPR tracking records are not marked Confirmed. Academy OS does not submit to FMCSA automatically.';
@@ -66,7 +83,7 @@ export default function InnovationStudio({records,onNavigate}:Props){
    {counts.students.length?<><label>Student <select value={activeStudent?.id||''} onChange={e=>setStudent(e.target.value)}>{counts.students.map(s=><option value={s.id} key={s.id}>{s.name||'Unnamed student'}</option>)}</select></label>
    <div style={{display:'flex',flexWrap:'wrap',gap:8}}>{phases.map((p,i)=><div key={p} style={{padding:'12px',border:'1px solid var(--border,#d1d5db)',borderRadius:12,minWidth:130,flex:'1 1 130px',opacity:i>phaseOf(activeStudent)?0.48:1}}><div>{i<=phaseOf(activeStudent)?'✓':'○'}</div><strong>{p}</strong><p className="muted">{i===phaseOf(activeStudent)?'Recorded stage':'Stage preview'}</p></div>)}</div>
    <p className="muted">Stages reflect the saved status field, not a verified completion or graduation decision. Final progression must pass existing course, permit and instructor checks.</p></>:<p className="muted">No students available in your permitted records.</p>}
-   <button onClick={()=>onNavigate('students')}>Open student records</button>
+   <button onClick={()=>onNavigate('students',activeStudent?.id)}>Open student records</button>
   </section>}
   {tab==='Yard & Fleet'&&<section style={{display:'grid',gap:12}}>
    <p className="muted">Visible fleet entries. A vehicle cannot be presumed available solely because its status says Active; use inspection and dispatch controls.</p>
@@ -86,9 +103,9 @@ export default function InnovationStudio({records,onNavigate}:Props){
    <div className="reportactions"><button onClick={()=>onNavigate('tpr')}>FMCSA / ELDT Reporting</button><button onClick={()=>onNavigate('credentials')}>Staff licenses</button><button onClick={()=>onNavigate('compliance')}>School readiness</button></div>
   </section>}
   {tab==='Workflow Studio'&&<section style={{display:'grid',gap:12}}>
-   <p className="notice"><strong>PREVIEW MODE</strong> — These templates calculate what a rule would flag; they do not automatically edit student records, transmit federal data, contact people or trigger actions.</p>
+   <p className="notice"><strong>REVIEW & CREATE TASKS</strong> — Select the types of follow-up you want. Academy OS can save real assigned-campus review tasks after you approve. It never changes training evidence, sends messages, makes payroll payments, or submits federal records from this tool.</p>
    {rules.map(r=><div key={r.id} className="panel" style={{padding:12}}><label><input type="checkbox" checked={workflows.includes(r.id)} onChange={e=>setWorkflows(x=>e.target.checked?[...x,r.id]:x.filter(z=>z!==r.id))}/> <strong>{r.name}</strong></label><p className="muted">{r.description}</p><p>{r.count} visible record(s) would enter this review queue.</p><button type="button" onClick={()=>onNavigate(r.destination)}>Open source workflow <ArrowRight size={14}/></button></div>)}
-   <p className="muted">{workflows.length} template(s) selected for local preview. Nothing scheduled or saved. Production automations require rule ownership, idempotence, opt-in checks, rollback design and an auditable job runner.</p>
+   <p className="muted">{workflows.length} review rule(s) selected · {actionable.length} new task(s) ready. Existing open tasks with the same source and rule are excluded. Records without a campus assignment cannot be saved here.</p><div className="reportactions"><button type="button" className="primary" onClick={createReviewTasks} disabled={busy||!actionable.length||actionable.length>60}>Create {actionable.length} campus review tasks</button><button type="button" onClick={()=>onNavigate('tasks')}>View saved tasks</button></div>{automationNotice&&<p role="status" className="notice">{automationNotice}</p>}<p className="muted">Tasks are real when saved, but no recurring schedule or external outreach is enabled. Every action is still subject to the server's campus permissions and audit trail.</p>
   </section>}
   {tab==='Ask Academy OS'&&<section style={{display:'grid',gap:12}}>
    <p className="notice">Record-grounded question preview; deterministic answers from your visible records. This is not a connected generative AI service.</p>
