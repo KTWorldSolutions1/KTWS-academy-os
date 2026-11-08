@@ -57,3 +57,68 @@ CREATE INDEX IF NOT EXISTS idx_pay_rate_audit ON employee_pay_rate_audit(employe
 INSERT OR IGNORE INTO records(id,owner,kind,payload,revision,updated) VALUES
 ('school-owner-manny','academy-owner','staff','{"id":"school-owner-manny","kind":"staff","name":"Manny","status":"Active","email":"manny.e@lonestar-tda.com","accessRole":"School owner","campusIds":[],"position":"School Owner","department":"School Leadership"}',1,strftime('%Y-%m-%dT%H:%M:%fZ','now')),
 ('school-owner-alisha','academy-owner','staff','{"id":"school-owner-alisha","kind":"staff","name":"Alisha","status":"Active","email":"alisha.a@lonestar-tda.com","accessRole":"School owner","campusIds":[],"position":"School Owner","department":"School Leadership"}',1,strftime('%Y-%m-%dT%H:%M:%fZ','now'));
+
+-- Greensboro operating assignment for the Academy OS builder.
+-- Developer is a position label, NOT an elevated school-data permission.
+-- This migration intentionally refuses to guess if Greensboro is absent or ambiguous.
+-- It preserves the special bootstrap owner account and all School owner staff profiles.
+INSERT OR IGNORE INTO records(id,owner,kind,payload,revision,updated)
+SELECT 'staff-ktws-greensboro-developer','academy-owner','staff',
+ json_object('id','staff-ktws-greensboro-developer','kind','staff',
+             'name','Travis','email','ktworldsolutionsllc@outlook.com',
+             'status','Active','accessRole','Campus manager',
+             'campusIds',json_array(c.id),
+             'position','Campus Manager / Academy OS Developer',
+             'department','Greensboro Operations & Platform Development'),1,
+ strftime('%Y-%m-%dT%H:%M:%fZ','now')
+FROM records c
+WHERE c.owner='academy-owner' AND c.kind='campuses'
+ AND json_extract(c.payload,'$.status')='Active'
+ AND (lower(json_extract(c.payload,'$.name')) LIKE '%greensboro%'
+      OR lower(json_extract(c.payload,'$.city'))='greensboro')
+ AND (SELECT COUNT(*) FROM records g WHERE g.owner='academy-owner'
+      AND g.kind='campuses' AND json_extract(g.payload,'$.status')='Active'
+      AND (lower(json_extract(g.payload,'$.name')) LIKE '%greensboro%'
+      OR lower(json_extract(g.payload,'$.city'))='greensboro'))=1
+ AND NOT EXISTS (
+      SELECT 1 FROM records s WHERE s.owner='academy-owner' AND s.kind='staff'
+       AND lower(json_extract(s.payload,'$.email'))='ktworldsolutionsllc@outlook.com');
+
+-- If this email already has a non-owner staff record, reuse that identity
+-- instead of introducing duplicate employee IDs/time-clock histories.
+UPDATE records SET
+ payload=json_set(payload,
+         '$.accessRole','Campus manager',
+         '$.campusIds',json_array((
+            SELECT c.id FROM records c WHERE c.owner='academy-owner' AND c.kind='campuses'
+            AND json_extract(c.payload,'$.status')='Active'
+            AND (lower(json_extract(c.payload,'$.name')) LIKE '%greensboro%'
+            OR lower(json_extract(c.payload,'$.city'))='greensboro')
+            LIMIT 1)),
+         '$.position','Campus Manager / Academy OS Developer',
+         '$.department','Greensboro Operations & Platform Development'),
+ revision=revision+1,updated=strftime('%Y-%m-%dT%H:%M:%fZ','now')
+WHERE owner='academy-owner' AND kind='staff'
+ AND lower(json_extract(payload,'$.email'))='ktworldsolutionsllc@outlook.com'
+ AND coalesce(json_extract(payload,'$.accessRole'),'')!='School owner'
+ AND (SELECT COUNT(*) FROM records c WHERE c.owner='academy-owner'
+      AND c.kind='campuses' AND json_extract(c.payload,'$.status')='Active'
+      AND (lower(json_extract(c.payload,'$.name')) LIKE '%greensboro%'
+       OR lower(json_extract(c.payload,'$.city'))='greensboro'))=1
+ AND (json_extract(payload,'$.accessRole')!='Campus manager'
+      OR json_extract(payload,'$.position')!='Campus Manager / Academy OS Developer'
+      OR json_extract(payload,'$.department')!='Greensboro Operations & Platform Development'
+      OR json_array_length(json_extract(payload,'$.campusIds'))!=1
+      OR json_extract(payload,'$.campusIds[0]')!=(
+         SELECT c.id FROM records c WHERE c.owner='academy-owner' AND c.kind='campuses'
+           AND json_extract(c.payload,'$.status')='Active'
+           AND (lower(json_extract(c.payload,'$.name')) LIKE '%greensboro%'
+              OR lower(json_extract(c.payload,'$.city'))='greensboro') LIMIT 1));
+
+-- Establish a distinct user identity only if the email does not already exist.
+-- Password and activation token remain unset until a secure owner invitation.
+INSERT OR IGNORE INTO accounts(id,email)
+SELECT 'account-ktws-greensboro-developer','ktworldsolutionsllc@outlook.com'
+WHERE EXISTS(SELECT 1 FROM records s WHERE s.owner='academy-owner' AND s.kind='staff'
+ AND lower(json_extract(s.payload,'$.email'))='ktworldsolutionsllc@outlook.com'
+ AND json_extract(s.payload,'$.accessRole')='Campus manager');
