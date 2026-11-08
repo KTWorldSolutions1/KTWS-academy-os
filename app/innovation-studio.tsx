@@ -5,6 +5,7 @@ import {simulatedTime,innovationCounts,studentPhases as phases,phaseOf,type Stud
 import {campusInsights,combinedSchoolInsights} from '../lib/campus-insights';
 import {weekStart} from '../lib/staff-scheduling';
 import ScheduledWorkflowControls from './scheduled-workflow-controls';
+import AcademyRecordSearch from './academy-record-search';
 type Props={records:Rec[];onNavigate:(page:string,recordId?:string)=>void;saveMany:(rows:any[])=>Promise<boolean>;busy:boolean};
 const tabs=['Safe Playground','Command Center','Student Journey','Yard & Fleet','Admissions Autopilot','Workforce & Payroll','Compliance Tower','Workflow Studio','Ask Academy OS'] as const;
 type Tab=typeof tabs[number];
@@ -136,14 +137,6 @@ export default function InnovationStudio({records,onNavigate,saveMany,busy}:Prop
    {rules.map(r=><div key={r.id} className="panel" style={{padding:12}}><label><input type="checkbox" checked={workflows.includes(r.id)} onChange={e=>setWorkflows(x=>e.target.checked?[...x,r.id]:x.filter(z=>z!==r.id))}/> <strong>{r.name}</strong></label><p className="muted">{r.description}</p><p>{r.count} visible record(s) would enter this review queue.</p><button type="button" onClick={()=>onNavigate(r.destination)}>Open source workflow <ArrowRight size={14}/></button></div>)}
    <p className="muted">{workflows.length} review rule(s) selected · {actionable.length} new task(s) ready. Existing open tasks with the same source and rule are excluded. Records without a campus assignment cannot be saved here.</p><div className="reportactions"><button type="button" className="primary" onClick={createReviewTasks} disabled={busy||!actionable.length||actionable.length>60}>Create {actionable.length} campus review tasks</button><button type="button" onClick={()=>onNavigate('tasks')}>View saved tasks</button></div>{automationNotice&&<p role="status" className="notice">{automationNotice}</p>}<p className="muted">Tasks are real when saved, but no recurring schedule or external outreach is enabled. Every action is still subject to the server's campus permissions and audit trail.</p>
   </section>}
-  {tab==='Ask Academy OS'&&<section style={{display:'grid',gap:12}}>
-   <p className="notice">Record-grounded question preview; deterministic answers from your visible records. This is not a connected generative AI service.</p>
-   <div className="reportactions">{['Who needs a permit review?','Which TPR entries are pending?','How many trucks are listed?','How many admissions leads?','How many students?'].map(q=><button key={q} type="button" onClick={()=>setQuestion(q)}>{q}</button>)}</div>
-   <label>Ask about permits, TPR, fleet, leads or students <input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Example: Who needs a permit review?"/></label>
-   <button type="button" className="primary" onClick={()=>setQuestion(query.trim())} disabled={!query.trim()}>Ask records</button>
-   {question&&<div className="notice" role="status"><Sparkles size={18}/><strong>{question}</strong><p>{answer}</p></div>}
-   {question&&answerSources.length>0&&<><h3>Supporting saved records</h3><div style={{display:'grid',gap:8}}>{answerSources.slice(0,12).map(r=><div key={r.id} className="reportactions"><span>{r.name||'Record '+r.id.slice(0,8)} · {r.status||'Status unrecorded'}</span><button type="button" onClick={()=>onNavigate(r.kind==='students'?'students':r.kind==='leads'?'leads':r.kind==='fleet'?'fleet':'tpr',r.id)}>Open source record</button></div>)}</div>{answerSources.length>12&&<p className="muted">Showing the first 12 of {answerSources.length}; open the relevant school module for the complete set.</p>}</>}
-   <div className="reportactions"><button onClick={()=>onNavigate(question.toLowerCase().includes('tpr')||question.toLowerCase().includes('fmcsa')?'tpr':question.toLowerCase().includes('truck')?'fleet':question.toLowerCase().includes('lead')?'leads':'students')}>Inspect supporting school records <ArrowRight size={14}/></button></div><p className="muted">Answers use saved-record counts only, with an explicit path to the source records. This does not send student data to an external AI service or invent missing details.</p>
-  </section>}
+  {tab==='Ask Academy OS'&&<AcademyRecordSearch onNavigate={onNavigate}/>}
  </div>;
 }
