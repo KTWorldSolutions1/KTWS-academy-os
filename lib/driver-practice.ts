@@ -70,7 +70,22 @@ export const DISPATCH_QUESTIONS=[
  {id:'delay',prompt:'A shipper delay makes the promised delivery impossible. What should your message include?',options:['A promise to make up time by speeding','The delay, available hours, revised ETA and request for a safe plan','Only that you will be late'],answer:1,explanation:'Give dispatch the facts and the revised plan; never promise driving beyond available hours.'}
 ];
 export function dispatchFeedback(answers:Record<string,number>){
- const attempted=DISPATCH_QUESTIONS.filter(q=>Number.isInteger(answers[q.id]));
+ const attempted=DISPATCH_QUESTIONS.filter(q=>Number.isInteger(answers[q.id])&&answers[q.id]>=0&&answers[q.id]<q.options.length);
  return {complete:attempted.length===DISPATCH_QUESTIONS.length,correct:attempted.filter(q=>answers[q.id]===q.answer).length,total:DISPATCH_QUESTIONS.length,
  remediation:attempted.filter(q=>answers[q.id]!==q.answer).map(q=>q.explanation)};
+}
+
+/** Plain text only: user-authored notes are never interpreted as HTML or spreadsheet formulas. */
+export function practiceWorksheet(input:{events:PracticeEvent[];prior:number;cycle:60|70;answers:Record<string,number>;route:string;message:string}){
+ const clock=practiceClock(input.events,input.prior,input.cycle),feedback=dispatchFeedback(input.answers);
+ const lines=['LONE STAR — DRIVER READINESS PRACTICE','FICTIONAL PRACTICE ONLY — NOT AN OFFICIAL LOG, ATTENDANCE RECORD OR COURSE CREDIT.','Instructor review required. Written work is not automatically graded.','',`Cycle: ${input.cycle} hours; prior usage: ${input.prior} minutes.`,`Clock starts at 06:00. Single-shift model; no split-sleeper, restart or exception calculation.`, ''];
+ const time=(n:number)=>{const m=360+n;return (m>=1440?'Next day ':'')+String(Math.floor(m/60)%24).padStart(2,'0')+':'+String(m%60).padStart(2,'0');};
+ clock.rows.forEach((r,i)=>lines.push(`${time(r.start)}–${time(r.end)} | ${r.duty} | ${r.minutes} minutes | ${r.note}`, ...clock.flags.filter(f=>f.row===i).map(f=>'REVIEW: '+f.reason)));
+ if(!clock.rows.length)lines.push('No duty segments entered.');
+ lines.push('',`Remaining minutes — driving: ${clock.remaining.drive}; window: ${clock.remaining.window}; interruption: ${clock.remaining.break}; cycle: ${clock.remaining.cycle}.`);
+ if(clock.extendedRest)lines.push('Extended rest entered: this model does not calculate a new shift or reset.');
+ lines.push('','DISPATCH DECISIONS',`Answered: ${Object.keys(input.answers).filter(id=>DISPATCH_QUESTIONS.some(q=>q.id===id&&q.options[input.answers[id]]!==undefined)).length}/${feedback.total}; correct: ${feedback.correct}/${feedback.total}.`);
+ DISPATCH_QUESTIONS.forEach(q=>lines.push(q.prompt,'Selected: '+(q.options[input.answers[q.id]]??'Not answered'), 'Review: '+q.explanation));
+ lines.push('','WRITTEN ROUTE PLAN',input.route||'Not entered.','','MESSAGE TO DISPATCH',input.message||'Not entered.','','INSTRUCTOR REVIEW','Route restrictions and sources: ____________________','Hours and ETA calculation: ____________________','Corrections and next practice: ____________________','Reviewed by / date: ____________________');
+ return lines.join('\n');
 }

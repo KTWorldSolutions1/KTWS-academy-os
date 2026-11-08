@@ -10,7 +10,7 @@ Status meanings: **Code** = implementation found, live acceptance outstanding; *
 | EDU-01 | S | Cover all 30 standard Class A theory topics; each must have an assigned lesson and real completion evidence | Code: lib/classroom-curriculum.ts, lesson checkoffs; licensed mapping outstanding |
 | EDU-02 | S,I | Use actual licensed J. J. Keller course IDs, edition, durations and assessments | Blocked: school course export absent; never fabricate the alleged 48-course list |
 | EDU-03 | I | Six-hour Monday orientation covering welcome, attendance, conduct, program sequence, licensing, medical, drugs/alcohol, careers and CDL responsibilities | New: explicit checklist in driver-practice.ts; school must verify instructional eligibility and durations |
-| EDU-04 | I | Every learner identifies tractor-trailer components on a diagram | New checklist and instructor evidence step; actual licensed diagram/material still needed |
+| EDU-04 | I | Every learner identifies tractor-trailer components on a diagram | New checklist and instructor evidence step; interactive seven-part vehicle diagram now included; supervised vehicle walkaround still required |
 | EDU-05 | I | Teach deadhead, bobtail, drop and hook, live load, detention, layover, home time, lumper | New: eight-term reveal exercise with definitions and scenario |
 | EDU-06 | I | Introduce HOS and display/explain a driver's clock Tuesday | New: Tuesday curriculum block and appended instructor step, without rewriting historical step IDs |
 | EDU-07 | I,N | Interactive driver clock: duty changes, delays, remaining counters and calculation feedback | New: driver-practice-lab.tsx; single-shift fictional model only |
@@ -43,7 +43,7 @@ Status meanings: **Code** = implementation found, live acceptance outstanding; *
 | OPS-12 | S | Announcements and portal banners | Code: school notices and student projections; no implied automatic SMS delivery |
 | OPS-13 | C | Settings and Connections open for authorized managers | Code in deployed baseline 94e8956; post-login navigation not witnessed |
 | OPS-14 | C | Explain dashboard alert count and resolve only when evidence changes | Code: attention-alerts; actual production alerts not read |
-| OPS-15 | C | Restore loading and verify entire application | Partial: baseline public sign-in and /api/health observed; authenticated runtime/log investigation needs account access |
+| OPS-15 | C | Restore loading and verify entire application | Hotfix cddaef8 deployed and owner confirmed sign-in works after alert-render correction. Recovery boundary added in this release; other signed-in workflows still require acceptance |
 | OPS-16 | N | “Today at My Campus” prioritized role-aware workspace | Code: today-focus/daily-focus, campus filter; employee ownership refinement needs acceptance |
 | OPS-17 | N | Explain exactly what blocks each student from progression | Code: yardEntryReadiness and student journey; live verification outstanding |
 | OPS-18 | N | Campus capacity across seats, staffing, trucks and appointments | Partial: operations capacity, dispatch conflicts and availability exist; predictive future bottlenecks not complete |
@@ -112,3 +112,11 @@ Status meanings: **Code** = implementation found, live acceptance outstanding; *
 4. Compare the authorized roster and agreement sources with existing live records. Use stable student IDs; never blindly reimport.
 5. Obtain licensed Keller mapping and approve the real classroom schedule. Do not count breaks, simulations or planned days as attendance.
 6. Mark each register item live-complete only with specific date, release, role, scenario and observed result.
+
+## Follow-up polish and incident recovery
+- Owner confirmed the post-login blank screen is fixed after cddaef8 deployed. This confirmation does not verify every other module.
+- Added downloadable fictional practice worksheets with duty timeline, clock budgets, selected dispatch answers, written route/message and instructor review fields. No official training credit or server writes.
+- Added seven-part vehicle-identification diagram with keyboard-accessible reveal buttons.
+- Fixed custom-scenario selection and isolated radio groups between lab instances.
+- Added a recovery boundary with safe retry while retaining the signed-in account bar; no sensitive exception text is displayed and no stored records are cleared.
+- Licensed Keller mapping, general document-folder storage, and live external provider connections remain outstanding.
