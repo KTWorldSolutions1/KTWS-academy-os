@@ -1,6 +1,7 @@
 'use client';
 import {useEffect,useMemo,useState} from 'react';
 import {weekStart} from '../lib/staff-scheduling';
+import PunchCorrections from './punch-corrections';
 
 type Punch={id:string;employee_id:string;campus_id:string;action:string;at:string;actor:string};
 type Staff={id:string;name:string;campusIds:string[]};
@@ -75,6 +76,7 @@ export default function EmployeeTimeclock({records,role}:{records:any[];role:str
   <p className="muted">Payroll hours reflect completed work intervals only. Open punches do not accrue in the displayed total until the next punch. Unapproved exports are clearly marked. Payroll taxes, wages, overtime premiums and payments are not processed by this module.</p>
   <div style={{overflowX:'auto'}}><table style={{width:'100%',textAlign:'left'}}><thead><tr><th>Work date</th><th>In</th><th>Out</th><th>Unpaid break</th><th>Hours</th></tr></thead><tbody>{summary.rows.map((x,i)=><tr key={i}><td>{x.date}</td><td>{fmt(x.in)}</td><td>{x.out?fmt(x.out):'Open'}</td><td>{Math.round(x.breakMinutes)} min</td><td>{hrs(x.hours)}</td></tr>)}</tbody></table></div>
   <h3>Punch audit trail</h3><div style={{overflowX:'auto'}}><table style={{width:'100%',textAlign:'left'}}><thead><tr><th>Time</th><th>Action</th><th>Campus</th></tr></thead><tbody>{data.punches.map(p=><tr key={p.id}><td>{fmt(p.at)}</td><td>{p.action.replace('_',' ')}</td><td>{campuses.find(c=>c.id===p.campus_id)?.name||p.campus_id}</td></tr>)}</tbody></table></div>
+  <PunchCorrections employeeId={data.employee.id} punches={data.punches} self={data.self} onUpdated={()=>{void load();}}/>
   {data.approval&&<p className="muted">Approved by {data.approval.approved_by} · {fmt(data.approval.approved_at)}</p>}
   </>}
  </div>;
