@@ -1,10 +1,10 @@
-import {getWorkspaceAccess} from '../../../lib/workspace-access';
-import {database} from '../../../lib/storage';
-import {env} from '../../../cloudflare/runtime';
-import {tprEvidenceReview} from '../../../lib/tpr-preflight';
-import {theoryState,instructionHours} from '../../../lib/training';
-import {drivingTimeSummary} from '../../../lib/attendance';
-import {trainingBody,validateTrainingForm,signedJwt,type TrainingForm} from '../../../lib/fmcsa-tpr-webservice';
+import {getWorkspaceAccess} from '../../../../lib/workspace-access';
+import {database} from '../../../../lib/storage';
+import {env} from '../../../../cloudflare/runtime';
+import {tprEvidenceReview} from '../../../../lib/tpr-preflight';
+import {theoryState,instructionHours} from '../../../../lib/training';
+import {drivingTimeSummary} from '../../../../lib/attendance';
+import {trainingBody,validateTrainingForm,signedJwt,type TrainingForm} from '../../../../lib/fmcsa-tpr-webservice';
 const ok=(v:unknown,status=200)=>Response.json(v,{status,headers:{'Cache-Control':'no-store'}});
 const area=(type:string)=>type==='PublicRoad'?'Public road':type==='Range'?'Range':'Theory';
 export async function POST(req:Request){
