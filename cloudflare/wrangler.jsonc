@@ -6,6 +6,7 @@
     "nodejs_compat"
   ],
   "workers_dev": false,
+  "triggers": {"crons": ["0 13 * * *"]},
   "assets": {
     "directory": "../dist",
     "binding": "ASSETS",

@@ -12,7 +12,9 @@ assert.ok(workspace.includes('<QuickTimeClock demo={demo} onDetails={()=>go(\'ti
 assert.ok(api.includes("u.searchParams.get('self')==='1'"),'Self-clock must not default to another employee for owners/managers');
 assert.ok(api.includes('assignedCampuses'),'Clock options must come from server-authorized campus records');
 assert.ok(worker.includes("'/api/tpr/connection':tprConnection"),'Worker must register the protected TPR readiness route');
-assert.ok(tpr.includes("connected:false,submissionEnabled:false"),'Do not represent federal submissions as connected');
+assert.ok(tpr.includes('connected:false'),'Do not represent credentials as confirmed federal connectivity');
+assert.ok(tpr.includes("env.TPR_WEB_SERVICE_ENABLED"),'Production Web Service submissions require an explicit enabling switch');
+assert.ok(tpr.includes("env.TPR_TEST_ACCEPTED"),'Federal integration must require test acceptance');
 assert.ok(!tpr.includes('TPR_PRIVATE_KEY}')&&!tpr.includes('TPR_PRIVATE_KEY,'),'API must never return federal private key');
 assert.ok(worker.includes("s.accessRole!=='School owner'"),'School owner logins cannot require a campus assignment');
 console.log('PASS: employee clock controls and federally safe TPR readiness route.');

@@ -1,6 +1,7 @@
 import {getWorkspaceAccess} from '../../../lib/workspace-access';
 import {database} from '../../../lib/storage';
 import {weeklyCampusMinutes} from '../../../lib/payroll-intervals';
+import {overtimeEstimate} from '../../../lib/payroll-overtime';
 
 const managers=['Owner','Regional admin','Campus manager'];
 const ok=(body:unknown,status=200)=>Response.json(body,{status,headers:{'Cache-Control':'no-store'}});
@@ -22,22 +23,33 @@ export async function GET(req:Request){
   const lines:any[]=[];
   for(const employee of staff){
    const punches:any=await db.prepare('SELECT id,action,at,campus_id FROM employee_punches WHERE employee_id=? ORDER BY at,id').bind(employee.id).all();
-   const summary=weeklyCampusMinutes(punches.results,week);
+   const corrected:any=await db.prepare("SELECT punch_id,proposed_at FROM employee_punch_corrections WHERE employee_id=? AND status='Approved'").bind(employee.id).all();
+   const patches=new Map(corrected.results.map((x:any)=>[x.punch_id,x.proposed_at]));
+   const effective=punches.results.map((p:any)=>({...p,at:patches.get(p.id)||p.at}));
+   const summary=weeklyCampusMinutes(effective,week);
    const minutes=summary.totals[campusId]||0;
    const companyMinutes=Object.values(summary.totals).reduce((n,v)=>n+Number(v),0);
    const problems:string[]=[...summary.issues];
    if(companyMinutes>2400)problems.push('Overtime review required across campuses');
+   const pendingCorrections:any=await db.prepare("SELECT COUNT(*) AS count FROM employee_punch_corrections WHERE employee_id=? AND status='Pending'").bind(employee.id).first();
+   if(Number(pendingCorrections?.count||0)>0)problems.push('Pending punch correction approval');
    const approval:any=await db.prepare('SELECT approved_by,approved_at FROM employee_payroll_approvals WHERE employee_id=? AND week=?').bind(employee.id,week).first();
    const rate:any=await db.prepare('SELECT rate_cents FROM employee_pay_rates WHERE employee_id=? AND campus_id=?').bind(employee.id,campusId).first();
+   const rates:any=await db.prepare('SELECT campus_id,rate_cents FROM employee_pay_rates WHERE employee_id=?').bind(employee.id).all();
+   const localRates:Record<string,number>={};
+   for(const row of rates.results)if(a.role==='Owner'||row.campus_id===campusId)localRates[row.campus_id]=row.rate_cents;
+   const preview=overtimeEstimate(effective,week,localRates);
+   const overtimeCampus=preview.byCampus[campusId];
+   const estimatedGross=preview.missingRateCampuses.length?null:Number(((overtimeCampus?.grossCents||0)/100).toFixed(2));
    const hours=Math.round(Math.max(0,minutes))/60;
    if(!approval)problems.push('Not approved');if(!rate)problems.push('Pay rate missing');
-   lines.push({employeeId:employee.id,employee:employee.name,rate:rate?rate.rate_cents/100:null,hours:Number(hours.toFixed(2)),gross:rate?Number((hours*rate.rate_cents/100).toFixed(2)):null,approved:!!approval,problems:[...new Set(problems)]});
+   lines.push({employeeId:employee.id,employee:employee.name,rate:rate?rate.rate_cents/100:null,hours:Number(hours.toFixed(2)),gross:rate?Number((hours*rate.rate_cents/100).toFixed(2)):null,estimatedGrossWithOvertime:estimatedGross,estimatedOvertimeHours:Number(((overtimeCampus?.overtimeMinutes||0)/60).toFixed(2)),approved:!!approval,problems:[...new Set(problems)]});
   }
   const valid=lines.filter(x=>!x.problems.length);
   const totalHours=Number(valid.reduce((n,r)=>n+r.hours,0).toFixed(2)),totalGross=Number(valid.reduce((n,r)=>n+r.gross,0).toFixed(2));
-  const body={campus:campus.name,week,lines,totalHours,totalGross,ready:lines.every(r=>!r.problems.length),note:'Preliminary straight-time gross only. Clock intervals are allocated to the shift origin campus and clipped to Eastern Monday pay-week boundaries. Overtime premiums, effective-dated pay rates, adjustments, deductions and taxes require payroll review.'};
+  const body={campus:campus.name,week,lines,totalHours,totalGross,ready:lines.every(r=>!r.problems.length),note:'Preliminary straight-time gross and nonexempt overtime preview only. Weighted-average rates require all campuses to have valid rates; campus managers cannot view other campuses confidential rates. Classification, bonuses, effective-dated rates, deductions, taxes and approved corrections require final payroll review.'};
   if(csv){
-   const rows=[['Campus','Week starting','Employee','Hourly pay','Hours worked','Straight-time gross','Approval','Exceptions'],...lines.map(l=>[campus.name,week,l.employee,l.rate??'',l.hours,l.gross??'',l.approved?'Approved':'Pending',l.problems.join('; ')]),['TOTAL','','','',''+totalHours,''+totalGross,'','']];
+   const rows=[['Campus','Week starting','Employee','Hourly pay','Hours worked','Straight-time gross','Provisional overtime hours','Provisional gross with overtime','Approval','Exceptions'],...lines.map(l=>[campus.name,week,l.employee,l.rate??'',l.hours,l.gross??'',l.estimatedOvertimeHours,l.estimatedGrossWithOvertime??'',l.approved?'Approved':'Pending',l.problems.join('; ')]),['TOTAL','','','',''+totalHours,''+totalGross,'','','','']];
    const data='\uFEFF'+rows.map(r=>r.map(safeCsv).join(',')).join('\r\n');
    return new Response(data,{headers:{'Content-Type':'text/csv; charset=utf-8','Content-Disposition':'attachment; filename="academy-payroll-'+week+'.csv"','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'}});
   }

@@ -57,3 +57,32 @@ CREATE INDEX IF NOT EXISTS idx_pay_rate_audit ON employee_pay_rate_audit(employe
 INSERT OR IGNORE INTO records(id,owner,kind,payload,revision,updated) VALUES
 ('school-owner-manny','academy-owner','staff','{"id":"school-owner-manny","kind":"staff","name":"Manny","status":"Active","email":"manny.e@lonestar-tda.com","accessRole":"School owner","campusIds":[],"position":"School Owner","department":"School Leadership"}',1,strftime('%Y-%m-%dT%H:%M:%fZ','now')),
 ('school-owner-alisha','academy-owner','staff','{"id":"school-owner-alisha","kind":"staff","name":"Alisha","status":"Active","email":"alisha.a@lonestar-tda.com","accessRole":"School owner","campusIds":[],"position":"School Owner","department":"School Leadership"}',1,strftime('%Y-%m-%dT%H:%M:%fZ','now'));
+
+-- Audited correction proposals never mutate the original punch event.
+CREATE TABLE IF NOT EXISTS employee_punch_corrections(
+ id TEXT PRIMARY KEY, employee_id TEXT NOT NULL,punch_id TEXT NOT NULL,week TEXT NOT NULL,
+ original_at TEXT NOT NULL,proposed_at TEXT NOT NULL,proposed_action TEXT,proposed_campus_id TEXT,reason TEXT NOT NULL,
+ requested_by TEXT NOT NULL,requested_at TEXT NOT NULL,
+ status TEXT NOT NULL CHECK(status IN ('Pending','Approved','Rejected')),
+ reviewed_by TEXT,reviewed_at TEXT);
+CREATE INDEX IF NOT EXISTS idx_punch_correction_employee ON employee_punch_corrections(employee_id,week,status);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_punch_correction_pending ON employee_punch_corrections(punch_id) WHERE status='Pending' AND punch_id!='';
+-- Rules are explicitly opted into by a campus manager; no automated external communications.
+CREATE TABLE IF NOT EXISTS academy_workflow_rules(
+ id TEXT PRIMARY KEY,campus_id TEXT NOT NULL,kind TEXT NOT NULL CHECK(kind IN ('permit','tpr','admissions','fleet')),
+ enabled INTEGER NOT NULL DEFAULT 0,created_by TEXT NOT NULL,updated_at TEXT NOT NULL);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_workflow_rule_kind ON academy_workflow_rules(campus_id,kind);
+CREATE TABLE IF NOT EXISTS academy_workflow_runs(
+ id TEXT PRIMARY KEY,scheduled_for TEXT NOT NULL,completed_at TEXT NOT NULL,
+ rule_id TEXT NOT NULL,created_count INTEGER NOT NULL DEFAULT 0,
+ UNIQUE(scheduled_for,rule_id));
+
+-- FMCSA Web Service transport audit: minimal identifiers, never personal license numbers.
+CREATE TABLE IF NOT EXISTS tpr_webservice_submissions(
+ id TEXT PRIMARY KEY, student_id TEXT NOT NULL,campus_id TEXT NOT NULL,
+ training_type TEXT NOT NULL,completion_date TEXT NOT NULL,
+ initiated_by TEXT NOT NULL,initiated_at TEXT NOT NULL,
+ status TEXT NOT NULL CHECK(status IN ('Pending','Accepted','Rejected','Needs reconciliation')),
+ http_status INTEGER,receipt_note TEXT,
+ UNIQUE(student_id,campus_id,training_type,completion_date));
+CREATE INDEX IF NOT EXISTS idx_tpr_webservice_status ON tpr_webservice_submissions(campus_id,status);
