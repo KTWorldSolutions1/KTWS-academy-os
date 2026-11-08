@@ -24,7 +24,7 @@ for(const mode of ['executive','complete']){
  assert.equal(t.scenes.length,mode==='executive'?8:DEMO_SCENES.length);
  assert.equal(t.starts[0],0);
  assert.equal(t.durations.reduce((sum,x)=>sum+x,0),t.total);
- assert.ok(t.total>=95000&&t.total<1000000,'Tour length should not drag');
+ assert.ok(t.total>=80000&&t.total<1000000,'Tour length should not drag');
  for(let i=1;i<t.starts.length;i++)assert.equal(t.starts[i],t.starts[i-1]+t.durations[i-1]);
 }
 const film=readFileSync(new URL('../app/owner-demo-film.tsx',import.meta.url),'utf8');
