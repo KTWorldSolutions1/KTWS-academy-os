@@ -101,7 +101,7 @@ export async function POST(req:Request){
   const all=await punches(c.db,employee.id),current=state(all);
   const expected:Record<string,string>={clock_in:'out',break_start:'working',break_end:'break',clock_out:'working'};
   if(current.state!==expected[b.action])return json({error:'Punch conflicts with your current state: '+current.state},409);
-  const now=new Date().toISOString(),week=weekMonday(now.slice(0,10))!;
+  const now=new Date().toISOString(),localDay=new Date().toLocaleDateString('en-CA',{timeZone:'America/New_York'}),week=weekMonday(localDay)!;
   const approval:any=await c.db.prepare('SELECT week FROM employee_payroll_approvals WHERE employee_id=? AND week=?').bind(employee.id,week).first();
   if(approval)return json({error:'This payroll week is approved and locked. Request a manager correction.'},409);
   // A conditional insert prevents simultaneous duplicate punches by checking latest transition.
