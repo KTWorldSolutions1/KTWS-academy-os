@@ -22,7 +22,7 @@ rows=[
 assert.equal(weeklyCampusMinutes(rows,'2026-11-02').totals.greensboro,480,'Always assign shift minutes to originating campus');
 assert.ok(weeklyCampusMinutes(rows,'2026-11-02').issues.includes('Campus changed during shift'));
 rows=[
- {id:'a',action:'clock_in',campus_id:'greensboro',at:iso('2026-11-01T03:00:00')},
+ {id:'a',action:'clock_in',campus_id:'greensboro',at:iso('2026-11-01T04:00:00')},
  {id:'b',action:'clock_out',campus_id:'greensboro',at:iso('2026-11-01T09:00:00')}
 ];
 assert.equal(weeklyCampusMinutes(rows,'2026-10-26').totals.greensboro,300,'DST fall-back week ends at correct Eastern time, not fixed offset');
