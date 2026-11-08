@@ -67,7 +67,21 @@ try{
  assert.ok(!serialized.includes('Foreign Texas Student'));
  assert.ok(!serialized.includes('Dallas Student'));
  for(const phrase of ['SECRET STAFF NOTES','DRAFT PRIVATE CLASS NOTES','OTHER CAMPUS READING','OTHER PROGRAM READING','NOT PUBLISHED NOTES'])assert.ok(!serialized.includes(phrase),'No unauthorized curriculum materials: '+phrase);
-  for(const term of ['LICENSE-PRIVATE','4321','5550011000','drugScreen','private instructor','PII-KEY'])assert.ok(!serialized.includes(term),'No private field '+term);
+  for(const term of ['LICENSE-PRIVATE','5550011000','drugScreen','private instructor','PII-KEY'])assert.ok(!serialized.includes(term),'No private field '+term);
+ // Random UUIDs may contain the digits 4321. Check forbidden field names
+ // recursively and the exact scalar, rather than matching an unrelated ID.
+ function assertNoPrivateIdentity(value){
+  if(value&&typeof value==='object'){
+   for(const [key,item] of Object.entries(value)){
+    assert.ok(!['ssnLast4','licenseNumber','drugScreen','phone'].includes(key),'Forbidden private field: '+key);
+    assertNoPrivateIdentity(item);
+   }
+  }else assert.notEqual(value,'4321','Private SSN value must not be disclosed');
+ }
+ assertNoPrivateIdentity(portal.body);
+ assertNoPrivateIdentity({id:'00004321-0000-4000-8000-000000000000'});
+ assert.throws(()=>assertNoPrivateIdentity({nested:{ssnLast4:'4321'}}));
+ assert.throws(()=>assertNoPrivateIdentity({nested:{unexpected:'4321'}}));
  const requested=await json(send('/api/student/requests',{action:'request',studentId:sa.id,categories:['Enrollment agreement','Driver license']},owner.cookie));
  assert.equal(requested.status,200,JSON.stringify(requested.body));
  assert.equal((await json(send('/api/student/portal',null,active.cookie))).body.student.documentNotices.length,2);
