@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import {today} from '../lib/training.ts';
 import {mkdtempSync,rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
@@ -28,7 +29,7 @@ try{
   const a=await json(send('/api/auth/activate',{token:invite.body.link.split('#token=')[1],password:'a different strong password for a school employee'}));assert.equal(a.status,200);return a.cookie;
  };
  const deskCookie=await activate(desk),managerCookie=await activate(manager);
- const incident={...base,id:crypto.randomUUID(),campusId:nc.id,unitId:truck.id,date:new Date().toISOString().slice(0,10)};
+ const incident={...base,id:crypto.randomUUID(),campusId:nc.id,unitId:truck.id,date:today()};
  assert.equal((await send('/api/records',{records:[{...incident,reportedBy:'forged manager'}]},deskCookie)).status,403);
  assert.equal((await send('/api/records',{records:[{...incident,id:crypto.randomUUID(),campusId:tx.id,unitId:truck.id}]},deskCookie)).status,403);
  assert.equal((await send('/api/records',{records:[incident]},deskCookie)).status,200);

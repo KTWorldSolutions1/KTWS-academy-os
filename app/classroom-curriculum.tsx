@@ -1,4 +1,6 @@
 'use client';
+import DriverPracticeLab from './driver-practice-lab';
+import ClassroomScheduleBudget from './classroom-schedule-budget';
 import {useState} from 'react';
 import {BookOpen,CalendarDays,CheckCircle2,ClipboardCheck,MapPinned,ShieldAlert} from 'lucide-react';
 import type {RecordData} from '../lib/training';
@@ -44,6 +46,7 @@ export default function ClassroomCurriculum({records,plans,instructor,busy,readO
  return <section className="classroom-curriculum panel" aria-label="Class A week one classroom guide">
   <div className="sectionhead"><div><p className="eyebrow">LONE STAR • CLASS A THEORY</p><h3>Week 1 classroom teaching guide</h3>
    <p className="muted">All 30 FMCSA standard theory units organized across five days, with J. J. Keller instruction and practical driver-readiness labs. This is an editable <b>proposal</b> until the academy validates its licensed course sequence and instructional timing.</p></div><BookOpen size={25}/></div>
+  <ClassroomScheduleBudget/>
   <div className="curriculum-metrics">
    <div><strong>{CLASS_A_THEORY_TOPICS.length}/30</strong><small>Federal topics in proposed schedule (not yet delivered)</small></div>
    <div><strong>{suggestedClassroomHours()}/{CLASSROOM_HOURS_TARGET}</strong><small>Net classroom hours allocated for planning (not attendance)</small></div>
@@ -80,6 +83,7 @@ export default function ClassroomCurriculum({records,plans,instructor,busy,readO
    </tbody></table></div>
   </details>
   {gaps.length>0&&<p className="error">Missing federal topic assignments: {gaps.join(', ')}</p>}
+  <DriverPracticeLab/>
   <p className="footnote">Sources: 49 CFR Part 380, Appendix A (Class A standard theory); 19A NCAC 03J .0306 (NC standard course). The academy must verify the actual J. J. Keller course list, course durations, instructor credentials, student attendance and assessments before adopting this as an approved syllabus. Class B-to-A upgrade students may need the separately applicable upgrade curriculum.</p>
  </section>;
 }
