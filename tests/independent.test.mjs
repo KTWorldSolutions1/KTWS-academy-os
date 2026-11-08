@@ -39,7 +39,9 @@ try{
  assert.equal((await send('/api/diagnostics',{},emp.cookie)).status,403);
  const list=await json(await send('/api/records',null,emp.cookie));assert.ok(list.body.records.some(r=>r.id===sa.id));assert.ok(!list.body.records.some(r=>r.id===sb.id));
  assert.equal((await send('/api/accounts/invite',{staffId:employee.id},emp.cookie)).status,403);
- const ps=list.body.records.find(r=>r.id===sa.id);assert.equal((await send('/api/records',{records:[{...ps,status:'Yard'}]},emp.cookie)).status,200);
+ const ps=list.body.records.find(r=>r.id===sa.id);assert.equal((await send('/api/records',{records:[{...ps,status:'Yard'}]},emp.cookie)).status,403,'Instructor must not change student enrollment stage');
+ const ownerStudent=(await json(await send('/api/records',null,cookie))).body.records.find(r=>r.id===sa.id);
+ assert.equal((await send('/api/records',{records:[{...ownerStudent,status:'Yard'}]},cookie)).status,200);
 
  const currentStudent=(await json(await send('/api/records',null,cookie))).body.records.find(r=>r.id===sa.id);
  const careerRecord={...currentStudent,career:{stage:'Placed',employer:'Test employer',startDate:'2026-10-07',notes:'Student confirmed start date.'}};

@@ -7,7 +7,7 @@ import {tprEvidenceReview,type TprArea} from '../lib/tpr-preflight';
 type Props={records:R[];saveMany:(r:R[])=>Promise<boolean>;busy:boolean;demo:boolean;view:string;role:string;student?:R};
 const uid=()=>crypto.randomUUID();
 const config:any={campuses:{title:'Campus network',fields:['address','city','state','manager','tprLocationId'],statuses:['Planning','Active','Inactive']},partners:{title:'Partnerships & training vendors',fields:['type','contact','email','phone','services','renewal'],statuses:['Prospect','Active','Inactive']},mous:{title:'MOUs & agreements',fields:['partnerId','effectiveDate','expiry','contact','requirements'],statuses:['Draft','Under review','Executed','Expired']},staff:{title:'Employee access',fields:['email','role','accessRole','credential','expiry'],statuses:['Active','Pending credential','Inactive']},templates:{title:'Message & contract templates',fields:['channel','subject','body'],statuses:['Draft','Active']}};
-const roles=['Regional admin','Campus manager','Enrollment specialist','Admin assistant','Front desk','Instructor'];
+const roles=['School owner','Regional admin','Campus manager','Enrollment specialist','Admin assistant','Front desk','Instructor'];
 const labels=(s:string)=>s.replace(/([A-Z])/g,' $1').replace(/^./,s=>s.toUpperCase());
 export default function EnterpriseCenter({records,saveMany,busy,demo,view,role,student}:Props){const [form,setForm]=useState<any>(null),[error,setError]=useState(''),[status,setStatus]=useState<any>({}),[message,setMessage]=useState(''),[profile,setProfile]=useState('Journey'),[draft,setDraft]=useState<any>(null),[contract,setContract]=useState<any>(null);
 useEffect(()=>{fetch('/api/integrations').then(r=>r.json()).then(setStatus).catch(()=>setStatus({}));},[]);
