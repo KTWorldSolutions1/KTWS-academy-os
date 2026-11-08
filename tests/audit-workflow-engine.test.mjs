@@ -6,16 +6,13 @@ const sql=readFileSync(new URL('../cloudflare/schema.sql',import.meta.url),'utf8
 const raw=new DatabaseSync(':memory:');raw.exec(sql);
 const d1={
  prepare(query){
-  return {
-   bind(...values){
-    const statement=raw.prepare(query);
-    return {
-     async all(){return {results:statement.all(...values)};},
-     async first(){return statement.get(...values)||null;},
-     async run(){const info=statement.run(...values);return {meta:{changes:info.changes}};}
-    };
-   }
-  };
+  const statement=raw.prepare(query);
+  const bindings=(...values)=>({
+   async all(){return {results:statement.all(...values)};},
+   async first(){return statement.get(...values)||null;},
+   async run(){const info=statement.run(...values);return {meta:{changes:info.changes}};}
+  });
+  return {...bindings(),bind(...values){return bindings(...values);}};
  },
  async batch(statements){
   raw.exec('BEGIN IMMEDIATE');
