@@ -171,5 +171,24 @@ export const DEMO_SCENES:DemoScene[]=[
   highlights:['One place for admission, classroom, yard, road and testing','Early alerts and more useful student progress evidence','Privacy gates, compliance review and staged rollout—not a blind switch'],
   narration:'Academy O S brings the entire student journey into one coherent school system. The next step is an owner-led pilot with fictional records, a security and compliance review, and an approved rollout plan. Thank you for watching.'}
 ];
-export const DEMO_FRAME_MS=8200;
-export const DEMO_RUNTIME_SECONDS=Math.round(DEMO_SCENES.length*DEMO_FRAME_MS/1000);
+/** Audience-paced durations: allow the voice to finish and leave time to
+ * read each chapter.  The interactive tour never forces 27 scenes into a
+ * three-minute sprint.  A separate visual-only export uses these timings. */
+export const DEMO_FRAME_MS=20000;
+export function sceneDurationMs(scene:DemoScene){
+ const narrationWords=scene.narration.trim().split(/\s+/).length;
+ const highlightWords=scene.highlights.join(' ').trim().split(/\s+/).length;
+ // Approximately 120 narration words/minute plus reading / absorption time.
+ return Math.max(22000,Math.ceil(narrationWords/2.0*1000)+6500,Math.ceil(highlightWords/2.6*1000)+9000);
+}
+export const DEMO_SCENE_DURATIONS=DEMO_SCENES.map(sceneDurationMs);
+export const DEMO_SCENE_STARTS=DEMO_SCENE_DURATIONS.map((_,i)=>DEMO_SCENE_DURATIONS.slice(0,i).reduce((a,b)=>a+b,0));
+export const DEMO_TOTAL_MS=DEMO_SCENE_DURATIONS.reduce((a,b)=>a+b,0);
+export const DEMO_RUNTIME_SECONDS=Math.ceil(DEMO_TOTAL_MS/1000);
+export function demoTimeToScene(ms:number){
+ const target=Math.max(0,Math.min(DEMO_TOTAL_MS-1,ms));
+ const index=DEMO_SCENE_STARTS.findIndex((at,i)=>target>=at&&target<at+DEMO_SCENE_DURATIONS[i]);
+ const safe=index<0?DEMO_SCENES.length-1:index;
+ return {index:safe,fraction:Math.max(0,Math.min(1,(target-DEMO_SCENE_STARTS[safe])/DEMO_SCENE_DURATIONS[safe]))};
+}
+
