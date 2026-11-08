@@ -17,6 +17,21 @@ CREATE TABLE IF NOT EXISTS partner_grants(id TEXT PRIMARY KEY,account TEXT NOT N
 CREATE INDEX IF NOT EXISTS idx_partner_grants_account ON partner_grants(account,expires);
 CREATE TABLE IF NOT EXISTS student_accounts(account TEXT PRIMARY KEY,student TEXT NOT NULL UNIQUE,campus TEXT NOT NULL,consent_key TEXT NOT NULL,active INTEGER NOT NULL DEFAULT 1,invited_at TEXT NOT NULL,activated_at TEXT);
 CREATE INDEX IF NOT EXISTS idx_student_accounts_student ON student_accounts(student,campus);
+
+-- Executive demo feedback is a leadership decision log, not student data.
+CREATE TABLE IF NOT EXISTS academy_demo_feedback (
+ id TEXT PRIMARY KEY,
+ chapter TEXT NOT NULL,
+ type TEXT NOT NULL,
+ priority TEXT NOT NULL,
+ comment TEXT NOT NULL,
+ reviewer TEXT NOT NULL,
+ status TEXT NOT NULL DEFAULT 'New',
+ created_at TEXT NOT NULL,
+ updated_at TEXT NOT NULL,
+ updated_by TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_academy_demo_feedback_priority ON academy_demo_feedback(priority,status,created_at);
 CREATE TABLE IF NOT EXISTS billing_charges(
  id TEXT PRIMARY KEY, owner TEXT NOT NULL,campus TEXT NOT NULL,student TEXT NOT NULL,
  amount_cents INTEGER NOT NULL CHECK(amount_cents>0),description TEXT NOT NULL,

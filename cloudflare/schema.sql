@@ -114,3 +114,18 @@ CREATE TABLE IF NOT EXISTS billing_charge_voids(
  voided_at TEXT NOT NULL,
  FOREIGN KEY(charge_id) REFERENCES billing_charges(id)
 );
+
+-- Executive demo feedback is a leadership decision log, not student data.
+CREATE TABLE IF NOT EXISTS academy_demo_feedback (
+ id TEXT PRIMARY KEY,
+ chapter TEXT NOT NULL,
+ type TEXT NOT NULL,
+ priority TEXT NOT NULL,
+ comment TEXT NOT NULL,
+ reviewer TEXT NOT NULL,
+ status TEXT NOT NULL DEFAULT 'New',
+ created_at TEXT NOT NULL,
+ updated_at TEXT NOT NULL,
+ updated_by TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_academy_demo_feedback_priority ON academy_demo_feedback(priority,status,created_at);
