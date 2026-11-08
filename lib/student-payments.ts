@@ -15,7 +15,7 @@ export function providerValid(value:any){return BILLING_PROVIDERS.includes(value
 export type LedgerCharge={id:string;student:string;campus:string;amount_cents:number;description:string;category:string;due_date:string;status:string;funding_type?:string;external_invoice?:string;};
 export type LedgerPayment={id:string;student:string;campus:string;charge_id:string;provider:string;amount_cents:number;refunded_cents:number;disputed_cents:number;status:string;external_ref?:string;source:string;created:string;verified_at?:string;voided?:boolean;};
 export function creditedPayment(p:LedgerPayment){
- if(p.status!=='Confirmed'||p.voided===true)return 0;
+ if(p.status!=='Confirmed'||Boolean(p.voided))return 0;
  const amount=Number(p.amount_cents)||0;
  return Math.max(0,amount-Math.min(amount,Math.max(0,Number(p.refunded_cents)||0)+Math.max(0,Number(p.disputed_cents)||0)));
 }
