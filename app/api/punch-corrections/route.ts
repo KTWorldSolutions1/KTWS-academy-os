@@ -62,8 +62,10 @@ export async function POST(req:Request){
   if(!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?Z$/.test(proposed)||!Number.isFinite(proposedDate)||Math.abs(originalDate-proposedDate)>86400000||proposedDate>Date.now()+60000)return respond({error:'Correction must be a UTC timestamp within 24 hours of the original punch, not in the future'},400);
   if(reason.length<12||reason.length>500)return respond({error:'Explain the correction in 12 to 500 characters'},400);
   const week=weekStart(new Date(punch.at).toLocaleDateString('en-CA',{timeZone:'America/New_York'}));
-  const approval:any=await c.db.prepare('SELECT 1 FROM employee_payroll_approvals WHERE employee_id=? AND week=?').bind(employee.id,week).first();
-  if(approval)return respond({error:'Approved payroll is locked. Escalate to owner for a separate payroll adjustment.'},409);
+  const proposedWeek=weekStart(new Date(proposedDate).toLocaleDateString('en-CA',{timeZone:'America/New_York'}));
+  const approval:any=await c.db.prepare('SELECT 1 FROM employee_payroll_approvals WHERE employee_id=? AND week IN (?,?) LIMIT 1')
+   .bind(employee.id,week,proposedWeek).first();
+  if(approval)return respond({error:'An affected payroll week is already approved. Escalate to owner for a separate payroll adjustment.'},409);
   const previous:any=await c.db.prepare("SELECT 1 FROM employee_punch_corrections WHERE punch_id=? AND status='Pending'").bind(punch.id).first();
   if(previous)return respond({error:'An open correction already exists for this punch'},409);
   await c.db.prepare("INSERT INTO employee_punch_corrections(id,employee_id,punch_id,week,original_at,proposed_at,reason,requested_by,requested_at,status) VALUES(?,?,?,?,?,?,?,?,?,'Pending')")
@@ -80,8 +82,10 @@ export async function POST(req:Request){
   if(!request||request.status!=='Pending'||!employee||!punch)return respond({error:'Pending correction not found'},409);
   if(c.me?.id===employee.id||c.access.user.email.toLowerCase()===request.requested_by.toLowerCase())return respond({error:'Employees cannot approve their own corrections'},403);
   if(!campusAuthorized(c,employee,punch))return respond({error:'Campus approval denied'},403);
-  const locked:any=await c.db.prepare('SELECT 1 FROM employee_payroll_approvals WHERE employee_id=? AND week=?').bind(employee.id,request.week).first();
-  if(locked)return respond({error:'Payroll week already approved and locked'},409);
+  const targetWeek=weekStart(new Date(request.proposed_at).toLocaleDateString('en-CA',{timeZone:'America/New_York'}));
+  const locked:any=await c.db.prepare('SELECT 1 FROM employee_payroll_approvals WHERE employee_id=? AND week IN (?,?) LIMIT 1')
+   .bind(employee.id,request.week,targetWeek).first();
+  if(locked)return respond({error:'An affected payroll week is already approved and locked'},409);
   if(decision==='Approved'){
    const rows:any=await c.db.prepare('SELECT id,action,at,campus_id FROM employee_punches WHERE employee_id=? ORDER BY at,id').bind(employee.id).all();
    const effective:any=await c.db.prepare("SELECT punch_id,proposed_at FROM employee_punch_corrections WHERE employee_id=? AND status='Approved'").bind(employee.id).all();
