@@ -4,7 +4,7 @@ import {weekStart} from '../lib/staff-scheduling';
 
 type Punch={id:string;employee_id:string;campus_id:string;action:string;at:string;actor:string};
 type Staff={id:string;name:string;campusIds:string[]};
-type Data={employee:{id:string;name:string};directory:Staff[];punches:Punch[];current:{state:string;workedMinutes:number};approval?:{approved_by:string;approved_at:string};week:string};
+type Data={employee:{id:string;name:string};self:boolean;directory:Staff[];punches:Punch[];current:{state:string;workedMinutes:number};approval?:{approved_by:string;approved_at:string};week:string};
 const fmt=(iso:string)=>new Date(iso).toLocaleString('en-US',{timeZone:'America/New_York',dateStyle:'medium',timeStyle:'short'});
 const hrs=(m:number)=>(Math.max(0,m)/60).toFixed(2);
 function summarize(punches:Punch[]){
@@ -62,10 +62,10 @@ export default function EmployeeTimeclock({records,role}:{records:any[];role:str
    <div><p className="eyebrow">EMPLOYEE</p><h3>{data.employee.name}</h3><p className="muted">Current punch status: <strong>{data.current.state.toUpperCase()}</strong></p></div>
    <div><p className="eyebrow">RECORDED HOURS THIS WEEK</p><h3>{hrs(summary.minutes)} h</h3><p className="muted">Breaks: {Math.round(summary.breakMinutes)} min · {data.approval?'Approved':'Pending approval'}</p></div>
   </div>
-  {!employee&&<div className="formgrid">
+  {data.self&&<div className="formgrid">
    <label>Clock-in campus<select value={campus} onChange={e=>setCampus(e.target.value)}>{(staff.find(s=>s.id===data.employee.id)?.campusIds||[]).map((id:string)=><option value={id} key={id}>{campuses.find(c=>c.id===id)?.name||id}</option>)}</select></label>
   </div>}
-  {!employee&&<div className="reportactions">
+  {data.self&&<div className="reportactions">
    <button type="button" disabled={busy||data.current.state!=='out'||!!data.approval||!campus} onClick={()=>act('clock_in')}>Clock in</button>
    <button type="button" disabled={busy||data.current.state!=='working'||!!data.approval} onClick={()=>act('break_start')}>Start break</button>
    <button type="button" disabled={busy||data.current.state!=='break'||!!data.approval} onClick={()=>act('break_end')}>End break</button>
