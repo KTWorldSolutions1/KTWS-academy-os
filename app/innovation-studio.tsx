@@ -60,6 +60,7 @@ export default function InnovationStudio({records,onNavigate,saveMany,busy}:Prop
   const success=await saveMany(actionable);
   setAutomationNotice(success?'Created '+actionable.length+' auditable campus review task(s); open Tasks & Appointments to assign and resolve them.':'Could not create tasks; review the error shown in Academy OS and check campus assignments.');
  }
+ const answerSources=(()=>{const q=question.toLowerCase();if(q.includes('permit')||q.includes('clp'))return counts.clpWaiting;if(q.includes('tpr')||q.includes('fmcsa'))return counts.pendingTpr;if(q.includes('truck')||q.includes('fleet'))return counts.trucks;if(q.includes('lead')||q.includes('admission'))return counts.leads;if(q.includes('student')||q.includes('graduat'))return counts.students;return [];})();
  const answer=(()=>{const q=question.toLowerCase();if(!q)return '';
   if(q.includes('permit')||q.includes('clp'))return counts.clpWaiting.length+' visible students lack a recorded CLP/license reference. This is a data-entry flag, not proof that they lack a permit.';
   if(q.includes('tpr')||q.includes('fmcsa'))return counts.pendingTpr.length+' visible TPR tracking records are not marked Confirmed. Academy OS does not submit to FMCSA automatically.';
@@ -140,6 +141,7 @@ export default function InnovationStudio({records,onNavigate,saveMany,busy}:Prop
    <label>Ask about permits, TPR, fleet, leads or students <input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Example: Who needs a permit review?"/></label>
    <button type="button" className="primary" onClick={()=>setQuestion(query.trim())} disabled={!query.trim()}>Ask records</button>
    {question&&<div className="notice" role="status"><Sparkles size={18}/><strong>{question}</strong><p>{answer}</p></div>}
+   {question&&answerSources.length>0&&<><h3>Supporting saved records</h3><div style={{display:'grid',gap:8}}>{answerSources.slice(0,12).map(r=><div key={r.id} className="reportactions"><span>{r.name||'Record '+r.id.slice(0,8)} · {r.status||'Status unrecorded'}</span><button type="button" onClick={()=>onNavigate(r.kind==='students'?'students':r.kind==='leads'?'leads':r.kind==='fleet'?'fleet':'tpr',r.id)}>Open source record</button></div>)}</div>{answerSources.length>12&&<p className="muted">Showing the first 12 of {answerSources.length}; open the relevant school module for the complete set.</p>}</>}
    <div className="reportactions"><button onClick={()=>onNavigate(question.toLowerCase().includes('tpr')||question.toLowerCase().includes('fmcsa')?'tpr':question.toLowerCase().includes('truck')?'fleet':question.toLowerCase().includes('lead')?'leads':'students')}>Inspect supporting school records <ArrowRight size={14}/></button></div><p className="muted">Answers use saved-record counts only, with an explicit path to the source records. This does not send student data to an external AI service or invent missing details.</p>
   </section>}
  </div>;
