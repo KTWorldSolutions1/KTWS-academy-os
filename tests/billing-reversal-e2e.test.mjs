@@ -52,5 +52,24 @@ try{
  assert.equal(db.prepare('SELECT COUNT(*) AS n FROM billing_payment_reversals').get().n,1);
  assert.equal(db.prepare('SELECT COUNT(*) AS n FROM billing_charge_voids').get().n,1);
  assert.equal(db.prepare("SELECT COUNT(*) AS n FROM audit WHERE action IN ('Incorrect manual payment reversed','Incorrect tuition charge voided')").get().n,2);
+ const managerId=crypto.randomUUID(),otherCampus='campus-dallas',otherStudent='student-dallas';
+ const manager={id:managerId,kind:'staff',name:'Greensboro Manager',email:'greensboro-billing@test.example',status:'Active',accessRole:'Campus manager',campusIds:[campus]};
+ for(const row of [manager,{id:otherCampus,kind:'campuses',name:'Dallas',status:'Active'}, {id:otherStudent,kind:'students',name:'Different campus learner',status:'Classroom',campusId:otherCampus}])
+  db.prepare("INSERT INTO records(id,owner,kind,payload,revision,updated) VALUES(?,'academy-owner',?,?,1,?)").run(row.id,row.kind,JSON.stringify(row),now);
+ db.prepare("INSERT INTO billing_charges(id,owner,campus,student,amount_cents,description,category,due_date,status,created,created_by) VALUES(?,'academy-owner',?,?,15000,'Incorrect Greensboro sample charge','Tuition','2026-11-16','Open',?,'school-owner@test.example')")
+  .run('manager-void-charge',campus,student,now);
+ db.prepare("INSERT INTO billing_charges(id,owner,campus,student,amount_cents,description,category,due_date,status,created,created_by) VALUES(?,'academy-owner',?,?,12000,'Dallas sample charge','Tuition','2026-11-16','Open',?,'school-owner@test.example')")
+  .run('other-charge',otherCampus,otherStudent,now);
+ const invite=await response(await send('/api/accounts/invite',{staffId:managerId},owner.cookie));
+ assert.equal(invite.status,200,JSON.stringify(invite.body));
+ const managerLogin=await response(await send('/api/auth/activate',{token:invite.body.link.split('#token=')[1],password:'unique manager billing e2e test password'}));
+ assert.equal(managerLogin.status,200,JSON.stringify(managerLogin.body));
+ const managerRead=await response(await send('/api/billing?studentId='+student,null,managerLogin.cookie));
+ assert.equal(managerRead.status,200);assert.equal(managerRead.body.canReverse,true,'Campus manager must see charge correction action');
+ const fixed=await response(await send('/api/billing',{action:'void-charge',studentId:student,chargeId:'manager-void-charge',reason:'Erroneous campus charge recorded while testing student billing.',confirm:'VOID INCORRECT CHARGE'},managerLogin.cookie));
+ assert.equal(fixed.status,200,JSON.stringify(fixed.body));
+ const forbidden=await response(await send('/api/billing',{action:'void-charge',studentId:otherStudent,chargeId:'other-charge',reason:'Different campus cannot correct this charge without authority.',confirm:'VOID INCORRECT CHARGE'},managerLogin.cookie));
+ assert.equal(forbidden.status,403,'Greensboro manager cannot void a charge for Dallas');
+ assert.equal(db.prepare('SELECT status FROM billing_charges WHERE id=?').get('other-charge').status,'Open','Out-of-campus charge unchanged');
  console.log('PASS: authenticated fictional Nimmons billing end-to-end reverses incorrect manual payment, prevents duplicates, voids test charge and preserves audit history.');
 }finally{db?.close();rmSync(dir,{recursive:true,force:true});}
