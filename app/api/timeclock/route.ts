@@ -47,7 +47,8 @@ export async function GET(req:Request){
   const c=await context();if(!c)return json({error:'Sign in required'},401);
   const u=new URL(req.url),week=weekMonday(u.searchParams.get('week')||new Date().toISOString().slice(0,10));
   if(!week)return json({error:'Invalid date'},400);
-  const selected=u.searchParams.get('employee')||c.me?.id||(c.manager?c.employees.find((e:any)=>visible(e,c))?.id:undefined);
+  const selfOnly=u.searchParams.get('self')==='1';
+  const selected=selfOnly?c.me?.id:(u.searchParams.get('employee')||c.me?.id||(c.manager?c.employees.find((e:any)=>visible(e,c))?.id:undefined));
   if(!selected)return json({error:'No employee record matches your login. Ask the owner to add your email to Employees.'},409);
   const employee=c.employees.find((e:any)=>e.id===selected);
   if(!employee||!(c.me?.id===selected||c.manager&&visible(employee,c)))return json({error:'Employee not accessible'},403);
@@ -57,7 +58,9 @@ export async function GET(req:Request){
   const selection=all.filter(p=>p.at>=from&&p.at<to);
   const approval:any=await c.db.prepare('SELECT * FROM employee_payroll_approvals WHERE employee_id=? AND week=?').bind(employee.id,week).first();
   const directory=c.manager?c.employees.filter((e:any)=>visible(e,c)).map((e:any)=>({id:e.id,name:e.name,campusIds:e.campusIds||[]})):[];
-  return json({employee:{id:employee.id,name:employee.name},self:c.me?.id===employee.id,directory,punches:selection,current:state(all),approval,week});
+  const campusRows:any=await c.db.prepare("SELECT id,payload FROM records WHERE owner='academy-owner' AND kind='campuses'").all();
+  const assignedCampuses=campusRows.results.map((r:any)=>({...JSON.parse(r.payload),id:r.id})).filter((r:any)=>r.status==='Active'&&employee.campusIds?.includes(r.id)).map((r:any)=>({id:r.id,name:r.name}));
+  return json({employee:{id:employee.id,name:employee.name},self:c.me?.id===employee.id,directory,assignedCampuses,punches:selection,current:state(all),approval,week});
  }catch(e){console.error('Timeclock read failed',e);return json({error:'Time clock unavailable. Verify D1 schema migration.'},503);}
 }
 export async function POST(req:Request){

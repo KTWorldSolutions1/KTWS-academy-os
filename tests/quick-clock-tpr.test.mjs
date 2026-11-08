@@ -1,0 +1,18 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+const file=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
+const clock=file('app/quick-timeclock.tsx');
+const workspace=file('app/workspace.tsx');
+const api=file('app/api/timeclock/route.ts');
+const tpr=file('app/api/tpr/connection/route.ts');
+const worker=file('cloudflare/worker.ts');
+for(const label of ['Clock In','Start Break','End Break','Clock Out'])assert.ok(clock.includes(label),label+' needs to be a visible employee control');
+for(const action of ['clock_in','break_start','break_end','clock_out'])assert.ok(clock.includes("punch('"+action+"')"),'Missing timeclock action '+action);
+assert.ok(workspace.includes('<QuickTimeClock demo={demo} onDetails={()=>go(\'timeclock\')}/>'),'Every campus screen should expose the employee clock');
+assert.ok(api.includes("u.searchParams.get('self')==='1'"),'Self-clock must not default to another employee for owners/managers');
+assert.ok(api.includes('assignedCampuses'),'Clock options must come from server-authorized campus records');
+assert.ok(worker.includes("'/api/tpr/connection':tprConnection"),'Worker must register the protected TPR readiness route');
+assert.ok(tpr.includes("connected:false,submissionEnabled:false"),'Do not represent federal submissions as connected');
+assert.ok(!tpr.includes('TPR_PRIVATE_KEY}')&&!tpr.includes('TPR_PRIVATE_KEY,'),'API must never return federal private key');
+assert.ok(worker.includes("s.accessRole!=='School owner'"),'School owner logins cannot require a campus assignment');
+console.log('PASS: employee clock controls and federally safe TPR readiness route.');
