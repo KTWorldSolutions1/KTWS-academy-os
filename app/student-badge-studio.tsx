@@ -56,8 +56,9 @@ export default function StudentBadgeStudio({records,role,demo,busy,saveMany,init
   try{
    const res=await fetch('/api/files',{method:'POST',body}),data=await res.json();
    if(!res.ok)throw Error(data.error||'Private photo storage is not active.');
-   const ok=await saveMany([{...student,documents:[...(student.documents||[]),{key:data.key,category:STUDENT_PHOTO_CATEGORY,name:data.name,uploadedAt:data.uploadedAt,uploadedBy:data.uploadedBy,verified:false}]}]);
-   if(!ok)throw Error('Photo was encrypted, but the student record did not update. Contact the owner before retrying to avoid duplicate uploads.');
+   // The secure upload API atomically attaches the new portrait to the student.
+   // Refresh rather than replaying a stale document array and duplicating it.
+   await saveMany([]);
    setMessage('Photo stored privately. An authorized manager must approve it before it appears on the student card or student portal.');
    form.reset();
   }catch(e:any){setError(e.message||'Could not complete private upload.');}finally{setWorking(false);}
