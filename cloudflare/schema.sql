@@ -61,12 +61,12 @@ INSERT OR IGNORE INTO records(id,owner,kind,payload,revision,updated) VALUES
 -- Audited correction proposals never mutate the original punch event.
 CREATE TABLE IF NOT EXISTS employee_punch_corrections(
  id TEXT PRIMARY KEY, employee_id TEXT NOT NULL,punch_id TEXT NOT NULL,week TEXT NOT NULL,
- original_at TEXT NOT NULL,proposed_at TEXT NOT NULL,reason TEXT NOT NULL,
+ original_at TEXT NOT NULL,proposed_at TEXT NOT NULL,proposed_action TEXT,proposed_campus_id TEXT,reason TEXT NOT NULL,
  requested_by TEXT NOT NULL,requested_at TEXT NOT NULL,
  status TEXT NOT NULL CHECK(status IN ('Pending','Approved','Rejected')),
  reviewed_by TEXT,reviewed_at TEXT);
 CREATE INDEX IF NOT EXISTS idx_punch_correction_employee ON employee_punch_corrections(employee_id,week,status);
-CREATE UNIQUE INDEX IF NOT EXISTS idx_punch_correction_pending ON employee_punch_corrections(punch_id) WHERE status='Pending';
+CREATE UNIQUE INDEX IF NOT EXISTS idx_punch_correction_pending ON employee_punch_corrections(punch_id) WHERE status='Pending' AND punch_id!='';
 -- Rules are explicitly opted into by a campus manager; no automated external communications.
 CREATE TABLE IF NOT EXISTS academy_workflow_rules(
  id TEXT PRIMARY KEY,campus_id TEXT NOT NULL,kind TEXT NOT NULL CHECK(kind IN ('permit','tpr','admissions','fleet')),
