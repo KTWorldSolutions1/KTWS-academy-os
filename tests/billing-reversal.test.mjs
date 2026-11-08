@@ -35,7 +35,7 @@ assert.equal(calculateStudentLedger([],[joined]).outstanding_cents,0,'Voided tes
 assert.equal(db.prepare("SELECT status FROM billing_charges WHERE id=?").get(charge.id).status,'Voided');
 const endpoint=readFileSync(new URL('../app/api/billing/route.ts',import.meta.url),'utf8');
 const ui=readFileSync(new URL('../app/student-payment-center.tsx',import.meta.url),'utf8');
-assert.ok(endpoint.includes("action==='reverse-manual'")&&endpoint.includes("access.role!=='Owner'"),'Reversal requires owner access');
+assert.ok(endpoint.includes("action==='reverse-manual'")&&endpoint.includes("if(!manager)"),'Reversal requires campus management access');
 assert.ok(endpoint.includes("p.source='Manual'")||endpoint.includes("source='Manual'"),'Manual-only reversal guard');
 assert.ok(endpoint.includes('REVERSE INCORRECT MANUAL PAYMENT'));
 assert.ok(endpoint.includes('VOID INCORRECT CHARGE'));

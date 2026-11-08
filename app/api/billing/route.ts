@@ -35,7 +35,7 @@ export async function GET(req:Request){
   id:p.id,chargeId:p.charge_id,provider:p.provider,amountCents:p.amount_cents,status:p.status,source:p.source,
   refundedCents:p.refunded_cents,disputedCents:p.disputed_cents,voided:!!p.voided,reversalReason:p.reversal_reason||null,reversedAt:p.reversed_at||null,
   reference:p.source==='Stripe'?p.external_ref:String(p.external_ref||'').slice(-10),created:p.created,verifiedAt:p.verified_at})),
- stripe:{ready:config.ready,enabled:config.enabled,testMode:config.testMode},canApprove:isManager(access.role),canReverse:access.role==='Owner'});
+ stripe:{ready:config.ready,enabled:config.enabled,testMode:config.testMode},canApprove:isManager(access.role),canReverse:isManager(access.role)});
 }
 export async function POST(req:Request){
  const access=await getWorkspaceAccess();if(!access)return reply({error:'Sign-in required'},401);
@@ -66,7 +66,7 @@ export async function POST(req:Request){
  if(!charge)return reply({error:'Open charge not found for this student'},404);
 
  if(action==='reverse-manual'){
-  if(access.role!=='Owner')return reply({error:'Only a school owner may reverse a confirmed manual ledger entry'},403);
+  if(!manager)return reply({error:'Only an authorized campus manager or school leader may reverse a confirmed manual ledger entry'},403);
   if(data.confirm!=='REVERSE INCORRECT MANUAL PAYMENT')return reply({error:'Explicit accounting correction confirmation required'},400);
   const paymentId=String(data.paymentId||'');
   if(!idOk(paymentId))return reply({error:'Select a payment receipt'},400);
@@ -81,7 +81,7 @@ export async function POST(req:Request){
   return reply({updated:true,status:'Reversed',notice:'Incorrect manual payment credit reversed. Original receipt is retained for audit. No external refund was issued.'});
  }
  if(action==='void-charge'){
-  if(access.role!=='Owner')return reply({error:'Only a school owner may void an incorrect tuition charge'},403);
+  if(!manager)return reply({error:'Only an authorized campus manager or school leader may void an incorrect tuition charge'},403);
   if(data.confirm!=='VOID INCORRECT CHARGE')return reply({error:'Explicit charge-void confirmation required'},400);
   const stripe:any=await db.prepare('SELECT COUNT(*) AS n FROM billing_stripe_sessions WHERE owner=? AND charge_id=?').bind(scope,chargeId).first();
   const problem=chargeVoidIssue(charge,payments.results.filter((p:any)=>p.charge_id===chargeId),Number(stripe?.n||0),data.reason);

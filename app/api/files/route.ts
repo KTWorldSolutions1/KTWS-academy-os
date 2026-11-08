@@ -21,7 +21,7 @@ export async function POST(req:Request){
  const admin=await getWorkspaceAccess(),student=!admin?await studentSession():null;
  if(!admin&&!student)return respond({error:'Sign in required'},401);
  if(req.headers.get('origin')!==new URL(req.url).origin)return respond({error:'Invalid origin'},403);
- if(!openUploads())return respond({error:'Private file uploads remain paused pending the school encryption, recovery and privacy acceptance checks. Nothing has been stored.'},503);
+ if(!openUploads())return respond({error:'Private file uploads are paused. School ownership must verify encryption-key recovery, a backup restore and approved student privacy procedures before enabling uploads. Existing verified ID photos can still appear as profile pictures. No new photo or document was stored.'},503);
  try{
   const data=await req.formData(),file=data.get('file'),studentId=String(data.get('studentId')||''),category=String(data.get('category')||'Other');
   const publicResource=category===PUBLIC_RESOURCE_CATEGORY;
@@ -54,8 +54,8 @@ export async function POST(req:Request){
   await bucket().put(key,await encrypt(bytes.buffer),{httpMetadata:{contentType:'application/octet-stream'}});
   try{
    await db.prepare('INSERT INTO school_files (key,owner,campus,student,category,name,mime,actor,created) VALUES (?,?,?,?,?,?,?,?,?)').bind(key,owner,campus,target?.id||null,category,name,file.type,admin?.user.email||student.user.email,at).run();
-   if(student||dailyLog){
-    // Student submissions and signed staff daily training logs attach atomically.
+   if(student||dailyLog||category===STUDENT_PHOTO_CATEGORY){
+    // Portraits, student submissions, and staff daily training logs attach atomically.
     // A student's upload is attached to their own record immediately, pending campus review.
     const row:any=await db.prepare("SELECT payload,revision FROM records WHERE id=? AND owner=? AND kind='students'").bind(target.id,owner).first();
     const current=JSON.parse(row.payload);

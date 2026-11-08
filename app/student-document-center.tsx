@@ -59,8 +59,13 @@ export default function StudentDocumentCenter({records,role,demo,busy,saveMany,s
    const res=await fetch('/api/files',{method:'POST',body}),data=await res.json();
    if(!res.ok)throw Error(data.error||'Upload failed');
    if(!publicResource&&student){
-    const okay=await saveMany([{...student,documents:[...(student.documents||[]),{...data,verified:false}]}]);
-    if(!okay)throw Error('File was encrypted but student attachment was not saved. Ask management to reconcile the file.');
+    if(category===STUDENT_PHOTO_CATEGORY){
+     // Student photo and its record are now attached together on the secure server.
+     await saveMany([]);
+    }else{
+     const okay=await saveMany([{...student,documents:[...(student.documents||[]),{...data,verified:false}]}]);
+     if(!okay)throw Error('File was encrypted but student attachment was not saved. Ask management to reconcile the file.');
+    }
    }
    setNotice(publicResource?'Campus resource uploaded. Students with portal access can view it.':'Encrypted file uploaded, awaiting management verification.');
    form.reset();await resourceList();
