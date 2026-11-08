@@ -17,7 +17,7 @@ export async function POST(req:Request){
  const row:any=await db.prepare("SELECT * FROM billing_charges WHERE id=? AND owner='academy-owner' AND student=? AND campus=? AND status='Open'")
   .bind(chargeId,student.id,campus.id).first();
  if(!row)return response({error:'This charge is not available on your school account.'},403);
- const p:any=await db.prepare("SELECT * FROM billing_payments WHERE owner='academy-owner' AND student=? AND campus=? AND charge_id=?")
+ const p:any=await db.prepare("SELECT p.*,CASE WHEN v.id IS NOT NULL THEN 1 ELSE 0 END AS voided FROM billing_payments p LEFT JOIN billing_payment_reversals v ON v.payment_id=p.id WHERE p.owner='academy-owner' AND p.student=? AND p.campus=? AND p.charge_id=?")
   .bind(student.id,campus.id,chargeId).all();
  const amount=calculateStudentLedger([row],p.results||[]).charges[0];
  if(!amount||amount.outstanding_cents<100)return response({error:'This tuition charge has no outstanding online-payable balance.'},409);
