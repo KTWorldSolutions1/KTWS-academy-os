@@ -44,6 +44,17 @@ CREATE TABLE IF NOT EXISTS billing_webhook_events(
  id TEXT PRIMARY KEY,type TEXT NOT NULL,handled TEXT NOT NULL,payment_ref TEXT,
  outcome TEXT NOT NULL);
 
+CREATE TABLE IF NOT EXISTS billing_payment_reversals(
+ id TEXT PRIMARY KEY, owner TEXT NOT NULL, campus TEXT NOT NULL, student TEXT NOT NULL,
+ payment_id TEXT NOT NULL UNIQUE,charge_id TEXT NOT NULL,reason TEXT NOT NULL,
+ reversed_by TEXT NOT NULL,reversed_at TEXT NOT NULL,
+ FOREIGN KEY(payment_id) REFERENCES billing_payments(id));
+CREATE INDEX IF NOT EXISTS idx_billing_payment_reversals_student ON billing_payment_reversals(owner,campus,student);
+CREATE TABLE IF NOT EXISTS billing_charge_voids(
+ id TEXT PRIMARY KEY,owner TEXT NOT NULL,campus TEXT NOT NULL,student TEXT NOT NULL,
+ charge_id TEXT NOT NULL UNIQUE,reason TEXT NOT NULL,voided_by TEXT NOT NULL,voided_at TEXT NOT NULL,
+ FOREIGN KEY(charge_id) REFERENCES billing_charges(id));
+
 `);
 class Statement{query:string;values:any[]=[];constructor(query:string){this.query=query;}bind(...values:any[]){this.values=values.map(v=>v===undefined?null:v);return this;}async all(){return {results:sql.prepare(this.query).all(...this.values)};}async first(){return sql.prepare(this.query).get(...this.values)||null;}async run(){return sql.prepare(this.query).run(...this.values);}}
 export function database(){return {prepare:(q:string)=>new Statement(q),batch:async(stmts:Statement[])=>{sql.exec('BEGIN IMMEDIATE');try{const results=[];for(const s of stmts)results.push(sql.prepare(s.query).run(...s.values));sql.exec('COMMIT');return results;}catch(e){sql.exec('ROLLBACK');throw e;}}};}
