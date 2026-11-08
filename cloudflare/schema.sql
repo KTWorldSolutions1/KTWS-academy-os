@@ -51,3 +51,9 @@ CREATE TABLE IF NOT EXISTS employee_payroll_approvals(employee_id TEXT NOT NULL,
 CREATE TABLE IF NOT EXISTS employee_pay_rates(employee_id TEXT NOT NULL,campus_id TEXT NOT NULL,rate_cents INTEGER NOT NULL CHECK(rate_cents>0),updated_by TEXT NOT NULL,updated_at TEXT NOT NULL,PRIMARY KEY(employee_id,campus_id));
 CREATE TABLE IF NOT EXISTS employee_pay_rate_audit(id TEXT PRIMARY KEY,employee_id TEXT NOT NULL,campus_id TEXT NOT NULL,previous_cents INTEGER,new_cents INTEGER NOT NULL,actor TEXT NOT NULL,at TEXT NOT NULL);
 CREATE INDEX IF NOT EXISTS idx_pay_rate_audit ON employee_pay_rate_audit(employee_id,campus_id,at);
+
+-- School-owner profiles are provisioned without passwords or activated logins.
+-- An authenticated existing owner must issue each personal one-use activation link.
+INSERT OR IGNORE INTO records(id,owner,kind,payload,revision,updated) VALUES
+('school-owner-manny','academy-owner','staff','{"id":"school-owner-manny","kind":"staff","name":"Manny","status":"Active","email":"manny.e@lonestar-tda.com","accessRole":"School owner","campusIds":[],"position":"School Owner","department":"School Leadership"}',1,strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+('school-owner-alisha','academy-owner','staff','{"id":"school-owner-alisha","kind":"staff","name":"Alisha","status":"Active","email":"alisha.a@lonestar-tda.com","accessRole":"School owner","campusIds":[],"position":"School Owner","department":"School Leadership"}',1,strftime('%Y-%m-%dT%H:%M:%fZ','now'));
