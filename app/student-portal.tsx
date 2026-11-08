@@ -14,7 +14,7 @@ export default function StudentPortal({identity}:{identity:any}){
  useEffect(()=>{refresh();},[]);
  useEffect(()=>{let objectURL='';let cancelled=false;(async()=>{
   setPortrait('');if(!student?.profilePhotoKey)return;
-  try{const response=await fetch('/api/files?key='+encodeURIComponent(student.profilePhotoKey),{cache:'no-store'});if(!response.ok)return;
+  try{const response=await fetch('/api/student/photo?studentId='+encodeURIComponent(student.id),{cache:'no-store'});if(!response.ok)return;
    const blob=await response.blob();if(!cancelled){objectURL=URL.createObjectURL(blob);setPortrait(objectURL);}}
   catch{} })();
   return()=>{cancelled=true;if(objectURL)URL.revokeObjectURL(objectURL);};
