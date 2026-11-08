@@ -56,7 +56,7 @@ export const CAPABILITY_SECTIONS=schoolSections.map(section=>({
  id:section.id,title:section.label,
  capabilities:section.pages.map(page=>{
   const existing=DEMO_SCENES.find(scene=>scene.destination===page.id);
-  const status=existing?chapterDetail(existing.id).status:'Live module' as const;
+  const status=existing?chapterDetail(existing.id).status:'Module available — validate workflow' as const;
   return {id:page.id,label:page.label,description:page.help,status,chapter:existing?.id||null};
  })
 }));
