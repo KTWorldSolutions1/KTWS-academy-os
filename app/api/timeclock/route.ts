@@ -26,7 +26,9 @@ function visible(employee:any,ctx:any){
 }
 async function punches(db:any,employeeId:string){
  const r:any=await db.prepare('SELECT * FROM employee_punches WHERE employee_id=? ORDER BY at ASC,id ASC').bind(employeeId).all();
- return r.results as Punch[];
+ const changes:any=await db.prepare("SELECT punch_id,proposed_at FROM employee_punch_corrections WHERE employee_id=? AND status='Approved'").bind(employeeId).all();
+ const effective=new Map(changes.results.map((x:any)=>[x.punch_id,x.proposed_at]));
+ return (r.results as Punch[]).map(p=>({...p,at:(effective.get(p.id) as string)||p.at})).sort((a,b)=>a.at.localeCompare(b.at)||a.id.localeCompare(b.id));
 }
 function state(rows:Punch[]){
  let state='out',openAt='',breakAt='';let worked=0;
