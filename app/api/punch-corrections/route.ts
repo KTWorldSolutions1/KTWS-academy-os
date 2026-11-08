@@ -34,7 +34,7 @@ export async function POST(req:Request){
   const proposed=String(b.proposedAt||''),reason=String(b.reason||'').trim(),action=String(b.punchAction||''),campusId=String(b.campusId||'');
   if(!['clock_in','break_start','break_end','clock_out'].includes(action)||!employee.campusIds?.includes(campusId))return respond({error:'Choose a valid event and your assigned campus'},400);
   const timestamp=Date.parse(proposed);
-  if(!/^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,3})?Z$/.test(proposed)||!Number.isFinite(timestamp)||timestamp>Date.now()+60000||timestamp<Date.now()-30*86400000)
+  if(!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?Z$/.test(proposed)||!Number.isFinite(timestamp)||timestamp>Date.now()+60000||timestamp<Date.now()-30*86400000)
    return respond({error:'The missing punch must be within the previous 30 days and not in the future'},400);
   if(reason.length<12||reason.length>500)return respond({error:'Describe why the event was missed in 12–500 characters'},400);
   const week=weekStart(new Date(timestamp).toLocaleDateString('en-CA',{timeZone:'America/New_York'}));
