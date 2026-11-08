@@ -1,4 +1,4 @@
-import {weeklyCampusMinutes,workIntervals,type WorkPunch} from './payroll-intervals';
+import {weeklyCampusMinutes,workIntervals,type WorkPunch} from './payroll-intervals.ts';
 /** Provisional FLSA-style weighted regular-rate overtime calculation.
  * Assumes nonexempt hourly employment and a single shared employer/workweek.
  * Effective-dated rates, other compensation and legally applicable exceptions
