@@ -86,3 +86,31 @@ CREATE TABLE IF NOT EXISTS tpr_webservice_submissions(
  http_status INTEGER,receipt_note TEXT,
  UNIQUE(student_id,campus_id,training_type,completion_date));
 CREATE INDEX IF NOT EXISTS idx_tpr_webservice_status ON tpr_webservice_submissions(campus_id,status);
+
+-- Manual ledger correction is an append-only accounting reversal, never a refund.
+-- The original receipt and original charge remain available to auditors.
+CREATE TABLE IF NOT EXISTS billing_payment_reversals(
+ id TEXT PRIMARY KEY,
+ owner TEXT NOT NULL,
+ campus TEXT NOT NULL,
+ student TEXT NOT NULL,
+ payment_id TEXT NOT NULL UNIQUE,
+ charge_id TEXT NOT NULL,
+ reason TEXT NOT NULL,
+ reversed_by TEXT NOT NULL,
+ reversed_at TEXT NOT NULL,
+ FOREIGN KEY(payment_id) REFERENCES billing_payments(id)
+);
+CREATE INDEX IF NOT EXISTS idx_billing_payment_reversals_student
+ ON billing_payment_reversals(owner,campus,student);
+CREATE TABLE IF NOT EXISTS billing_charge_voids(
+ id TEXT PRIMARY KEY,
+ owner TEXT NOT NULL,
+ campus TEXT NOT NULL,
+ student TEXT NOT NULL,
+ charge_id TEXT NOT NULL UNIQUE,
+ reason TEXT NOT NULL,
+ voided_by TEXT NOT NULL,
+ voided_at TEXT NOT NULL,
+ FOREIGN KEY(charge_id) REFERENCES billing_charges(id)
+);
