@@ -1,39 +1,11 @@
 'use client';
 import {useMemo,useState} from 'react';
 import {Activity,ArrowRight,BookOpen,CheckCircle2,ClipboardList,Clock3,GraduationCap,Lock,Play,RotateCcw,ShieldAlert,Sparkles,Truck,Users,WandSparkles} from 'lucide-react';
-type Rec={id:string;kind:string;name?:string;status?:string;campusId?:string;campusIds?:string[];[key:string]:any};
+import {simulatedTime,innovationCounts,studentPhases as phases,phaseOf,type StudioRecord as Rec,type SimState,type PunchEvent} from '../lib/innovation-analytics';
 type Props={records:Rec[];onNavigate:(page:string)=>void};
-type SimState='out'|'working'|'break';
-type PunchEvent={action:'clock_in'|'break_start'|'break_end'|'clock_out';minute:number};
 const tabs=['Safe Playground','Command Center','Student Journey','Yard & Fleet','Admissions Autopilot','Compliance Tower','Workflow Studio','Ask Academy OS'] as const;
 type Tab=typeof tabs[number];
 const fmt=(n:number)=>{const h=Math.floor(n/60),m=n%60;return h+':'+String(m).padStart(2,'0');};
-export function simulatedTime(events:PunchEvent[],at:number){
- let start:number|null=null,breakStart:number|null=null,paid=0,breaks=0,state:SimState='out';
- for(const e of events){
-  if(e.action==='clock_in'&&state==='out'){state='working';start=e.minute;}
-  else if(e.action==='break_start'&&state==='working'&&start!==null){paid+=Math.max(0,e.minute-start);start=null;breakStart=e.minute;state='break';}
-  else if(e.action==='break_end'&&state==='break'&&breakStart!==null){breaks+=Math.max(0,e.minute-breakStart);breakStart=null;start=e.minute;state='working';}
-  else if(e.action==='clock_out'&&state==='working'&&start!==null){paid+=Math.max(0,e.minute-start);start=null;state='out';}
- }
- if(state==='working'&&start!==null)paid+=Math.max(0,at-start);
- if(state==='break'&&breakStart!==null)breaks+=Math.max(0,at-breakStart);
- return {state,paid,breaks};
-}
-export function innovationCounts(records:Rec[]){
- const students=records.filter(r=>r.kind==='students'&&r.status!=='Withdrawn');
- const leads=records.filter(r=>r.kind==='leads'&&!['Closed','Enrolled','Lost'].includes(r.status||''));
- const trucks=records.filter(r=>r.kind==='fleet');
- const tpr=records.filter(r=>r.kind==='tpr');
- const pendingTpr=tpr.filter(r=>r.status!=='Confirmed');
- const clpWaiting=students.filter(r=>!r.clpNumber&&!r.licenseNumber&&!['Graduated','Withdrawn'].includes(r.status||''));
- const campuses=records.filter(r=>r.kind==='campuses'&&r.status==='Active');
- const missingTprCampus=campuses.filter(r=>!String(r.tprLocationId||'').trim());
- const credentials=records.filter(r=>r.kind==='staff-credentials');
- const now=new Date().toISOString().slice(0,10);
- const expiredCredentials=credentials.filter(r=>typeof r.expiry==='string'&&r.expiry<now&&r.status!=='Inactive');
- return {students,leads,trucks,tpr,pendingTpr,clpWaiting,campuses,missingTprCampus,expiredCredentials};
-}
 const roleHelp:Record<string,string>={
  'Owner':'All campuses; school configuration and approvals',
  'Campus manager':'Campus operations, training and management reviews',
@@ -42,15 +14,6 @@ const roleHelp:Record<string,string>={
  'Front desk':'Appointments, student intake and calendars',
  'Student':'My own program milestones and learning resources'
 };
-const phases=['Enrollment','Classroom','Permit & Pretrip','Yard Maneuvers','Road & Testing','Graduated'];
-function phaseOf(s:Rec){const status=(s.status||'').toLowerCase();
- if(status.includes('grad'))return 5;
- if(status.includes('road')||status.includes('test'))return 4;
- if(status.includes('yard')||status.includes('range'))return 3;
- if(status.includes('permit')||status.includes('pretrip'))return 2;
- if(status.includes('class')||status.includes('theory'))return 1;
- return 0;
-}
 function MiniStat({label,value,hint}:{label:string;value:number;hint:string}){return <div className="panel" style={{padding:18,flex:'1 1 145px',minWidth:145}}><p className="eyebrow">{label}</p><h2 style={{margin:'8px 0'}}>{value}</h2><p className="muted">{hint}</p></div>;}
 export default function InnovationStudio({records,onNavigate}:Props){
  const [tab,setTab]=useState<Tab>('Safe Playground'),[role,setRole]=useState('Campus manager'),[student,setStudent]=useState(''),[events,setEvents]=useState<PunchEvent[]>([]),[clock,setClock]=useState(8*60),[query,setQuery]=useState(''),[question,setQuestion]=useState(''),[workflows,setWorkflows]=useState<string[]>([]);
