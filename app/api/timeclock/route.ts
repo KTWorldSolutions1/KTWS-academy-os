@@ -70,6 +70,7 @@ export async function POST(req:Request){
    const employee=c.employees.find((e:any)=>e.id===b.employeeId);
    const week=weekMonday(b.week);
    if(!employee||!visible(employee,c)||!week)return json({error:'Employee or week is invalid'},400);
+   if(c.me?.id===employee.id)return json({error:'Employees cannot approve their own timesheets. Another authorized manager must review.'},403);
    const rows=await punches(c.db,employee.id),cut=weekEnd(week)+'T00:00:00.000Z';
    const period=rows.filter(p=>p.at>=week+'T00:00:00.000Z'&&p.at<cut);
    if(!period.length)return json({error:'There are no punches to approve this week.'},409);
