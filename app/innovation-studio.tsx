@@ -3,8 +3,9 @@ import {useMemo,useState} from 'react';
 import {Activity,ArrowRight,BookOpen,CheckCircle2,ClipboardList,Clock3,GraduationCap,Lock,Play,RotateCcw,ShieldAlert,Sparkles,Truck,Users,WandSparkles} from 'lucide-react';
 import {simulatedTime,innovationCounts,studentPhases as phases,phaseOf,type StudioRecord as Rec,type SimState,type PunchEvent} from '../lib/innovation-analytics';
 import {campusInsights,combinedSchoolInsights} from '../lib/campus-insights';
+import {weekStart} from '../lib/staff-scheduling';
 type Props={records:Rec[];onNavigate:(page:string,recordId?:string)=>void;saveMany:(rows:any[])=>Promise<boolean>;busy:boolean};
-const tabs=['Safe Playground','Command Center','Student Journey','Yard & Fleet','Admissions Autopilot','Compliance Tower','Workflow Studio','Ask Academy OS'] as const;
+const tabs=['Safe Playground','Command Center','Student Journey','Yard & Fleet','Admissions Autopilot','Workforce & Payroll','Compliance Tower','Workflow Studio','Ask Academy OS'] as const;
 type Tab=typeof tabs[number];
 const fmt=(n:number)=>{const h=Math.floor(n/60),m=n%60;return h+':'+String(m).padStart(2,'0');};
 const roleHelp:Record<string,string>={
@@ -17,6 +18,7 @@ const roleHelp:Record<string,string>={
 };
 function MiniStat({label,value,hint}:{label:string;value:number;hint:string}){return <div className="panel" style={{padding:18,flex:'1 1 145px',minWidth:145}}><p className="eyebrow">{label}</p><h2 style={{margin:'8px 0'}}>{value}</h2><p className="muted">{hint}</p></div>;}
 export default function InnovationStudio({records,onNavigate,saveMany,busy}:Props){
+ const [payrollCampus,setPayrollCampus]=useState(''),[payrollLoading,setPayrollLoading]=useState(false),[payrollError,setPayrollError]=useState(''),[payrollReport,setPayrollReport]=useState<any>(null);
  const [automationNotice,setAutomationNotice]=useState(''),[tab,setTab]=useState<Tab>('Safe Playground'),[role,setRole]=useState('Campus manager'),[student,setStudent]=useState(''),[events,setEvents]=useState<PunchEvent[]>([]),[clock,setClock]=useState(8*60),[query,setQuery]=useState(''),[question,setQuestion]=useState(''),[workflows,setWorkflows]=useState<string[]>([]);
  const counts=useMemo(()=>innovationCounts(records),[records]);
  const schoolDate=new Date().toLocaleDateString('en-CA',{timeZone:'America/New_York'});
@@ -41,6 +43,17 @@ export default function InnovationStudio({records,onNavigate,saveMany,busy}:Prop
    ...(src.kind==='students'?{studentId:src.id}:src.kind==='leads'?{leadId:src.id}:src.kind==='fleet'?{unitId:src.id}:{})
   }));
  }).filter(row=>!records.some(existing=>existing.kind==='tasks'&&existing.signalKey===row.signalKey&&existing.status!=='Complete'));
+ async function reviewPayroll(){
+  const campus=payrollCampus||campusReports[0]?.campusId;
+  if(!campus)return;
+  setPayrollLoading(true);setPayrollError('');setPayrollReport(null);
+  try{
+   const week=weekStart(schoolDate);
+   const r=await fetch('/api/payroll-report?'+new URLSearchParams({campus,week}),{cache:'no-store'});
+   const j=await r.json();if(!r.ok)throw Error(j.error||'Payroll report unavailable');
+   setPayrollReport(j);
+  }catch(e:any){setPayrollError(e.message||'Payroll review unavailable');}finally{setPayrollLoading(false);}
+ }
  async function createReviewTasks(){
   if(!actionable.length||busy)return;
   if(actionable.length>60){setAutomationNotice('Too many matches for one operation. Narrow the selection before saving.');return;}
@@ -102,6 +115,14 @@ export default function InnovationStudio({records,onNavigate,saveMany,busy}:Prop
    {counts.leads.slice(0,12).map(l=><div key={l.id} className="notice"><Users size={17}/><strong>{l.name||'Prospect'}</strong> · {l.status||'Unclassified'}</div>)}
    <p className="muted">Review queue only. No email, text, or applicant outreach is sent from this screen. Automated messaging requires opt-in and a separate verified provider connection.</p>
    <button onClick={()=>onNavigate('leads')}>Manage leads and next contacts</button>
+  </section>}
+  {tab==='Workforce & Payroll'&&<section style={{display:'grid',gap:12}}>
+   <p className="notice"><strong>LIVE MANAGER REVIEW</strong> — Fetches the actual campus payroll report. All values are preliminary straight-time estimates; payroll decisions still require correction review, cross-campus overtime calculations and approval.</p>
+   <div className="reportactions"><label>Campus <select value={payrollCampus||campusReports[0]?.campusId||''} onChange={e=>{setPayrollCampus(e.target.value);setPayrollReport(null);}}>{campusReports.map(c=><option key={c.campusId} value={c.campusId}>{c.campus}</option>)}</select></label><button className="primary" disabled={payrollLoading||!campusReports.length} onClick={reviewPayroll}>{payrollLoading?'Loading manager report…':'Check employee timesheet exceptions'}</button></div>
+   {payrollError&&<p className="error" role="alert">{payrollError}</p>}
+   {payrollReport&&<><h3>{payrollReport.campus} · Week starting {payrollReport.week}</h3><p>{(payrollReport.lines||[]).filter((r:any)=>r.problems?.length).length} employee rows require review of {(payrollReport.lines||[]).length} listed.</p>
+   <div style={{overflowX:'auto'}}><table style={{width:'100%',textAlign:'left'}}><thead><tr><th>Employee</th><th>Recorded hours</th><th>Approval / data exceptions</th></tr></thead><tbody>{(payrollReport.lines||[]).map((r:any)=><tr key={r.employeeId}><td>{r.employee}</td><td>{r.hours}</td><td>{r.problems?.length?r.problems.join(' · '):'No reported exceptions — review still required'}</td></tr>)}</tbody></table></div><p className="muted">{payrollReport.note}</p></>}
+   <div className="reportactions"><button onClick={()=>onNavigate('timeclock')}>Timesheet approvals</button><button onClick={()=>onNavigate('shifts')}>Instructor shift coverage</button><button onClick={()=>onNavigate('payroll-report')}>Full campus report</button></div>
   </section>}
   {tab==='Compliance Tower'&&<section style={{display:'grid',gap:12}}>
    <p className="notice"><strong>Review flags, not compliance findings.</strong> These checks reveal missing internal fields only; the official FMCSA/DMV records and authorized reviewers remain authoritative.</p>
