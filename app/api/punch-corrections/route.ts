@@ -19,8 +19,12 @@ export async function GET(req:Request){
  const employeeId=new URL(req.url).searchParams.get('employee')||c.me?.id;
  const employee=c.staff.find((s:any)=>s.id===employeeId);
  if(!employee||!canView(c,employee))return respond({error:'Employee not accessible'},403);
- const rows:any=await c.db.prepare('SELECT * FROM employee_punch_corrections WHERE employee_id=? ORDER BY requested_at DESC LIMIT 100').bind(employee.id).all();
- return respond({corrections:rows.results,canReview:managers.has(c.access.role)&&c.me?.id!==employee.id});
+ const rows:any=await c.db.prepare(`SELECT c.*,COALESCE(p.campus_id,c.proposed_campus_id) AS source_campus_id
+   FROM employee_punch_corrections c LEFT JOIN employee_punches p ON p.id=c.punch_id
+   WHERE c.employee_id=? ORDER BY c.requested_at DESC LIMIT 200`).bind(employee.id).all();
+ const visible=rows.results.filter((r:any)=>c.me?.id===employee.id||c.access.role==='Owner'||
+   (employee.campusIds?.includes(r.source_campus_id)&&c.access.campusIds.includes(r.source_campus_id)));
+ return respond({corrections:visible.slice(0,100).map((r:any)=>{const {source_campus_id,...rest}=r;return rest;}),canReview:managers.has(c.access.role)&&c.me?.id!==employee.id});
  }catch{return respond({error:'Could not load correction requests'},503);}
 }
 export async function POST(req:Request){
