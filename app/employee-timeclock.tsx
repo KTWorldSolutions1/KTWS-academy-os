@@ -47,7 +47,7 @@ export default function EmployeeTimeclock({records,role}:{records:any[];role:str
  function exportCsv(){
   if(!data)return;
   const rows=[['Employee','Week','Work date','Clock in (Eastern)','Clock out (Eastern)','Worked hours','Unpaid break minutes','Approval'],...summary.rows.map(x=>[data.employee.name,week,x.date,fmt(x.in),x.out?fmt(x.out):'OPEN',hrs(x.hours),String(Math.round(x.breakMinutes)),data.approval?'Approved':'Unapproved'])];
-  const csv=rows.map(row=>row.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\\r\\n');
+  const csv=rows.map(row=>row.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\r\n');
   const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
   const a=document.createElement('a');a.href=url;a.download='academy-timeclock-'+week+'.csv';a.click();URL.revokeObjectURL(url);
  }
@@ -62,7 +62,7 @@ export default function EmployeeTimeclock({records,role}:{records:any[];role:str
    <div><p className="eyebrow">EMPLOYEE</p><h3>{data.employee.name}</h3><p className="muted">Current punch status: <strong>{data.current.state.toUpperCase()}</strong></p></div>
    <div><p className="eyebrow">RECORDED HOURS THIS WEEK</p><h3>{hrs(summary.minutes)} h</h3><p className="muted">Breaks: {Math.round(summary.breakMinutes)} min · {data.approval?'Approved':'Pending approval'}</p></div>
   </div>
-  {(!employee||employee===staff.find(s=>s.email)?.id)&&<div className="formgrid">
+  {!employee&&<div className="formgrid">
    <label>Clock-in campus<select value={campus} onChange={e=>setCampus(e.target.value)}>{(staff.find(s=>s.id===data.employee.id)?.campusIds||[]).map((id:string)=><option value={id} key={id}>{campuses.find(c=>c.id===id)?.name||id}</option>)}</select></label>
   </div>}
   {!employee&&<div className="reportactions">
