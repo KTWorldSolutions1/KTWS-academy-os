@@ -49,7 +49,7 @@ export async function GET(req:Request){
   const view=studentSelfView(found.student,records);
   const [chargeRows,paymentRows]=await Promise.all([
    found.db.prepare('SELECT * FROM billing_charges WHERE owner=? AND student=? AND campus=? AND status=?').bind('academy-owner',found.student.id,found.campus.id,'Open').all(),
-   found.db.prepare('SELECT * FROM billing_payments WHERE owner=? AND student=? AND campus=?').bind('academy-owner',found.student.id,found.campus.id).all()
+   found.db.prepare('SELECT p.*,CASE WHEN v.id IS NOT NULL THEN 1 ELSE 0 END AS voided FROM billing_payments p LEFT JOIN billing_payment_reversals v ON v.payment_id=p.id WHERE p.owner=? AND p.student=? AND p.campus=?').bind('academy-owner',found.student.id,found.campus.id).all()
   ]);
   const paymentSummary=publicBillingSummary(calculateStudentLedger(chargeRows.results||[],paymentRows.results||[]));
   await markAudit(found.db,found.student.id,'Own progress portal viewed',found.user.email,{account:found.link.account,fields:'limited student progress'});

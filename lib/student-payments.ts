@@ -13,9 +13,9 @@ export function moneyCents(value:any){return typeof value==='number'&&Number.isS
 export function dollar(value:number){return new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'}).format(value/100);}
 export function providerValid(value:any){return BILLING_PROVIDERS.includes(value);}
 export type LedgerCharge={id:string;student:string;campus:string;amount_cents:number;description:string;category:string;due_date:string;status:string;funding_type?:string;external_invoice?:string;};
-export type LedgerPayment={id:string;student:string;campus:string;charge_id:string;provider:string;amount_cents:number;refunded_cents:number;disputed_cents:number;status:string;external_ref?:string;source:string;created:string;verified_at?:string;};
+export type LedgerPayment={id:string;student:string;campus:string;charge_id:string;provider:string;amount_cents:number;refunded_cents:number;disputed_cents:number;status:string;external_ref?:string;source:string;created:string;verified_at?:string;voided?:boolean;};
 export function creditedPayment(p:LedgerPayment){
- if(p.status!=='Confirmed')return 0;
+ if(p.status!=='Confirmed'||Boolean(p.voided))return 0;
  const amount=Number(p.amount_cents)||0;
  return Math.max(0,amount-Math.min(amount,Math.max(0,Number(p.refunded_cents)||0)+Math.max(0,Number(p.disputed_cents)||0)));
 }
@@ -56,4 +56,25 @@ export function publicBillingSummary(summary:ReturnType<typeof calculateStudentL
   charges:summary.charges.map(c=>({id:c.id,description:c.description,category:c.category,dueDate:c.due_date,
    amountCents:c.amount_cents,paidCents:c.paid_cents,outstandingCents:c.outstanding_cents,label:c.label})),
   notice:'Balance based on school-posted payments and verified processor events. Manual remittances may require staff review. This page does not display card numbers or banking details.'};
+}
+
+/** An administrative reversal only changes school-ledger credit. It is not a refund. */
+export function manualReversalIssue(payment:any,reason:any){
+ if(!payment||payment.source!=='Manual'||payment.status!=='Confirmed')
+  return 'Only confirmed manual remittances can be corrected here. Stripe refunds must happen through Stripe.';
+ if(payment.voided===true)return 'This manual payment was already reversed.';
+ if((payment.refunded_cents||0)!==0||(payment.disputed_cents||0)!==0)
+  return 'Payment already has adjustments; finance must reconcile it.';
+ if(typeof reason!=='string'||reason.trim().length<15||reason.trim().length>400)
+  return 'Provide a reason of 15–400 characters explaining why this is an incorrect manual payment.';
+ return null;
+}
+export function chargeVoidIssue(charge:any,payments:any[],stripeSessions:number,reason:any){
+ if(!charge||charge.status!=='Open')return 'Only open charges can be voided.';
+ if(payments.some(p=>p.status==='Pending'||creditedPayment(p)>0))
+  return 'Resolve pending or credited payments before voiding a charge.';
+ if(stripeSessions>0)return 'Charge has a Stripe checkout session. Reconcile with Stripe before voiding.';
+ if(typeof reason!=='string'||reason.trim().length<15||reason.trim().length>400)
+  return 'Provide a reason of 15–400 characters explaining why the charge is incorrect.';
+ return null;
 }

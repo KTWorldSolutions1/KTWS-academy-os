@@ -1,7 +1,7 @@
 import {getWorkspaceAccess} from '../../../lib/workspace-access';
 import {database} from '../../../lib/storage';
 import {campusAllowed} from '../../../lib/enterprise';
-import {PAYMENT_ROLES,APPROVAL_ROLES,BILLING_PROVIDERS,calculateStudentLedger,staffBillingChargeRows,chargeIssue,manualPaymentIssue,publicBillingSummary} from '../../../lib/student-payments';
+import {PAYMENT_ROLES,APPROVAL_ROLES,BILLING_PROVIDERS,calculateStudentLedger,staffBillingChargeRows,chargeIssue,manualPaymentIssue,publicBillingSummary,manualReversalIssue,chargeVoidIssue} from '../../../lib/student-payments';
 import {stripeConfig,createStripeCheckout} from '../../../lib/stripe-billing';
 
 const h={'Cache-Control':'no-store','X-Content-Type-Options':'nosniff'};
@@ -28,14 +28,14 @@ export async function GET(req:Request){
  const db=database(),student=await studentFor(db,access,studentId);
  if(!student)return reply({error:'Student unavailable or outside permitted campus'},403);
  const [cr,pr]=await Promise.all([db.prepare('SELECT * FROM billing_charges WHERE owner=? AND student=? ORDER BY created DESC').bind(access.scope,student.id).all(),
- db.prepare('SELECT * FROM billing_payments WHERE owner=? AND student=? ORDER BY created DESC').bind(access.scope,student.id).all()]);
+ db.prepare('SELECT p.*,CASE WHEN v.id IS NOT NULL THEN 1 ELSE 0 END AS voided,v.reason AS reversal_reason,v.reversed_at FROM billing_payments p LEFT JOIN billing_payment_reversals v ON v.payment_id=p.id AND v.owner=p.owner WHERE p.owner=? AND p.student=? ORDER BY p.created DESC').bind(access.scope,student.id).all()]);
  const charges=cr.results||[],payments=pr.results||[],summary=calculateStudentLedger(charges,payments);
  return reply({student:{id:student.id,name:student.name,campus:student.campusId,fundingType:student.fundingType||null},
  summary:publicBillingSummary(summary),charges:staffBillingChargeRows(summary),payments:payments.map((p:any)=>({
   id:p.id,chargeId:p.charge_id,provider:p.provider,amountCents:p.amount_cents,status:p.status,source:p.source,
-  refundedCents:p.refunded_cents,disputedCents:p.disputed_cents,
+  refundedCents:p.refunded_cents,disputedCents:p.disputed_cents,voided:!!p.voided,reversalReason:p.reversal_reason||null,reversedAt:p.reversed_at||null,
   reference:p.source==='Stripe'?p.external_ref:String(p.external_ref||'').slice(-10),created:p.created,verifiedAt:p.verified_at})),
- stripe:{ready:config.ready,enabled:config.enabled,testMode:config.testMode},canApprove:isManager(access.role)});
+ stripe:{ready:config.ready,enabled:config.enabled,testMode:config.testMode},canApprove:isManager(access.role),canReverse:access.role==='Owner'});
 }
 export async function POST(req:Request){
  const access=await getWorkspaceAccess();if(!access)return reply({error:'Sign-in required'},401);
@@ -60,10 +60,41 @@ export async function POST(req:Request){
  const chargeId=data.chargeId;
  if(!idOk(chargeId))return reply({error:'Select a charge'},400);
  const charges:any=await db.prepare('SELECT * FROM billing_charges WHERE owner=? AND student=? AND campus=? AND status=?').bind(scope,student.id,student.campusId,'Open').all();
- const payments:any=await db.prepare('SELECT * FROM billing_payments WHERE owner=? AND student=? AND campus=?').bind(scope,student.id,student.campusId).all();
+ const payments:any=await db.prepare('SELECT p.*,CASE WHEN v.id IS NOT NULL THEN 1 ELSE 0 END AS voided FROM billing_payments p LEFT JOIN billing_payment_reversals v ON v.payment_id=p.id AND v.owner=p.owner WHERE p.owner=? AND p.student=? AND p.campus=?').bind(scope,student.id,student.campusId).all();
  const summary=calculateStudentLedger(charges.results||[],payments.results||[]);
  const charge=summary.charges.find((c:any)=>c.id===chargeId);
  if(!charge)return reply({error:'Open charge not found for this student'},404);
+
+ if(action==='reverse-manual'){
+  if(access.role!=='Owner')return reply({error:'Only a school owner may reverse a confirmed manual ledger entry'},403);
+  if(data.confirm!=='REVERSE INCORRECT MANUAL PAYMENT')return reply({error:'Explicit accounting correction confirmation required'},400);
+  const paymentId=String(data.paymentId||'');
+  if(!idOk(paymentId))return reply({error:'Select a payment receipt'},400);
+  const payment:any=payments.results.find((p:any)=>p.id===paymentId&&p.charge_id===chargeId);
+  const problem=manualReversalIssue(payment,data.reason);
+  if(problem)return reply({error:problem},409);
+  const reason=String(data.reason).trim();
+  const result:any=await db.prepare("INSERT OR IGNORE INTO billing_payment_reversals(id,owner,campus,student,payment_id,charge_id,reason,reversed_by,reversed_at) SELECT ?,?,?,?,?,?,?,?,? WHERE EXISTS(SELECT 1 FROM billing_payments WHERE id=? AND owner=? AND source='Manual' AND status='Confirmed')")
+    .bind(crypto.randomUUID(),scope,student.campusId,student.id,paymentId,chargeId,reason,actor,now,paymentId,scope).run();
+  if(!changes(result))return reply({error:'Payment already reversed or no longer eligible. Refresh the ledger.'},409);
+  await audit(db,scope,student.id,'Incorrect manual payment reversed',actor,{paymentId,chargeId,amountCents:payment.amount_cents,reason,externalRefundIssued:false});
+  return reply({updated:true,status:'Reversed',notice:'Incorrect manual payment credit reversed. Original receipt is retained for audit. No external refund was issued.'});
+ }
+ if(action==='void-charge'){
+  if(access.role!=='Owner')return reply({error:'Only a school owner may void an incorrect tuition charge'},403);
+  if(data.confirm!=='VOID INCORRECT CHARGE')return reply({error:'Explicit charge-void confirmation required'},400);
+  const stripe:any=await db.prepare('SELECT COUNT(*) AS n FROM billing_stripe_sessions WHERE owner=? AND charge_id=?').bind(scope,chargeId).first();
+  const problem=chargeVoidIssue(charge,payments.results.filter((p:any)=>p.charge_id===chargeId),Number(stripe?.n||0),data.reason);
+  if(problem)return reply({error:problem},409);
+  const reason=String(data.reason).trim();
+  const update:any=await db.prepare("UPDATE billing_charges SET status='Voided' WHERE id=? AND owner=? AND campus=? AND student=? AND status='Open'")
+    .bind(chargeId,scope,student.campusId,student.id).run();
+  if(!changes(update))return reply({error:'Charge already changed; refresh ledger'},409);
+  await db.prepare('INSERT INTO billing_charge_voids(id,owner,campus,student,charge_id,reason,voided_by,voided_at) VALUES(?,?,?,?,?,?,?,?)')
+   .bind(crypto.randomUUID(),scope,student.campusId,student.id,chargeId,reason,actor,now).run();
+  await audit(db,scope,student.id,'Incorrect tuition charge voided',actor,{chargeId,amountCents:charge.amount_cents,reason});
+  return reply({updated:true,status:'Voided',notice:'Incorrect charge voided. It no longer contributes to tuition due, and its audit history is preserved.'});
+ }
  if(action==='record-manual'){
   const issue=manualPaymentIssue(data,charge.outstanding_cents);
   if(issue)return reply({error:issue},400);
