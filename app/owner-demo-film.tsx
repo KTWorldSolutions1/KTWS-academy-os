@@ -1,7 +1,7 @@
 'use client';
 import {useEffect,useRef,useState} from 'react';
 import {ArrowRight,BookOpen,ChevronLeft,ChevronRight,Download,Maximize2,Pause,Play,RotateCcw,Volume2,VolumeX,X,Presentation,CheckCircle2,ShieldCheck} from 'lucide-react';
-import {DEMO_SCENES,DEMO_FRAME_MS,DEMO_RUNTIME_SECONDS,type DemoScene} from '../lib/presentation-demo';
+import {DEMO_SCENES,DEMO_SCENE_DURATIONS,DEMO_SCENE_STARTS,DEMO_TOTAL_MS,demoTimeToScene,type DemoScene} from '../lib/presentation-demo';
 
 type Props={onClose:()=>void;onNavigate:(id:string,sceneId:string)=>void;};
 function time(seconds:number){const x=Math.floor(seconds);return Math.floor(x/60)+':'+String(x%60).padStart(2,'0');}
@@ -29,8 +29,8 @@ function drawScene(ctx:CanvasRenderingContext2D,scene:DemoScene,sequence:number,
 }
 export default function OwnerDemoFilm({onClose,onNavigate}:Props){
  const [recordedMime,setRecordedMime]=useState('video/webm');
- const [playing,setPlaying]=useState(true),[index,setIndex]=useState(0),[fraction,setFraction]=useState(0),[narrate,setNarrate]=useState(true),[speed,setSpeed]=useState(1),[recording,setRecording]=useState(false),[recordedUrl,setRecordedUrl]=useState(''),[error,setError]=useState('');
- const lastClock=useRef<number>(0),canvasRef=useRef<HTMLCanvasElement|null>(null),videoRef=useRef<HTMLVideoElement|null>(null);
+ const [playing,setPlaying]=useState(false),[index,setIndex]=useState(0),[fraction,setFraction]=useState(0),[narrate,setNarrate]=useState(true),[speed,setSpeed]=useState(1),[voices,setVoices]=useState<SpeechSynthesisVoice[]>([]),[voiceName,setVoiceName]=useState(''),[voiceReady,setVoiceReady]=useState(false),[recording,setRecording]=useState(false),[recordedUrl,setRecordedUrl]=useState(''),[error,setError]=useState('');
+ const speechPendingRef=useRef(false),lastClock=useRef<number>(0),canvasRef=useRef<HTMLCanvasElement|null>(null),videoRef=useRef<HTMLVideoElement|null>(null);
  const scene=DEMO_SCENES[index];
  const stages=['Inquiry','Enrollment','Classroom','Yard','Road','Testing','Graduate'];
  const stageIndex=[0,0,0,1,1,1,1,2,2,3,4,5,6,6,6,6,6][index]||0;
@@ -56,38 +56,71 @@ export default function OwnerDemoFilm({onClose,onNavigate}:Props){
 
  const indexRef=useRef(index),playingRef=useRef(playing),progressRef=useRef(fraction),speedRef=useRef(speed);
  indexRef.current=index;playingRef.current=playing;progressRef.current=fraction;speedRef.current=speed;
+ // Discover installed voices. Prefer natural English voices when available,
+ // while preserving an explicit voice selector for browsers with limited TTS.
+ useEffect(()=>{
+  if(typeof window==='undefined'||!('speechSynthesis' in window))return;
+  const synth=window.speechSynthesis;
+  const refresh=()=>{
+   const found=synth.getVoices().filter(v=>v.lang.toLowerCase().startsWith('en'));
+   setVoices(found);
+   setVoiceName(current=>{
+    if(current&&found.some(v=>v.voiceURI===current))return current;
+    const preferred=found.find(v=>/samantha|ava|jenny|aria|natural|google us english|microsoft guy|daniel/i.test(v.name));
+    return (preferred||found.find(v=>v.localService)||found[0])?.voiceURI||'';
+   });
+   setVoiceReady(true);
+  };
+  refresh();synth.addEventListener('voiceschanged',refresh);
+  return()=>synth.removeEventListener('voiceschanged',refresh);
+ },[]);
  useEffect(()=>{
   if(!playing)return;
   lastClock.current=performance.now();
   const t=window.setInterval(()=>{
    const now=performance.now(),step=Math.min(450,now-lastClock.current)*speedRef.current;lastClock.current=now;
-   const absolute=(indexRef.current+progressRef.current)*DEMO_FRAME_MS+step;
-   if(absolute>=DEMO_SCENES.length*DEMO_FRAME_MS){setIndex(DEMO_SCENES.length-1);setFraction(1);setPlaying(false);return;}
-   const next=Math.floor(absolute/DEMO_FRAME_MS);setIndex(next);setFraction((absolute/DEMO_FRAME_MS)-next);
+   const sceneMs=DEMO_SCENE_DURATIONS[indexRef.current];
+   const nextElapsed=progressRef.current*sceneMs+step;
+   if(nextElapsed>=sceneMs){
+    // Do not cut off a spoken sentence to advance the visual slide.
+    if(narrate&&speechPendingRef.current){setFraction(.999);return;}
+    if(indexRef.current===DEMO_SCENES.length-1){setFraction(1);setPlaying(false);return;}
+    setIndex(indexRef.current+1);setFraction(0);
+   }else setFraction(nextElapsed/sceneMs);
   },75);
   return()=>clearInterval(t);
- },[playing]);
+ },[playing,narrate]);
  useEffect(()=>{
-  if(!narrate||!playing||typeof speechSynthesis==='undefined')return;
-  speechSynthesis.cancel();
+  if(typeof window==='undefined'||!('speechSynthesis' in window))return;
+  const synth=window.speechSynthesis;
+  synth.cancel();
+  speechPendingRef.current=false;
+  if(!narrate||!playing)return;
   const utterance=new SpeechSynthesisUtterance(scene.narration);
-  utterance.rate=Math.min(1.8,Math.max(1.05,1.35*speed));utterance.pitch=1;utterance.volume=.9;
-  speechSynthesis.speak(utterance);
-  return()=>speechSynthesis.cancel();
- },[index,narrate,playing,speed]);
+  const chosen=voices.find(v=>v.voiceURI===voiceName);
+  if(chosen)utterance.voice=chosen;
+  utterance.lang=chosen?.lang||'en-US';
+  utterance.rate=Math.max(.7,Math.min(1.15,.88*speed));
+  utterance.pitch=.98;utterance.volume=.95;
+  speechPendingRef.current=true;
+  utterance.onend=()=>{speechPendingRef.current=false;};
+  utterance.onerror=()=>{speechPendingRef.current=false;};
+  synth.speak(utterance);
+  return()=>{speechPendingRef.current=false;synth.cancel();};
+ },[index,narrate,playing,voiceName,voices,speed]);
  useEffect(()=>()=>{if(typeof speechSynthesis!=='undefined')speechSynthesis.cancel();},[]);
  useEffect(()=>()=>{if(recordedUrl)URL.revokeObjectURL(recordedUrl);},[recordedUrl]);
  useEffect(()=>{function esc(e:KeyboardEvent){if(e.key==='Escape')onClose();if(e.key===' '){e.preventDefault();setPlaying(p=>!p);}}
   window.addEventListener('keydown',esc);return()=>window.removeEventListener('keydown',esc);
  },[onClose]);
- const currentSeconds=(index+fraction)*DEMO_FRAME_MS/1000,totalSeconds=DEMO_SCENES.length*DEMO_FRAME_MS/1000;
- function seek(next:number){setIndex(Math.max(0,Math.min(DEMO_SCENES.length-1,next)));setFraction(0);lastClock.current=performance.now();}
+ const currentSeconds=(DEMO_SCENE_STARTS[index]+fraction*DEMO_SCENE_DURATIONS[index])/1000,totalSeconds=DEMO_TOTAL_MS/1000;
+ function seek(next:number){speechPendingRef.current=false;if(typeof speechSynthesis!=='undefined')speechSynthesis.cancel();setIndex(Math.max(0,Math.min(DEMO_SCENES.length-1,next)));setFraction(0);lastClock.current=performance.now();}
  function restart(){seek(0);setPlaying(true);}
  function start(){if(index===DEMO_SCENES.length-1&&fraction>=.99)restart();else setPlaying(v=>!v);}
  async function saveFilm(){
   setError('');if(recording)return;
   const canvas=canvasRef.current;
-  if(!canvas||typeof MediaRecorder==='undefined'||!('captureStream' in canvas)){setError('Video recording is not supported on this browser. The narrated on-screen walkthrough still works.');return;}
+  if(!canvas||typeof MediaRecorder==='undefined'||!('captureStream' in canvas)){setError('Video recording is not supported on this browser. The interactive narrated presentation still works.');return;}
   const type=['video/webm;codecs=vp9','video/webm;codecs=vp8','video/webm','video/mp4'].find(t=>MediaRecorder.isTypeSupported(t));
   if(!type){setError('This browser cannot export a video. Use the on-screen walkthrough or record your screen.');return;}
   try{
@@ -101,8 +134,8 @@ export default function OwnerDemoFilm({onClose,onNavigate}:Props){
      const url=URL.createObjectURL(new Blob(blobs,{type}));setRecordedMime(type);setRecordedUrl(url);resolve();
    };});
    recorder.start(250);
-   // Fast-export film is approximately 30 seconds and has readable on-screen text.
-   const hold=2200;const startAt=performance.now();
+   // Give viewers time to read. Canvas exports are silent: browser voice output cannot be reliably captured as a video audio track.
+   const hold=14000;const startAt=performance.now();
    await new Promise<void>(resolve=>{
     let ended=false;
     const render=(now:number)=>{
@@ -134,14 +167,16 @@ export default function OwnerDemoFilm({onClose,onNavigate}:Props){
     </div>
     <div className="film-features"><span>LIVE WORKFLOW LINK</span><button type="button" onClick={openFeature}>{scene.feature} <ArrowRight size={15}/></button></div>
    </div>
-   <div className="film-controls">
-    <div className="film-timeline"><span>{time(currentSeconds)}</span><input aria-label="Video progress" type="range" min={0} max={DEMO_SCENES.length*1000} value={(index+fraction)*1000} onChange={e=>{const x=Number(e.target.value)/1000;setIndex(Math.min(DEMO_SCENES.length-1,Math.floor(x)));setFraction(Math.min(.999,x%1));}}/><span>{time(totalSeconds)}</span></div>
+   <div className="film-controls"><p className="muted">Executive presentation mode · Press Play to begin. Chapters stay visible until the narrator finishes; pause, change voices or advance whenever you choose.</p>
+    <div className="film-timeline"><span>{time(currentSeconds)}</span><input aria-label="Presentation progress" type="range" min={0} max={DEMO_TOTAL_MS} step={1000} value={DEMO_SCENE_STARTS[index]+fraction*DEMO_SCENE_DURATIONS[index]} onChange={e=>{const point=demoTimeToScene(Number(e.target.value));speechPendingRef.current=false;if(typeof speechSynthesis!=='undefined')speechSynthesis.cancel();setIndex(point.index);setFraction(point.fraction);}}/><span>{time(totalSeconds)}</span></div>
     <div className="film-buttons"><div><button type="button" aria-label="Previous chapter" onClick={()=>seek(index-1)}><ChevronLeft size={22}/></button>
       <button type="button" className="film-play" onClick={start} aria-label={playing?'Pause walkthrough':'Play walkthrough'}>{playing?<Pause size={22}/>:<Play size={22}/>}</button>
       <button type="button" aria-label="Next chapter" onClick={()=>seek(index+1)}><ChevronRight size={22}/></button>
       <button type="button" onClick={restart} title="Replay from the beginning"><RotateCcw size={18}/> Replay</button></div>
      <div><button type="button" aria-pressed={narrate} onClick={()=>setNarrate(v=>!v)} title="Use system speech to narrate the story">{narrate?<Volume2 size={19}/>:<VolumeX size={19}/>} {narrate?'Narration ON':'Narration OFF'}</button>
-      <label className="film-speed-label">Speed<select value={speed} onChange={e=>setSpeed(Number(e.target.value))}><option value={.75}>0.75×</option><option value={1}>1×</option><option value={1.25}>1.25×</option><option value={1.5}>1.5×</option></select></label></div>
+      <label className="film-speed-label">Narrator<select aria-label="Narrator voice" value={voiceName} onChange={e=>setVoiceName(e.target.value)} disabled={!voiceReady||!voices.length}>
+ {voices.length?voices.map(v=><option key={v.voiceURI} value={v.voiceURI}>{v.name} ({v.lang})</option>):<option value="">Browser voice unavailable</option>}
+ </select></label><label className="film-speed-label">Speed<select value={speed} onChange={e=>setSpeed(Number(e.target.value))}><option value={.65}>Gentle (0.65×)</option><option value={.8}>Relaxed (0.8×)</option><option value={1}>Standard (1×)</option><option value={1.2}>Quick (1.2×)</option></select></label></div>
     </div>
    </div>
    <div className="film-footer">
@@ -149,7 +184,7 @@ export default function OwnerDemoFilm({onClose,onNavigate}:Props){
     <div className="film-footer-actions"><button type="button" disabled={recording} onClick={saveFilm}><Download size={17}/>{recording?'Recording a video…':'Create playable video file'}</button>
       <button type="button" className="primary" onClick={openFeature}><Presentation size={18}/> Open {scene.feature}</button></div>
    </div>
-   {recording&&<p className="film-recording-note">Recording the animated story to a local video file in this browser. Leave this window open until it finishes. This export is silent; enable narration for the interactive walkthrough.</p>}
+   {recording&&<p className="film-recording-note">Recording a slower, readable visual-only version in this browser. Leave this window open until it finishes. This export is silent; enable narration for the interactive walkthrough.</p>}
    {recordedUrl&&<div className="film-recorded"><b>Your demo video is ready.</b><video ref={videoRef} src={recordedUrl} controls playsInline aria-label="Recorded student lifecycle video"/><a href={recordedUrl} download={'LoneStar_AcademyOS_Student_Lifecycle.'+(recordedMime.includes('mp4')?'mp4':'webm')}><Download size={16}/> Save video to this device</a><small>Browser-generated visual recording; voice narration is available in the interactive walkthrough, not the exported file.</small></div>}
    {error&&<p className="error" role="alert">{error}</p>}
    <canvas ref={canvasRef} width={1280} height={720} style={{position:'absolute',width:1,height:1,opacity:0,pointerEvents:'none'}} aria-hidden="true"/>
