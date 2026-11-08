@@ -61,3 +61,18 @@ export const CAPABILITY_SECTIONS=schoolSections.map(section=>({
  })
 }));
 export const CAPABILITY_COUNT=CAPABILITY_SECTIONS.reduce((sum,section)=>sum+section.capabilities.length,0);
+
+/** Outcomes are qualitative: Academy OS does not fabricate time-savings metrics. */
+const impact:Record<string,{today:string;academy:string;proof:string}>={
+ network:{today:'Campus updates scattered across emails, reports and separate tools',academy:'One access-scoped command view for all three locations',proof:'Compare campus filters, enrollment counts and active alerts'},
+ lead:{today:'Leads and agency referrals may be followed up in different places',academy:'Each lead can have a stage, owner, next action and funding route',proof:'Open New Inquiries and the appointments queue'},
+ portal:{today:'Students call staff to ask what is missing or what comes next',academy:'A student can review their own milestones, notices and practice material',proof:'Open the fictional Student Portal Demo'},
+ theory:{today:'Class materials, lesson hours and diagnostic results need manual reconciliation',academy:'Daily theory lesson plans, attendance and knowledge gaps stay connected',proof:'Open the Week-one planner and Knowledge Checks'},
+ road:{today:'Staff coordinate truck, instructor and student separately',academy:'Dispatch review checks vehicle readiness and training assignments together',proof:'Open Daily Training Plan and report an equipment hold'},
+ testing:{today:'Readiness requires checking several logs and paperwork folders',academy:'Student 360 brings together validated training evidence and outstanding steps',proof:'Open Student List and inspect the training timeline'},
+ payments:{today:'Incorrect receipts can distort an active student balance until reconciled',academy:'Auditable corrections restore ledger accuracy across staff and student views',proof:'Open Student Payment Center and inspect the correction workflow'},
+ finale:{today:'A transition could happen without an agreed scope or owner decision record',academy:'Leadership can flag launch blockers and approve phased pilot criteria',proof:'Open the Owner Feedback & Launch Decisions board'}
+};
+export function operationalImpact(scene:DemoScene){
+ return impact[scene.id]||{today:'This workflow may depend on disconnected manual checks',academy:'Academy OS provides a dedicated role-scoped module and task context',proof:'Open the linked school module and verify the workflow'};
+}
