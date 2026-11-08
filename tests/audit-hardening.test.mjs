@@ -27,6 +27,7 @@ assert.match(clock,/timeZone:'America\/New_York'/,'Live clock uses Eastern calen
 const correction=src('app/api/punch-corrections/route.ts');
 assert.match(correction,/source_campus_id/,'Manager correction reads must filter by authorized work campus');
 assert.match(correction,/c\.access\.campusIds\.includes\(r\.source_campus_id\)/);
+assert.ok(correction.includes('week IN (?,?)'),'Correction review must validate both original and proposed locked payroll weeks');
 const search=src('app/api/academy-search/route.ts');
 assert.match(search,/anonymousEvidence\(matches\)/,'External AI input cannot contain freeform school fields');
 assert.match(search,/evidenceMetadataSentToAI:true/,'Provider request must be disclosed even after provider failure');
