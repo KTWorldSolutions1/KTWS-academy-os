@@ -4,6 +4,7 @@ import {env} from '../../../../cloudflare/runtime';
 import {tprEvidenceReview} from '../../../../lib/tpr-preflight';
 import {theoryState,instructionHours} from '../../../../lib/training';
 import {drivingTimeSummary} from '../../../../lib/attendance';
+import {tprIdentityIssues} from '../../../../lib/tpr-identity-match';
 import {trainingBody,validateTrainingForm,signedJwt,type TrainingForm} from '../../../../lib/fmcsa-tpr-webservice';
 const ok=(v:unknown,status=200)=>Response.json(v,{status,headers:{'Cache-Control':'no-store'}});
 const area=(type:string)=>type==='PublicRoad'?'Public road':type==='Range'?'Range':'Theory';
@@ -30,6 +31,7 @@ export async function POST(req:Request){
   const issues=[...(error?[error]:[]),...evidence.checks.filter(x=>!x.present).map(x=>x.label)];
   if(f?.number&&![student.clpNumber,student.licenseNumber].some(n=>n===f.number))issues.push('Permit/license number differs from saved verified student reference');
   if(student.dateOfBirth&&f?.dateOfBirth!==student.dateOfBirth)issues.push('Date of birth differs from student record');
+  issues.push(...tprIdentityIssues(student,f));
   if(f?.trainingType==='Theory'&&Number(theoryState(student).final?.score)!==f.score)issues.push('Entered theory score must match the most recent verified theory final');
   if(f?.trainingType==='Range'&&Number(f.hours)>instructionHours(student,'Yard')+0.01)issues.push('Entered range hours exceed attested range instruction');
   if(f?.trainingType==='PublicRoad'&&Number(f.hours)>drivingTimeSummary(student).studentDrivingHours+0.01)issues.push('Entered road hours exceed verified student-operated driving');
