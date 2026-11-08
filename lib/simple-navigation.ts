@@ -46,7 +46,8 @@ export const schoolSections:SchoolSection[]=[
   {id:'staff',label:'Employees',help:'Staff accounts and roles'},
   {id:'credentials',label:'Staff Licenses',help:'Instructor approvals and renewal dates'},
   {id:'shifts',label:'Work Schedules',help:'Plan coverage and paid hours'},
-  {id:'timeclock',label:'Time Clock & Payroll',help:'Employee punches, breaks, timesheets and payroll approval'}
+  {id:'timeclock',label:'Time Clock & Payroll',help:'Employee punches, breaks, timesheets and payroll approval'},
+  {id:'payroll-report',label:'Campus Payroll Spreadsheet',help:'Campus-only employee hours, pay rates, gross estimates and owner report'}
  ]},
  {id:'partners',label:'Funding & Employers',help:'WIOA, partner agencies, career outcomes and offers',pages:[
   {id:'growth',label:'Outreach',help:'Calls, meetings, referrals and events'},
