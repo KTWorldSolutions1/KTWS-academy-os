@@ -2,7 +2,7 @@
 import {useEffect,useRef,useState} from 'react';
 import {ArrowRight,BookOpen,ChevronLeft,ChevronRight,Download,Maximize2,Pause,Play,RotateCcw,Volume2,VolumeX,X,Presentation,CheckCircle2,ShieldCheck} from 'lucide-react';
 import {DEMO_SCENES,type DemoScene} from '../lib/presentation-demo';
-import {timelineForMode,spokenPitch,CAPABILITY_COUNT,type DemoMode} from '../lib/demo-showcase';
+import {timelineForMode,spokenPitch,operationalImpact,CAPABILITY_COUNT,type DemoMode} from '../lib/demo-showcase';
 import CapabilityExplorer from './demo-capability-explorer';
 import {chapterDetail} from '../lib/owner-demo-review';
 import ExecutiveFeedbackBoard from './executive-feedback-board';
@@ -40,6 +40,7 @@ export default function OwnerDemoFilm({onClose,onNavigate}:Props){
  const {scenes,durations,starts,total}=timeline;
  const scene=scenes[Math.min(index,scenes.length-1)];
  const detail=chapterDetail(scene.id);
+ const impact=operationalImpact(scene);
  const briefNarration=spokenPitch(scene);
  const stages=['Inquiry','Enrollment','Classroom','Yard','Road','Testing','Graduate'];
  const stageIndex=scene.id==='network'||scene.id==='lead'?0:scene.id==='portal'||scene.id==='theory'?2:scene.id==='road'?4:scene.id==='testing'?5:scene.id==='finale'?6:3;
@@ -177,6 +178,10 @@ export default function OwnerDemoFilm({onClose,onNavigate}:Props){
     <div className="film-features"><span>LIVE WORKFLOW LINK</span><button type="button" onClick={openFeature}>{scene.feature} <ArrowRight size={15}/></button></div>
    </div>
    <section className="panel" style={{margin:'10px 12px',padding:14,display:'grid',gap:10}} aria-label="Detailed owner review for current presentation chapter">
+    <div className="reportactions" style={{alignItems:'stretch',gap:10}}>
+      <div style={{flex:'1 1 230px',border:'1px solid #526072',borderRadius:10,padding:12}}><strong>BEFORE · What's inefficient</strong><p>{impact.today}</p></div>
+      <div style={{flex:'1 1 230px',border:'1px solid #267baf',borderRadius:10,padding:12}}><strong>WITH ACADEMY OS</strong><p>{impact.academy}</p></div>
+    </div><p><strong>Show Alisha the proof:</strong> {impact.proof}</p>
     <div className="reportactions"><strong>{detail.stage} · {detail.department}</strong><span className="badge">{detail.status}</span></div>
     {showGuide&&<><p><strong>What this department can do:</strong></p><div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(180px,1fr))',gap:8}}>{detail.capabilities.map((line,i)=><p key={i} style={{padding:8,border:'1px solid #34516d',borderRadius:8}}>✓ {line}</p>)}</div><p><strong>Leadership decision:</strong> {detail.ownerDecision}</p><p><strong>Ask Alisha:</strong> {detail.question}</p></>}
     <div className="reportactions"><button type="button" onClick={()=>setShowGuide(x=>!x)}>{showGuide?'Condense chapter notes':'Expand chapter details'}</button><button type="button" className="primary" onClick={()=>{setPlaying(false);setFeedbackOpen(true)}}>Record feedback / request a feature</button></div>
