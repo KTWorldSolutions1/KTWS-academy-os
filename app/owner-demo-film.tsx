@@ -1,7 +1,9 @@
 'use client';
 import {useEffect,useRef,useState} from 'react';
 import {ArrowRight,BookOpen,ChevronLeft,ChevronRight,Download,Maximize2,Pause,Play,RotateCcw,Volume2,VolumeX,X,Presentation,CheckCircle2,ShieldCheck} from 'lucide-react';
-import {DEMO_SCENES,DEMO_SCENE_DURATIONS,DEMO_SCENE_STARTS,DEMO_TOTAL_MS,demoTimeToScene,type DemoScene} from '../lib/presentation-demo';
+import {DEMO_SCENES,type DemoScene} from '../lib/presentation-demo';
+import {timelineForMode,spokenPitch,CAPABILITY_COUNT,type DemoMode} from '../lib/demo-showcase';
+import CapabilityExplorer from './demo-capability-explorer';
 import {chapterDetail} from '../lib/owner-demo-review';
 import ExecutiveFeedbackBoard from './executive-feedback-board';
 
@@ -31,14 +33,16 @@ function drawScene(ctx:CanvasRenderingContext2D,scene:DemoScene,sequence:number,
 }
 export default function OwnerDemoFilm({onClose,onNavigate}:Props){
  const [recordedMime,setRecordedMime]=useState('video/webm');
- const [feedbackOpen,setFeedbackOpen]=useState(false),[showGuide,setShowGuide]=useState(true);
+ const [feedbackOpen,setFeedbackOpen]=useState(false),[showGuide,setShowGuide]=useState(false),[explorerOpen,setExplorerOpen]=useState(true),[mode,setMode]=useState<DemoMode>('executive');
  const [playing,setPlaying]=useState(false),[index,setIndex]=useState(0),[fraction,setFraction]=useState(0),[narrate,setNarrate]=useState(true),[speed,setSpeed]=useState(1),[voices,setVoices]=useState<SpeechSynthesisVoice[]>([]),[voiceName,setVoiceName]=useState(''),[voiceReady,setVoiceReady]=useState(false),[recording,setRecording]=useState(false),[recordedUrl,setRecordedUrl]=useState(''),[error,setError]=useState('');
  const speechPendingRef=useRef(false),lastClock=useRef<number>(0),canvasRef=useRef<HTMLCanvasElement|null>(null),videoRef=useRef<HTMLVideoElement|null>(null);
- const scene=DEMO_SCENES[index];
+ const timeline=timelineForMode(mode);
+ const {scenes,durations,starts,total}=timeline;
+ const scene=scenes[Math.min(index,scenes.length-1)];
  const detail=chapterDetail(scene.id);
- const expandedNarration=[scene.narration,'What the team can do here: '+detail.capabilities.join('. ')+'.','For leadership, the decision to consider is: '+detail.ownerDecision+'.','A question to consider: '+detail.question].join(' ');
+ const briefNarration=spokenPitch(scene);
  const stages=['Inquiry','Enrollment','Classroom','Yard','Road','Testing','Graduate'];
- const stageIndex=[0,0,0,1,1,1,1,2,2,3,4,5,6,6,6,6,6][index]||0;
+ const stageIndex=scene.id==='network'||scene.id==='lead'?0:scene.id==='portal'||scene.id==='theory'?2:scene.id==='road'?4:scene.id==='testing'?5:scene.id==='finale'?6:3;
  const clickPaths:Record<string,string>={
   network:'Choose a campus in the top filter → review student and school counts',
   lead:'Admissions → New Inquiries → add applicant → set next contact date',
@@ -84,29 +88,29 @@ export default function OwnerDemoFilm({onClose,onNavigate}:Props){
   lastClock.current=performance.now();
   const t=window.setInterval(()=>{
    const now=performance.now(),step=Math.min(450,now-lastClock.current)*speedRef.current;lastClock.current=now;
-   const sceneMs=DEMO_SCENE_DURATIONS[indexRef.current];
+   const sceneMs=durations[indexRef.current];
    const nextElapsed=progressRef.current*sceneMs+step;
    if(nextElapsed>=sceneMs){
     // Do not cut off a spoken sentence to advance the visual slide.
     if(narrate&&speechPendingRef.current){setFraction(.999);return;}
-    if(indexRef.current===DEMO_SCENES.length-1){setFraction(1);setPlaying(false);return;}
+    if(indexRef.current===scenes.length-1){setFraction(1);setPlaying(false);return;}
     setIndex(indexRef.current+1);setFraction(0);
    }else setFraction(nextElapsed/sceneMs);
   },75);
   return()=>clearInterval(t);
- },[playing,narrate]);
+ },[playing,narrate,mode]);
  useEffect(()=>{
   if(typeof window==='undefined'||!('speechSynthesis' in window))return;
   const synth=window.speechSynthesis;
   synth.cancel();
   speechPendingRef.current=false;
   if(!narrate||!playing)return;
-  const utterance=new SpeechSynthesisUtterance(expandedNarration);
+  const utterance=new SpeechSynthesisUtterance(briefNarration);
   const chosen=voices.find(v=>v.voiceURI===voiceName);
   if(chosen)utterance.voice=chosen;
   utterance.lang=chosen?.lang||'en-US';
-  utterance.rate=Math.max(.7,Math.min(1.15,.88*speed));
-  utterance.pitch=.98;utterance.volume=.95;
+  utterance.rate=Math.max(.9,Math.min(1.28,1.08*speed));
+  utterance.pitch=1;utterance.volume=.95;
   speechPendingRef.current=true;
   utterance.onend=()=>{speechPendingRef.current=false;};
   utterance.onerror=()=>{speechPendingRef.current=false;};
@@ -118,10 +122,10 @@ export default function OwnerDemoFilm({onClose,onNavigate}:Props){
  useEffect(()=>{function esc(e:KeyboardEvent){if(e.key==='Escape')onClose();if(e.key===' '&&!['INPUT','TEXTAREA','SELECT'].includes((e.target as HTMLElement).tagName)){e.preventDefault();setPlaying(p=>!p);}}
   window.addEventListener('keydown',esc);return()=>window.removeEventListener('keydown',esc);
  },[onClose]);
- const currentSeconds=(DEMO_SCENE_STARTS[index]+fraction*DEMO_SCENE_DURATIONS[index])/1000,totalSeconds=DEMO_TOTAL_MS/1000;
- function seek(next:number){speechPendingRef.current=false;if(typeof speechSynthesis!=='undefined')speechSynthesis.cancel();setIndex(Math.max(0,Math.min(DEMO_SCENES.length-1,next)));setFraction(0);lastClock.current=performance.now();}
+ const currentSeconds=(starts[index]+fraction*durations[index])/1000,totalSeconds=total/1000;
+ function seek(next:number){speechPendingRef.current=false;if(typeof speechSynthesis!=='undefined')speechSynthesis.cancel();setIndex(Math.max(0,Math.min(scenes.length-1,next)));setFraction(0);lastClock.current=performance.now();}
  function restart(){seek(0);setPlaying(true);}
- function start(){if(index===DEMO_SCENES.length-1&&fraction>=.99)restart();else setPlaying(v=>!v);}
+ function start(){if(index===scenes.length-1&&fraction>=.99)restart();else setPlaying(v=>!v);}
  async function saveFilm(){
   setError('');if(recording)return;
   const canvas=canvasRef.current;
@@ -140,15 +144,15 @@ export default function OwnerDemoFilm({onClose,onNavigate}:Props){
    };});
    recorder.start(250);
    // Give viewers time to read. Canvas exports are silent: browser voice output cannot be reliably captured as a video audio track.
-   const hold=14000;const startAt=performance.now();
+   const hold=9500;const startAt=performance.now();
    await new Promise<void>(resolve=>{
     let ended=false;
     const render=(now:number)=>{
      if(ended)return;
-     const absolute=now-startAt,frame=Math.min(DEMO_SCENES.length-1,Math.floor(absolute/hold));
+     const absolute=now-startAt,frame=Math.min(scenes.length-1,Math.floor(absolute/hold));
      const within=Math.min(1,(absolute-frame*hold)/hold);
-     drawScene(context,DEMO_SCENES[frame],frame,(frame+within)/DEMO_SCENES.length);
-     if(absolute>=DEMO_SCENES.length*hold){ended=true;resolve();return;}
+     drawScene(context,scenes[frame],frame,(frame+within)/scenes.length);
+     if(absolute>=scenes.length*hold){ended=true;resolve();return;}
      requestAnimationFrame(render);
     };requestAnimationFrame(render);
    });
@@ -163,12 +167,12 @@ export default function OwnerDemoFilm({onClose,onNavigate}:Props){
    <div className="film-screen" aria-live="off">
     <div className="film-light-beam" aria-hidden="true"/><div className="film-watermark">DEMO ONLY · NO REAL STUDENT INFORMATION</div>
     <div key={scene.id} className="film-scene">
-      <div className="film-eyebrow"><span className="film-step">{scene.step} / {String(DEMO_SCENES.length).padStart(2,'0')}</span><span>{scene.kicker}</span></div>
+      <div className="film-eyebrow"><span className="film-step">{String(index+1).padStart(2,'0')} / {String(scenes.length).padStart(2,'0')}</span><span>{scene.kicker}</span></div>
       <div className="film-journey"><span className="film-journey-persona">FOLLOW JORDAN ELLIS <small>FICTIONAL STUDENT STORY</small></span><div className="film-journey-stages" aria-label="Student lifecycle">{stages.map((label,idx)=><span key={label} className={idx===stageIndex?'current':idx<stageIndex?'complete':''}>{label}</span>)}</div></div>
       <h2>{scene.title}</h2><p className="film-subtitle">{scene.subtitle}</p>
       <div className="film-metric-row">{scene.stats.map((stat,i)=><div className="film-metric" key={i}><strong>{stat}</strong><small>{['CURRENT VIEW','VISIBLE EVIDENCE','KEY OUTCOME'][i]}</small></div>)}</div>
       <div className="film-insights">{scene.highlights.map((item,i)=><div key={i}><CheckCircle2 size={18}/><p>{item}</p></div>)}</div>
-      <div className="film-click-path"><strong>HOW TO USE IT:</strong> {clickPaths[scene.id]||'Select Open workflow to inspect this module directly.'}</div><div className="film-narrative"><BookOpen size={18}/><p>{scene.narration}</p></div>
+      <div className="film-click-path"><strong>HOW TO USE IT:</strong> {clickPaths[scene.id]||'Select Open workflow to inspect this module directly.'}</div><div className="film-narrative"><BookOpen size={18}/><p>{briefNarration}</p></div>
     </div>
     <div className="film-features"><span>LIVE WORKFLOW LINK</span><button type="button" onClick={openFeature}>{scene.feature} <ArrowRight size={15}/></button></div>
    </div>
@@ -178,9 +182,11 @@ export default function OwnerDemoFilm({onClose,onNavigate}:Props){
     <div className="reportactions"><button type="button" onClick={()=>setShowGuide(x=>!x)}>{showGuide?'Condense chapter notes':'Expand chapter details'}</button><button type="button" className="primary" onClick={()=>{setPlaying(false);setFeedbackOpen(true)}}>Record feedback / request a feature</button></div>
    </section>
    {feedbackOpen&&<ExecutiveFeedbackBoard chapter={scene.id} onClose={()=>setFeedbackOpen(false)}/>}
-   <div className="film-controls"><p className="muted">Executive presentation mode · Press Play to begin. Chapters stay visible until the narrator finishes; pause, change voices or advance whenever you choose.</p>
-    <div className="film-timeline"><span>{time(currentSeconds)}</span><input aria-label="Presentation progress" type="range" min={0} max={DEMO_TOTAL_MS} step={1000} value={DEMO_SCENE_STARTS[index]+fraction*DEMO_SCENE_DURATIONS[index]} onChange={e=>{const point=demoTimeToScene(Number(e.target.value));speechPendingRef.current=false;if(typeof speechSynthesis!=='undefined')speechSynthesis.cancel();setIndex(point.index);setFraction(point.fraction);}}/><span>{time(totalSeconds)}</span></div>
-    <div className="reportactions"><label>Go directly to a department <select aria-label="Choose executive demo chapter" value={index} onChange={e=>{seek(Number(e.target.value));setPlaying(false);}}>{DEMO_SCENES.map((item,i)=><option value={i} key={item.id}>{String(i+1).padStart(2,'0')} · {item.feature}</option>)}</select></label><button type="button" onClick={()=>{setPlaying(false);setFeedbackOpen(true)}}>Leadership feedback board</button></div>
+   <div className="reportactions" style={{margin:'8px 12px'}}><button type="button" onClick={()=>setExplorerOpen(x=>!x)}>{explorerOpen?'Hide':'Explore'} complete system · {CAPABILITY_COUNT} features</button><span className="muted">Search every department; open a working screen or submit a suggestion.</span></div>
+   {explorerOpen&&<CapabilityExplorer onNavigate={(page,id)=>{setPlaying(false);onClose();onNavigate(page,id);}} onReview={id=>{setPlaying(false);const pos=scenes.findIndex(x=>x.id===id);if(pos>=0)setIndex(pos);setFeedbackOpen(true);}}/>
+   <div className="film-controls"><p className="muted">Choose a concise executive pitch or a complete department walkthrough. Narration gives the headline; details stay on screen for discussion.</p>
+    <div className="film-timeline"><span>{time(currentSeconds)}</span><input aria-label="Presentation progress" type="range" min={0} max={total} step={1000} value={starts[index]+fraction*durations[index]} onChange={e=>{const ms=Number(e.target.value);const choice=starts.findIndex((v,i)=>ms>=v&&ms<v+durations[i]);const target=choice<0?scenes.length-1:choice;const point={index:target,fraction:Math.min(.99,Math.max(0,(ms-starts[target])/durations[target]))};speechPendingRef.current=false;if(typeof speechSynthesis!=='undefined')speechSynthesis.cancel();setIndex(point.index);setFraction(point.fraction);}}/><span>{time(totalSeconds)}</span></div>
+    <div className="reportactions"><label>Presentation format <select aria-label="Presentation format" value={mode} onChange={e=>{setPlaying(false);setMode(e.target.value as DemoMode);setIndex(0);setFraction(0);setShowGuide(e.target.value==='complete');}}><option value="executive">Executive highlights — 8 outcomes</option><option value="complete">Full guided tour — 27 departments</option></select></label><label>Go directly to a department <select aria-label="Choose executive demo chapter" value={index} onChange={e=>{seek(Number(e.target.value));setPlaying(false);}}>{scenes.map((item,i)=><option value={i} key={item.id}>{String(i+1).padStart(2,'0')} · {item.feature}</option>)}</select></label><button type="button" onClick={()=>{setPlaying(false);setFeedbackOpen(true)}}>Leadership feedback board</button></div>
     <div className="film-buttons"><div><button type="button" aria-label="Previous chapter" onClick={()=>seek(index-1)}><ChevronLeft size={22}/></button>
       <button type="button" className="film-play" onClick={start} aria-label={playing?'Pause walkthrough':'Play walkthrough'}>{playing?<Pause size={22}/>:<Play size={22}/>}</button>
       <button type="button" aria-label="Next chapter" onClick={()=>seek(index+1)}><ChevronRight size={22}/></button>
@@ -188,7 +194,7 @@ export default function OwnerDemoFilm({onClose,onNavigate}:Props){
      <div><button type="button" aria-pressed={narrate} onClick={()=>setNarrate(v=>!v)} title="Use system speech to narrate the story">{narrate?<Volume2 size={19}/>:<VolumeX size={19}/>} {narrate?'Narration ON':'Narration OFF'}</button>
       <label className="film-speed-label">Narrator<select aria-label="Narrator voice" value={voiceName} onChange={e=>setVoiceName(e.target.value)} disabled={!voiceReady||!voices.length}>
  {voices.length?voices.map(v=><option key={v.voiceURI} value={v.voiceURI}>{v.name} ({v.lang})</option>):<option value="">Browser voice unavailable</option>}
- </select></label><label className="film-speed-label">Speed<select value={speed} onChange={e=>setSpeed(Number(e.target.value))}><option value={.65}>Gentle (0.65×)</option><option value={.8}>Relaxed (0.8×)</option><option value={1}>Standard (1×)</option><option value={1.2}>Quick (1.2×)</option></select></label></div>
+ </select></label><label className="film-speed-label">Speed<select value={speed} onChange={e=>setSpeed(Number(e.target.value))}><option value={.85}>Relaxed (0.85×)</option><option value={1}>Natural (1×)</option><option value={1.15}>Brisk (1.15×)</option><option value={1.25}>Quick (1.25×)</option></select></label></div>
     </div>
    </div>
    <div className="film-footer">
