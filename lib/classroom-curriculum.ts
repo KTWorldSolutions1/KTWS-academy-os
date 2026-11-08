@@ -67,11 +67,11 @@ export const CLASSROOM_WEEK_ONE:ClassroomDay[]=[
    {title:'Speed/space management and braking judgment',hours:2,method:'J. J. Keller + safe following-distance scenarios'},
    {title:'Night operation and extreme conditions',hours:2,method:'J. J. Keller + weather/grade decision exercise'},
    {title:'Hazards, skids, recovery and emergencies',hours:2,method:'J. J. Keller + facilitated risk response'},
-   {title:'Railroad crossings & decision challenge',hours:2,method:'J. J. Keller + clearance/railroad problem set'}
+   {title:'Railroad crossings & driver-clock introduction',hours:2,method:'J. J. Keller crossing lesson, then display an ELD clock and introduce driving, window, break and cycle counters; full calculation lab follows Wednesday'}
   ],
   materials:['J. J. Keller assigned modules','Photos/videos of road conditions','Railroad-crossing diagram'],
   evidence:['Assigned J. J. Keller module completions','Hazard recognition worksheet','Instructor-led review of incorrect decisions'],
-  instructorNotes:'Do not treat a discussion or video as actual behind-the-wheel proficiency. Record roadway competencies during the separate required training phase.'
+  instructorNotes:'Tuesday includes the requested driver-clock introduction. Verify the licensed module duration before assigning the introduction its final time. Do not treat a discussion or video as actual behind-the-wheel proficiency. Record roadway competencies during the separate required training phase.'
  },
  {day:3,label:'Wednesday',title:'Hours-of-service clock, ELD & daily logs',
   focus:'Complete vehicle-system theory and HOS/fatigue requirements; dedicate a practical workshop to actual clock and log calculations.',

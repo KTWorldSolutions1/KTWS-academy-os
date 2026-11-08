@@ -1,0 +1,9 @@
+'use client';
+import {useState} from 'react';
+import {scheduleBudget} from '../lib/driver-practice';
+export default function ClassroomScheduleBudget(){
+ const [start,setStart]=useState('07:00'),[end,setEnd]=useState('16:00'),[pause,setPause]=useState(60),[days,setDays]=useState(5);
+ let budget:ReturnType<typeof scheduleBudget>|null=null,error='';
+ try{budget=scheduleBudget(start,end,pause,days);}catch(e){error=e instanceof Error?e.message:'Invalid schedule';}
+ return <section className="classroom-workshop" aria-label="Classroom schedule feasibility"><h3>Does the schedule actually fit?</h3><p>The original five-day proposal allocates ten instructional hours per day. It cannot fit inside 7 AM–4 PM. This calculator checks available time without changing classes or crediting attendance.</p><div className="formgrid"><label>Start<input type="time" value={start} onChange={e=>setStart(e.target.value)}/></label><label>End<input type="time" value={end} onChange={e=>setEnd(e.target.value)}/></label><label>Break minutes per day<input type="number" min="0" value={pause} onChange={e=>setPause(Number(e.target.value))}/></label><label>Instructional days<input type="number" min="1" max="31" value={days} onChange={e=>setDays(Number(e.target.value))}/></label></div>{error?<p role="alert" className="error">{error}</p>:budget&&<div role="status"><p><b>{budget.daily.toFixed(2)} hours per day · {budget.total.toFixed(2)} hours available · {budget.remaining.toFixed(2)} hours still needed toward 50.</b></p>{budget.remaining>0&&<p className="notice">Schedule additional classroom instruction before progression. At this daily capacity, at least {budget.minimumDays} teaching days are needed. The school must approve the final lesson allocation; a plan is not proof of completed instruction.</p>}</div>}</section>;
+}

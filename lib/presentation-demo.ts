@@ -54,7 +54,7 @@ export const DEMO_SCENES:DemoScene[]=[
   feature:'FMCSA Class A classroom',destination:'courses',kicker:'CLASSROOM / FMCSA',
   stats:['30 TOPICS','50 HOURS','5 DAYS'],
   highlights:['Map all 30 standard federal theory subjects','Practice driver clocks, paper logs and ELD calculations','Read a truck atlas, plan legal routes and respond to dispatch'],
-  narration:'The classroom week links the thirty required federal theory subjects with an organized five-day plan. Hands-on hours of service, E L D, map reading and dispatch exercises reinforce the J. J. Keller curriculum. The licensed course sequence still must be verified.'},
+  narration:'The classroom week links the thirty required federal theory subjects with an organized five-day plan. Hands-on hours of service, E L D, map reading and dispatch exercises reinforce the J. J. Keller curriculum. Students can now practice a duty timeline and dispatch decisions in the learning lab. The planner flags schedule shortfalls. The licensed course sequence still must be verified.'},
  {id:'test',step:'09',title:'Catch knowledge gaps before the permit test.',
   subtitle:'No more waiting until Friday to discover who missed a key subject.',
   feature:'Knowledge Diagnostics',destination:'learning-diagnostics',kicker:'EARLY INTERVENTION',

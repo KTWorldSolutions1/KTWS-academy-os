@@ -1,4 +1,5 @@
 'use client';
+import DriverPracticeLab from './driver-practice-lab';
 import {useMemo,useState} from 'react';
 import {BookOpen,CheckCircle2,ClipboardCheck,FileText,ShieldAlert,Truck,Upload} from 'lucide-react';
 import type {RecordData as R} from '../lib/training';
@@ -74,6 +75,7 @@ export default function DriverPlaybook({records,role,demo,busy,saveMany}:Props){
   const win=window.open('','_blank');if(win){win.document.write(html);win.document.close();}else setError('Allow a pop-up to print or save this daily checklist.');
  }
  return <div className="daily-playbook">
+ <details className="panel"><summary>Open the driver readiness practice lab</summary><DriverPracticeLab/></details>
  <section className="panel"><div className="sectionhead"><div><p className="eyebrow">LONE STAR • FIVE-WEEK INSTRUCTOR OPERATIONS</p><h2>25-Day Driver Development Playbook</h2><p className="muted">Instructor-led daily checklist for each student, with FMCSA lesson mapping, the school's licensed J. J. Keller material references, and smiley feedback for areas needing coaching. Covers all {ALL_FEDERAL_CODES.length} federally listed Class A theory, range and road subjects plus practical driver readiness.</p></div><BookOpen size={27}/></div>
  <div className="formgrid"><label>Location<select value={campus?.id||''} onChange={e=>{setCampusId(e.target.value);setStudentId('');setResults({});setStepMoods({});}}>{campuses.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></label>
  <label>Student<select value={student?.id||''} onChange={e=>{setStudentId(e.target.value);setResults({});setStepMoods({});setNotes('');setNextSteps('');}}>{!students.length&&<option value="">No Class A students</option>}{students.map(s=><option key={s.id} value={s.id}>{s.name} • {s.status}</option>)}</select></label>

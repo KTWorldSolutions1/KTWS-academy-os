@@ -1,4 +1,5 @@
 'use client';
+import DriverPracticeLab from './driver-practice-lab';
 import {useState} from 'react';
 import {StudentCareerJourneyDemo} from './student-career-journey';
 import {studentFacingNotices} from '../lib/school-calendar';
@@ -42,7 +43,7 @@ export default function DemoStudentPortal({records,demo,saveMany}:Props){
    setNotice('Demo result saved only to local sample data. Review the Knowledge Diagnostics staff dashboard to see the same subject errors.');
   }
  }
- return <div className="demo-student-portal"><section className="panel"><div className="sectionhead"><div><p className="eyebrow">OWNER PRESENTATION • SELF-SERVICE SIMULATOR</p><h2>Walk through a student's portal</h2><p className="muted">Choose one of the fictional students. Explore what an actual authorized student would see, simulate a requested document and answer a mini knowledge check. This preview never calls the private live upload or student portal API.</p></div><ShieldCheck size={26}/></div><label>Fictional student<select value={student.id} onChange={e=>{setStudentId(e.target.value);setResult(null);setAnswers({});setNotice('');}}>{students.slice(0,100).map(s=><option key={s.id} value={s.id}>{s.name} · {s.status} · {records.find(c=>c.id===s.campusId)?.name||'Campus'}</option>)}</select></label></section>
+ return <div className="demo-student-portal"><details className="panel"><summary>Practice driver clocks, dispatch and terminology</summary><DriverPracticeLab/></details><section className="panel"><div className="sectionhead"><div><p className="eyebrow">OWNER PRESENTATION • SELF-SERVICE SIMULATOR</p><h2>Walk through a student's portal</h2><p className="muted">Choose one of the fictional students. Explore what an actual authorized student would see, simulate a requested document and answer a mini knowledge check. This preview never calls the private live upload or student portal API.</p></div><ShieldCheck size={26}/></div><label>Fictional student<select value={student.id} onChange={e=>{setStudentId(e.target.value);setResult(null);setAnswers({});setNotice('');}}>{students.slice(0,100).map(s=><option key={s.id} value={s.id}>{s.name} · {s.status} · {records.find(c=>c.id===s.campusId)?.name||'Campus'}</option>)}</select></label></section>
  <section className="demo-student-shell">
   <div className="demo-student-sidebar"><div className="demo-student-crest">★</div><strong>LONE STAR</strong><small>STUDENT PORTAL · SIMULATED</small><span>MY LEARNING</span>{(['Home','Documents','Practice'] as const).map(n=><button key={n} className={activeTab===n?'active':''} onClick={()=>setActiveTab(n)}>{n==='Home'?<GraduationCap size={16}/>:n==='Documents'?<FileText size={16}/>:<BookOpen size={16}/>} {n}</button>)}
   <div className="demo-student-identity"><span>{initials}</span><div><b>{student.name}</b><small>{student.studentNumber||'Sample student'}</small></div></div></div>

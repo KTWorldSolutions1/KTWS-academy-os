@@ -1285,3 +1285,21 @@ button:focus-visible,a:focus-visible{outline:2px solid #68ccff}
 .app-sidebar .nav-brand-button .ls-wordmark>strong{font-family:Arial,sans-serif;font-size:19px;line-height:1.12;letter-spacing:.7px;font-weight:900;color:#111111;white-space:nowrap}
 .app-sidebar .nav-brand-button .ls-wordmark-star{display:inline!important;font-size:21px!important;color:#087ace!important;letter-spacing:0!important;margin:0 2px;line-height:1}
 .app-sidebar .nav-brand-button .ls-wordmark-subtitle{display:block!important;font-size:9px!important;font-weight:800!important;letter-spacing:1px!important;color:#183d70!important}
+
+/* Driver readiness practice: touch-friendly controls, isolated fictional exercises. */
+.driver-practice-lab>label{display:block;margin:18px 0;line-height:1.5}
+.driver-practice-lab textarea{display:block;width:100%;margin-top:8px;padding:12px;border:1px solid #586b85;border-radius:10px;background:#132039;color:#f0f5ff;resize:vertical}
+.driver-practice-lab fieldset{margin:18px 0;padding:16px;border:1px solid #425774;border-radius:12px;min-width:0}
+.driver-practice-lab legend{padding:0 8px;line-height:1.5;font-weight:600}
+.driver-practice-lab fieldset label{padding:10px 0;line-height:1.5;cursor:pointer}
+.driver-practice-lab input[type=radio]{width:18px;height:18px;margin-right:10px;accent-color:#7dc3f5;vertical-align:middle}
+.driver-practice-lab>button,.driver-practice-lab .classroom-workshop button{min-height:44px;border:1px solid #536b88;border-radius:9px;padding:10px 14px;margin:5px 8px 8px 0}
+.driver-practice-lab details{padding:14px 0;border-bottom:1px solid #35455e}
+.driver-practice-lab summary{cursor:pointer;line-height:1.6;min-height:40px}
+.driver-practice-lab li{margin:10px 0;line-height:1.6}
+.driver-practice-lab .subtabs{flex-wrap:wrap}
+.driver-practice-lab .formgrid{margin:16px 0}
+.driver-practice-lab .formgrid label{min-width:0}
+.driver-practice-lab caption{text-align:left;padding:12px 0;font-weight:600}
+.driver-practice-lab .tablewrap{margin-top:18px;overflow-x:auto}
+@media(max-width:700px){.driver-practice-lab .formgrid{grid-template-columns:1fr}.driver-practice-lab .curriculum-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.driver-practice-lab .subtabs button{min-height:44px}.driver-practice-lab>button{width:100%;justify-content:center}}

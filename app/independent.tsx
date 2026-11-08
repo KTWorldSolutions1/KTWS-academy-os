@@ -1,4 +1,5 @@
 import {useEffect,useState} from 'react';
+import WorkspaceErrorBoundary from './workspace-error-boundary';
 import Academy from './workspace';
 import PartnerPortal from './partner-portal';
 import StudentPortal from './student-portal';
@@ -10,4 +11,4 @@ if(location.pathname==='/account'&&user?.email)return <ChangePassword email={use
 if(user?.role==='Agency representative')return <PartnerPortal identity={user}/>;
 if(user?.role==='Student')return <StudentPortal identity={user}/>;
 if(user===undefined)return <main className="loginpage"><p>Loading your school workspace…</p></main>;
-return <><div className="accountbar"><span>{user.email} • {user.role}</span><button onClick={()=>location.assign('/account')}>Change password</button><button onClick={async()=>{await fetch('/api/auth/logout',{method:'POST'});location.assign('/login');}}>Sign out</button></div><Academy/></>;}
+return <><div className="accountbar"><span>{user.email} • {user.role}</span><button onClick={()=>location.assign('/account')}>Change password</button><button onClick={async()=>{await fetch('/api/auth/logout',{method:'POST'});location.assign('/login');}}>Sign out</button></div><WorkspaceErrorBoundary><Academy/></WorkspaceErrorBoundary></>;}
