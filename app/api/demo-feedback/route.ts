@@ -37,7 +37,7 @@ export async function POST(req:Request){
    if(!/^[0-9a-f-]{36}$/i.test(id)||!REVIEW_STATUSES.includes(status as any))return respond({error:'Invalid feedback decision'},400);
    const result:any=await db.prepare('UPDATE academy_demo_feedback SET status=?,updated_at=?,updated_by=? WHERE id=?')
     .bind(status,now,a.user.email,id).run();
-   if(!result.meta?.changes)return respond({error:'Feedback item not found'},404);
+   if(!Number(result.meta?.changes??result.changes??0))return respond({error:'Feedback item not found'},404);
    return respond({ok:true,status});
   }
   return respond({error:'Unsupported review action'},400);
