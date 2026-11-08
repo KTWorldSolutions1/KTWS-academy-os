@@ -76,3 +76,13 @@ CREATE TABLE IF NOT EXISTS academy_workflow_runs(
  id TEXT PRIMARY KEY,scheduled_for TEXT NOT NULL,completed_at TEXT NOT NULL,
  rule_id TEXT NOT NULL,created_count INTEGER NOT NULL DEFAULT 0,
  UNIQUE(scheduled_for,rule_id));
+
+-- FMCSA Web Service transport audit: minimal identifiers, never personal license numbers.
+CREATE TABLE IF NOT EXISTS tpr_webservice_submissions(
+ id TEXT PRIMARY KEY, student_id TEXT NOT NULL,campus_id TEXT NOT NULL,
+ training_type TEXT NOT NULL,completion_date TEXT NOT NULL,
+ initiated_by TEXT NOT NULL,initiated_at TEXT NOT NULL,
+ status TEXT NOT NULL CHECK(status IN ('Pending','Accepted','Rejected','Needs reconciliation')),
+ http_status INTEGER,receipt_note TEXT,
+ UNIQUE(student_id,campus_id,training_type,completion_date));
+CREATE INDEX IF NOT EXISTS idx_tpr_webservice_status ON tpr_webservice_submissions(campus_id,status);
