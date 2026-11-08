@@ -9,7 +9,7 @@ type Props={
  onStudent:(id:string)=>void;onTrainingView:(name:string)=>void;saveMany:(rows:R[])=>Promise<boolean>;
  onClose:()=>void;onTrailer:()=>void;
 };
-const STEP_LENGTH=10600;
+const STEP_LENGTH=30000;
 function findTarget(step:OperatorStep):HTMLElement|null{
  const match=document.querySelector(step.selector) as HTMLElement|null;
  if(match)return match;
@@ -69,8 +69,8 @@ function clickRealPreflight(){
  return false;
 }
 export default function OperatorDemo({records,role,demo,onNavigate,onSelectCampus,onStudent,onTrainingView,saveMany,onClose,onTrailer}:Props){
- const [position,setPosition]=useState(0),[playing,setPlaying]=useState(true),[voice,setVoice]=useState(false),[speed,setSpeed]=useState(1),[minimized,setMinimized]=useState(false);
- const [note,setNote]=useState('Starting real-workspace walkthrough. Every record is synthetic.'),[touched,setTouched]=useState(0),[clicking,setClicking]=useState(false);
+ const [position,setPosition]=useState(0),[playing,setPlaying]=useState(false),[voice,setVoice]=useState(true),[speed,setSpeed]=useState(.85),[minimized,setMinimized]=useState(false);
+ const [note,setNote]=useState('Ready for a guided real-workspace walkthrough. Press Play to start. Every record is synthetic.'),[touched,setTouched]=useState(0),[clicking,setClicking]=useState(false);
  const [pointer,setPointer]=useState({left:-80,top:-80,visible:false}),[fileUrl,setFileUrl]=useState(''),[fileType,setFileType]=useState('video/webm'),[recording,setRecording]=useState(false),[error,setError]=useState('');
  const latest=useRef({records,onNavigate,onSelectCampus,onStudent,onTrainingView,saveMany,onClose,onTrailer,role,demo});
  latest.current={records,onNavigate,onSelectCampus,onStudent,onTrainingView,saveMany,onClose,onTrailer,role,demo};
@@ -149,7 +149,7 @@ export default function OperatorDemo({records,role,demo,onNavigate,onSelectCampu
   if(!voice||!playing||!demo||!('speechSynthesis' in window))return;
   window.speechSynthesis.cancel();
   const line=new SpeechSynthesisUtterance(step.voice);
-  line.lang='en-US';line.rate=Math.min(1.9,1.35*speed);line.pitch=1;line.volume=.96;
+  line.lang='en-US';line.rate=Math.max(.7,Math.min(1.18,.88*speed));line.pitch=1;line.volume=.96;
   window.speechSynthesis.speak(line);
   return()=>window.speechSynthesis.cancel();
  },[position,playing,voice,speed,demo]);
@@ -201,7 +201,7 @@ export default function OperatorDemo({records,role,demo,onNavigate,onSelectCampu
     <button aria-label="Next step" onClick={()=>seek(position+1)} disabled={isEnd}><ChevronRight size={20}/></button>
    </div>
    <div className="operator-secondary-controls"><button onClick={()=>setVoice(x=>!x)} aria-pressed={voice}>{voice?<Volume2 size={16}/>:<VolumeX size={16}/>} {voice?'Narration on':'Voice narration'}</button>
-    <label>Speed <select value={speed} onChange={e=>setSpeed(Number(e.target.value))}><option value={.75}>0.75×</option><option value={1}>1×</option><option value={1.5}>1.5×</option><option value={2}>2×</option></select></label>
+    <label>Speed <select value={speed} onChange={e=>setSpeed(Number(e.target.value))}><option value={.65}>Gentle · 0.65×</option><option value={.85}>Relaxed · 0.85×</option><option value={1}>Standard · 1×</option><option value={1.2}>Quick · 1.2×</option></select></label>
     <button onClick={onTrailer}><Play size={15}/> Story trailer</button>
    </div>
    <div className="operator-capture"><div><b><Camera size={17}/> Record the actual interface</b><p>On desktop, select <b>This Tab</b> in the browser sharing dialog. Your video will capture the real Academy OS screens, operator cursor and demonstration actions—not a slide deck.</p></div>
