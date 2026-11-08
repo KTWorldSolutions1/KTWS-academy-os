@@ -22,11 +22,16 @@ export async function GET(req:Request){
   const lines:any[]=[];
   for(const employee of staff){
    const punches:any=await db.prepare('SELECT id,action,at,campus_id FROM employee_punches WHERE employee_id=? ORDER BY at,id').bind(employee.id).all();
-   const summary=weeklyCampusMinutes(punches.results,week);
+   const corrected:any=await db.prepare("SELECT punch_id,proposed_at FROM employee_punch_corrections WHERE employee_id=? AND status='Approved'").bind(employee.id).all();
+   const patches=new Map(corrected.results.map((x:any)=>[x.punch_id,x.proposed_at]));
+   const effective=punches.results.map((p:any)=>({...p,at:patches.get(p.id)||p.at}));
+   const summary=weeklyCampusMinutes(effective,week);
    const minutes=summary.totals[campusId]||0;
    const companyMinutes=Object.values(summary.totals).reduce((n,v)=>n+Number(v),0);
    const problems:string[]=[...summary.issues];
    if(companyMinutes>2400)problems.push('Overtime review required across campuses');
+   const pendingCorrections:any=await db.prepare("SELECT COUNT(*) AS count FROM employee_punch_corrections WHERE employee_id=? AND status='Pending'").bind(employee.id).first();
+   if(Number(pendingCorrections?.count||0)>0)problems.push('Pending punch correction approval');
    const approval:any=await db.prepare('SELECT approved_by,approved_at FROM employee_payroll_approvals WHERE employee_id=? AND week=?').bind(employee.id,week).first();
    const rate:any=await db.prepare('SELECT rate_cents FROM employee_pay_rates WHERE employee_id=? AND campus_id=?').bind(employee.id,campusId).first();
    const hours=Math.round(Math.max(0,minutes))/60;
