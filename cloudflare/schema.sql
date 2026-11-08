@@ -89,6 +89,7 @@ WHERE c.owner='academy-owner' AND c.kind='campuses'
 UPDATE records SET
  payload=json_set(payload,
          '$.accessRole','Campus manager',
+         '$.status','Active',
          '$.campusIds',json_array((
             SELECT c.id FROM records c WHERE c.owner='academy-owner' AND c.kind='campuses'
             AND json_extract(c.payload,'$.status')='Active'
@@ -105,7 +106,8 @@ WHERE owner='academy-owner' AND kind='staff'
       AND c.kind='campuses' AND json_extract(c.payload,'$.status')='Active'
       AND (lower(json_extract(c.payload,'$.name')) LIKE '%greensboro%'
        OR lower(json_extract(c.payload,'$.city'))='greensboro'))=1
- AND (json_extract(payload,'$.accessRole')!='Campus manager'
+ AND (coalesce(json_extract(payload,'$.status'),'')!='Active'
+      OR coalesce(json_extract(payload,'$.accessRole'),'')!='Campus manager'
       OR json_extract(payload,'$.position')!='Campus Manager / Academy OS Developer'
       OR json_extract(payload,'$.department')!='Greensboro Operations & Platform Development'
       OR json_array_length(json_extract(payload,'$.campusIds'))!=1
