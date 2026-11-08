@@ -71,7 +71,10 @@ export async function POST(req:Request){
    const week=weekMonday(b.week);
    if(!employee||!visible(employee,c)||!week)return json({error:'Employee or week is invalid'},400);
    const rows=await punches(c.db,employee.id),cut=weekEnd(week)+'T00:00:00.000Z';
-   if(rows.some(p=>p.at>=week+'T00:00:00.000Z'&&p.at<cut)&&(state(rows.filter(p=>p.at<cut)).state!=='out'))return json({error:'Close all punches and breaks through the end of this week before approval.'},409);
+   const period=rows.filter(p=>p.at>=week+'T00:00:00.000Z'&&p.at<cut);
+   if(!period.length)return json({error:'There are no punches to approve this week.'},409);
+   if(period[0].action!=='clock_in'||state(period).state!=='out')return json({error:'This week includes an open or cross-week punch. Review and close the timecard before approval.'},409);
+   if(week>new Date().toISOString().slice(0,10))return json({error:'Future weeks cannot be approved.'},409);
    await c.db.prepare('INSERT INTO employee_payroll_approvals(employee_id,week,approved_by,approved_at) VALUES(?,?,?,?) ON CONFLICT(employee_id,week) DO NOTHING').bind(employee.id,week,c.access.user.email,new Date().toISOString()).run();
    return json({ok:true});
   }
