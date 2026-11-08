@@ -46,3 +46,8 @@ CREATE TABLE IF NOT EXISTS billing_webhook_events(
 CREATE TABLE IF NOT EXISTS employee_punches(id TEXT PRIMARY KEY,employee_id TEXT NOT NULL,campus_id TEXT NOT NULL,action TEXT NOT NULL CHECK(action IN ('clock_in','break_start','break_end','clock_out')),at TEXT NOT NULL,actor TEXT NOT NULL);
 CREATE INDEX IF NOT EXISTS idx_employee_punches_employee_time ON employee_punches(employee_id,at);
 CREATE TABLE IF NOT EXISTS employee_payroll_approvals(employee_id TEXT NOT NULL,week TEXT NOT NULL,approved_by TEXT NOT NULL,approved_at TEXT NOT NULL,PRIMARY KEY(employee_id,week));
+
+-- Confidential employee pay rates, separate from ordinary staff records.
+CREATE TABLE IF NOT EXISTS employee_pay_rates(employee_id TEXT NOT NULL,campus_id TEXT NOT NULL,rate_cents INTEGER NOT NULL CHECK(rate_cents>0),updated_by TEXT NOT NULL,updated_at TEXT NOT NULL,PRIMARY KEY(employee_id,campus_id));
+CREATE TABLE IF NOT EXISTS employee_pay_rate_audit(id TEXT PRIMARY KEY,employee_id TEXT NOT NULL,campus_id TEXT NOT NULL,previous_cents INTEGER,new_cents INTEGER NOT NULL,actor TEXT NOT NULL,at TEXT NOT NULL);
+CREATE INDEX IF NOT EXISTS idx_pay_rate_audit ON employee_pay_rate_audit(employee_id,campus_id,at);
