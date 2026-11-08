@@ -30,6 +30,20 @@ export async function POST(req:Request){
   const issues=[...(error?[error]:[]),...evidence.checks.filter(x=>!x.present).map(x=>x.label)];
   if(f?.number&&![student.clpNumber,student.licenseNumber].some(n=>n===f.number))issues.push('Permit/license number differs from saved verified student reference');
   if(student.dateOfBirth&&f?.dateOfBirth!==student.dateOfBirth)issues.push('Date of birth differs from student record');
+  // A manager must not be able to submit a different driver under an
+  // otherwise valid saved student's record. Permit number alone is insufficient.
+  const nameParts=String(student.name||'').toLowerCase().match(/[a-z]+/g)||[];
+  if(!nameParts.includes(String(f?.firstName||'').trim().toLowerCase())||
+     !nameParts.includes(String(f?.lastName||'').trim().toLowerCase()))
+    issues.push('Driver first/last names must match verified student identity');
+  const storedState=String(student.clpState||student.licenseState||'').toUpperCase().replace(/^US-/,'');
+  if(storedState&&String(f?.state||'').toUpperCase().replace(/^US-/,'')!==storedState)
+    issues.push('Issuing state differs from the verified school record');
+  const program=String(student.program||'').toLowerCase();
+  if(program.includes('class a')&&f?.classCode!=='A'||
+     program.includes('class b')&&f?.classCode!=='B')
+    issues.push('Training class does not match the enrolled program');
+
   if(f?.trainingType==='Theory'&&Number(theoryState(student).final?.score)!==f.score)issues.push('Entered theory score must match the most recent verified theory final');
   if(f?.trainingType==='Range'&&Number(f.hours)>instructionHours(student,'Yard')+0.01)issues.push('Entered range hours exceed attested range instruction');
   if(f?.trainingType==='PublicRoad'&&Number(f.hours)>drivingTimeSummary(student).studentDrivingHours+0.01)issues.push('Entered road hours exceed verified student-operated driving');
