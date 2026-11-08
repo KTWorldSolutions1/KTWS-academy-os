@@ -1,5 +1,6 @@
 import {getWorkspaceAccess} from '../../../lib/workspace-access';
 import {database} from '../../../lib/storage';
+import {weeklyCampusMinutes} from '../../../lib/payroll-intervals';
 
 const managerRoles=new Set(['Owner','Regional admin','Campus manager']);
 const actions=['clock_in','break_start','break_end','clock_out'] as const;
@@ -76,11 +77,19 @@ export async function POST(req:Request){
    const week=weekMonday(b.week);
    if(!employee||!visible(employee,c)||!week)return json({error:'Employee or week is invalid'},400);
    if(c.me?.id===employee.id)return json({error:'Employees cannot approve their own timesheets. Another authorized manager must review.'},403);
-   const rows=await punches(c.db,employee.id),cut=weekEnd(week)+'T00:00:00.000Z';
-   const period=rows.filter(p=>p.at>=week+'T00:00:00.000Z'&&p.at<cut);
-   if(!period.length)return json({error:'There are no punches to approve this week.'},409);
-   if(period[0].action!=='clock_in'||state(period).state!=='out')return json({error:'This week includes an open or cross-week punch. Review and close the timecard before approval.'},409);
-   if(week>new Date().toISOString().slice(0,10))return json({error:'Future weeks cannot be approved.'},409);
+   const pending:any=await c.db.prepare("SELECT COUNT(*) AS pending FROM employee_punch_corrections WHERE employee_id=? AND status='Pending' AND week=?").bind(employee.id,week).first();
+   if(Number(pending?.pending||0)>0)return json({error:'This payroll week has pending clock corrections. Resolve them before approving.'},409);
+   const rows=await punches(c.db,employee.id);
+   const summary=weeklyCampusMinutes(rows,week);
+   if(!Object.values(summary.totals).some(minutes=>Number(minutes)>0))return json({error:'There is no completed work time to approve this week.'},409);
+   // Cross-midnight and Sunday-to-Monday shifts may be complete without starting
+   // with a clock-in inside the selected payroll week. Do not reject them merely
+   // for crossing an artificial UTC boundary.
+   const last=rows.at(-1);
+   if(last&&last.at<new Date(summary.to).toISOString()&&state(rows).state!=='out')
+     return json({error:'An open clock interval overlaps this pay week. Complete the timecard first.'},409);
+   if(summary.issues.length)return json({error:'Timecard contains unresolved punch sequencing or open entries: '+summary.issues.join('; ')},409);
+   if(week>new Date().toLocaleDateString('en-CA',{timeZone:'America/New_York'}))return json({error:'Future weeks cannot be approved.'},409);
    await c.db.prepare('INSERT INTO employee_payroll_approvals(employee_id,week,approved_by,approved_at) VALUES(?,?,?,?) ON CONFLICT(employee_id,week) DO NOTHING').bind(employee.id,week,c.access.user.email,new Date().toISOString()).run();
    return json({ok:true});
   }
