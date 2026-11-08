@@ -54,7 +54,7 @@ export async function POST(req:Request){
   if(a.role!=='Owner')return ok({error:'Only a school owner may set confidential pay rates'},403);
   if(req.headers.get('origin')&&req.headers.get('origin')!==new URL(req.url).origin)return ok({error:'Invalid origin'},403);
   const b:any=await req.json();const rate=Number(b.hourlyRate),employeeId=String(b.employeeId||''),campusId=String(b.campusId||'');
-  if(!Number.isFinite(rate)||rate<=0||rate>1000||Math.round(rate*100)!==rate*100)return ok({error:'Enter an hourly pay rate with up to two decimal places'},400);
+  if(!Number.isFinite(rate)||rate<=0||rate>1000||Math.abs(Math.round(rate*100)-rate*100)>0.00001)return ok({error:'Enter an hourly pay rate with up to two decimal places'},400);
   const db=database(),row:any=await db.prepare("SELECT payload FROM records WHERE id=? AND kind='staff' AND owner='academy-owner'").bind(employeeId).first();
   if(!row||!JSON.parse(row.payload).campusIds?.includes(campusId))return ok({error:'Employee is not assigned to this campus'},400);
   const now=new Date().toISOString();const old:any=await db.prepare('SELECT rate_cents FROM employee_pay_rates WHERE employee_id=? AND campus_id=?').bind(employeeId,campusId).first();
