@@ -2,6 +2,7 @@
 import {useMemo,useState} from 'react';
 import {Activity,ArrowRight,BookOpen,CheckCircle2,ClipboardList,Clock3,GraduationCap,Lock,Play,RotateCcw,ShieldAlert,Sparkles,Truck,Users,WandSparkles} from 'lucide-react';
 import {simulatedTime,innovationCounts,studentPhases as phases,phaseOf,type StudioRecord as Rec,type SimState,type PunchEvent} from '../lib/innovation-analytics';
+import {campusInsights,combinedSchoolInsights} from '../lib/campus-insights';
 type Props={records:Rec[];onNavigate:(page:string,recordId?:string)=>void;saveMany:(rows:any[])=>Promise<boolean>;busy:boolean};
 const tabs=['Safe Playground','Command Center','Student Journey','Yard & Fleet','Admissions Autopilot','Compliance Tower','Workflow Studio','Ask Academy OS'] as const;
 type Tab=typeof tabs[number];
@@ -18,6 +19,9 @@ function MiniStat({label,value,hint}:{label:string;value:number;hint:string}){re
 export default function InnovationStudio({records,onNavigate,saveMany,busy}:Props){
  const [automationNotice,setAutomationNotice]=useState(''),[tab,setTab]=useState<Tab>('Safe Playground'),[role,setRole]=useState('Campus manager'),[student,setStudent]=useState(''),[events,setEvents]=useState<PunchEvent[]>([]),[clock,setClock]=useState(8*60),[query,setQuery]=useState(''),[question,setQuestion]=useState(''),[workflows,setWorkflows]=useState<string[]>([]);
  const counts=useMemo(()=>innovationCounts(records),[records]);
+ const schoolDate=new Date().toLocaleDateString('en-CA',{timeZone:'America/New_York'});
+ const campusReports=useMemo(()=>campusInsights(records,schoolDate),[records,schoolDate]);
+ const schoolTotals=useMemo(()=>combinedSchoolInsights(campusReports),[campusReports]);
  const sim=simulatedTime(events,clock);
  const activeStudent=counts.students.find(s=>s.id===student)||counts.students[0];
  const actions:Record<SimState,PunchEvent['action'][]>= {out:['clock_in'],working:['break_start','clock_out'],break:['break_end']};
@@ -76,14 +80,16 @@ export default function InnovationStudio({records,onNavigate,saveMany,busy}:Prop
   {tab==='Command Center'&&<section style={{display:'grid',gap:12}}>
    <p className="muted">Live read-only summaries of the records returned for your account. Counts are not guarantees of regulatory compliance or payroll correctness.</p>
    <div className="formgrid"><MiniStat label="Visible students" value={counts.students.length} hint="Not withdrawn"/><MiniStat label="Active leads" value={counts.leads.length} hint="Admissions queue"/><MiniStat label="Fleet records" value={counts.trucks.length} hint="Not necessarily available"/><MiniStat label="Open TPR reviews" value={counts.pendingTpr.length} hint="Confirmation pending"/></div>
-   <div className="reportactions"><button onClick={()=>onNavigate('insights')}>School analytics</button><button onClick={()=>onNavigate('manager-brief')}>Weekly report</button><button onClick={()=>onNavigate('payroll-report')}>Campus payroll</button><button onClick={()=>onNavigate('attention')}>Resolve alerts</button></div>
+   <div className="formgrid"><MiniStat label="Verified-ready trucks" value={schoolTotals.truckReady||0} hint="No recorded unresolved defects"/><MiniStat label="Vehicles on hold" value={schoolTotals.truckHolds||0} hint="Recorded safety/availability holds"/><MiniStat label="Overdue lead follow-ups" value={schoolTotals.followupsOverdue||0} hint="Action needed"/><MiniStat label="Student attendance entries today" value={schoolTotals.studentsWithAttendanceToday||0} hint="Recorded entries only"/></div>
+   <h3>Campus financial & coverage snapshot</h3><div style={{overflowX:'auto'}}><table style={{width:'100%',textAlign:'left'}}><thead><tr><th>Campus</th><th>Active learners</th><th>Linked lead conversion</th><th>Recorded funding authorizations</th><th>Outstanding ledger</th><th>Ready trucks</th></tr></thead><tbody>{campusReports.map(r=><tr key={r.campusId}><td>{r.campus}</td><td>{r.activeStudents}</td><td>{r.conversionPct===null?'N/A':r.conversionPct+'%'}</td><td>{r.authorizedFunding.toLocaleString('en-US',{style:'currency',currency:'USD'})}</td><td>{r.outstandingLedger.toLocaleString('en-US',{style:'currency',currency:'USD'})}</td><td>{r.truckReady}</td></tr>)}</tbody></table></div><p className="muted">Funding authorization is not collected revenue; outstanding ledger is not a bank balance. Staffing coverage remains in the approved Work Schedules module.</p>
+   <div className="reportactions"><button onClick={()=>onNavigate('insights')}>School analytics</button><button onClick={()=>onNavigate('manager-brief')}>Weekly report</button><button onClick={()=>onNavigate('payroll-report')}>Campus payroll</button><button onClick={()=>onNavigate('shifts')}>Instructor coverage</button><button onClick={()=>onNavigate('attention')}>Resolve alerts</button></div>
   </section>}
   {tab==='Student Journey'&&<section style={{display:'grid',gap:12}}>
    <p className="muted">Preview how saved student stages appear in a milestone journey. No training hours or certifications are awarded by this display.</p>
    {counts.students.length?<><label>Student <select value={activeStudent?.id||''} onChange={e=>setStudent(e.target.value)}>{counts.students.map(s=><option value={s.id} key={s.id}>{s.name||'Unnamed student'}</option>)}</select></label>
    <div style={{display:'flex',flexWrap:'wrap',gap:8}}>{phases.map((p,i)=><div key={p} style={{padding:'12px',border:'1px solid var(--border,#d1d5db)',borderRadius:12,minWidth:130,flex:'1 1 130px',opacity:i>phaseOf(activeStudent)?0.48:1}}><div>{i<=phaseOf(activeStudent)?'✓':'○'}</div><strong>{p}</strong><p className="muted">{i===phaseOf(activeStudent)?'Recorded stage':'Stage preview'}</p></div>)}</div>
-   <p className="muted">Stages reflect the saved status field, not a verified completion or graduation decision. Final progression must pass existing course, permit and instructor checks.</p></>:<p className="muted">No students available in your permitted records.</p>}
-   <button onClick={()=>onNavigate('students',activeStudent?.id)}>Open student records</button>
+   <p className="muted">Stages reflect the saved status field, not a verified completion or graduation decision. Final progression must pass existing course, permit and instructor checks. Students can access their real verified hours and lesson evidence in the Student Portal.</p></>:<p className="muted">No students available in your permitted records.</p>}
+   <div className="reportactions"><button onClick={()=>onNavigate('students',activeStudent?.id)}>Open selected student record</button><button onClick={()=>onNavigate('student-portal-preview')}>View student experience</button></div>
   </section>}
   {tab==='Yard & Fleet'&&<section style={{display:'grid',gap:12}}>
    <p className="muted">Visible fleet entries. A vehicle cannot be presumed available solely because its status says Active; use inspection and dispatch controls.</p>
@@ -113,7 +119,7 @@ export default function InnovationStudio({records,onNavigate,saveMany,busy}:Prop
    <label>Ask about permits, TPR, fleet, leads or students <input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Example: Who needs a permit review?"/></label>
    <button type="button" className="primary" onClick={()=>setQuestion(query.trim())} disabled={!query.trim()}>Ask records</button>
    {question&&<div className="notice" role="status"><Sparkles size={18}/><strong>{question}</strong><p>{answer}</p></div>}
-   <p className="muted">Answers intentionally avoid exposing personal identifiers, proprietary files and information not returned by your existing campus permissions.</p>
+   <div className="reportactions"><button onClick={()=>onNavigate(question.toLowerCase().includes('tpr')||question.toLowerCase().includes('fmcsa')?'tpr':question.toLowerCase().includes('truck')?'fleet':question.toLowerCase().includes('lead')?'leads':'students')}>Inspect supporting school records <ArrowRight size={14}/></button></div><p className="muted">Answers use saved-record counts only, with an explicit path to the source records. This does not send student data to an external AI service or invent missing details.</p>
   </section>}
  </div>;
 }
