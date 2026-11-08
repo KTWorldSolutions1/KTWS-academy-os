@@ -5,7 +5,7 @@ const managerRoles=new Set(['Owner','Regional admin','Campus manager']);
 const actions=['clock_in','break_start','break_end','clock_out'] as const;
 type Punch={id:string;employee_id:string;campus_id:string;action:string;at:string;actor:string};
 const json=(body:unknown,status=200)=>Response.json(body,{status,headers:{'Cache-Control':'no-store'}});
-const weekPattern=/^\\d{4}-\\d{2}-\\d{2}$/;
+const weekPattern=/^\d{4}-\d{2}-\d{2}$/;
 function weekMonday(iso:string){
  const day=new Date(iso+'T12:00:00Z');
  if(!weekPattern.test(iso)||Number.isNaN(day.getTime())||day.toISOString().slice(0,10)!==iso)return null;
