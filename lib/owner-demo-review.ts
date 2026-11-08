@@ -54,6 +54,6 @@ export function chapterDetail(id:string):ExecutiveChapter{
 }
 export function exportReviewCsv(rows:OwnerReview[]){
  const header=['Chapter','Type','Priority','Status','Comment','Reviewer','Created'];
- const q=(v:unknown)=>'"'+String(v??'').replace(/"/g,'""').replace(/^([=+@-])/,'\'$1')+'"';
+ const q=(v:unknown)=>'"'+String(v??'').replace(/"/g,'""').replace(/^([=+@-])/,(_m,c)=>String.fromCharCode(39)+c)+'"';
  return [header.map(q).join(','),...rows.map(r=>[r.chapter,r.type,r.priority,r.status,r.comment,r.reviewer,r.created_at].map(q).join(','))].join('\r\n');
 }
