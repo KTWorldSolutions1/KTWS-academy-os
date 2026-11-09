@@ -70,6 +70,23 @@ CREATE TABLE IF NOT EXISTS billing_charge_voids(
  charge_id TEXT NOT NULL UNIQUE,reason TEXT NOT NULL,voided_by TEXT NOT NULL,voided_at TEXT NOT NULL,
  FOREIGN KEY(charge_id) REFERENCES billing_charges(id));
 
+-- First-party private staff messaging. No external chat account or provider.
+CREATE TABLE IF NOT EXISTS academy_team_channels(
+ id TEXT PRIMARY KEY,kind TEXT NOT NULL CHECK(kind IN ('school','campus','group','direct')),
+ name TEXT NOT NULL,campus_id TEXT,participants TEXT NOT NULL DEFAULT '[]',
+ created_by TEXT NOT NULL,created_at TEXT NOT NULL,last_at TEXT NOT NULL);
+CREATE INDEX IF NOT EXISTS idx_academy_team_channels_activity ON academy_team_channels(last_at);
+CREATE TABLE IF NOT EXISTS academy_team_messages(
+ seq INTEGER PRIMARY KEY AUTOINCREMENT,id TEXT NOT NULL UNIQUE,
+ channel_id TEXT NOT NULL,author_id TEXT NOT NULL,body TEXT NOT NULL,
+ reply_to TEXT,priority TEXT NOT NULL DEFAULT 'normal' CHECK(priority IN ('normal','important')),
+ created_at TEXT NOT NULL,
+ FOREIGN KEY(channel_id) REFERENCES academy_team_channels(id));
+CREATE INDEX IF NOT EXISTS idx_academy_team_messages_channel_seq ON academy_team_messages(channel_id,seq);
+CREATE TABLE IF NOT EXISTS academy_team_reads(
+ channel_id TEXT NOT NULL,account_id TEXT NOT NULL,last_seq INTEGER NOT NULL DEFAULT 0,
+ PRIMARY KEY(channel_id,account_id),FOREIGN KEY(channel_id) REFERENCES academy_team_channels(id));
+
 `);
 class Statement{query:string;values:any[]=[];constructor(query:string){this.query=query;}bind(...values:any[]){this.values=values.map(v=>v===undefined?null:v);return this;}async all(){return {results:sql.prepare(this.query).all(...this.values)};}async first(){return sql.prepare(this.query).get(...this.values)||null;}async run(){return sql.prepare(this.query).run(...this.values);}}
 export function database(){return {prepare:(q:string)=>new Statement(q),batch:async(stmts:Statement[])=>{sql.exec('BEGIN IMMEDIATE');try{const results=[];for(const s of stmts)results.push(sql.prepare(s.query).run(...s.values));sql.exec('COMMIT');return results;}catch(e){sql.exec('ROLLBACK');throw e;}}};}
