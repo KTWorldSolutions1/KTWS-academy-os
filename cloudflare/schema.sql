@@ -41,3 +41,7 @@ CREATE INDEX IF NOT EXISTS idx_billing_sessions_charge ON billing_stripe_session
 CREATE TABLE IF NOT EXISTS billing_webhook_events(
  id TEXT PRIMARY KEY,type TEXT NOT NULL,handled TEXT NOT NULL,payment_ref TEXT,
  outcome TEXT NOT NULL);
+
+CREATE TABLE IF NOT EXISTS employee_timecards(id TEXT PRIMARY KEY,owner TEXT NOT NULL,employee TEXT NOT NULL,closed INTEGER NOT NULL DEFAULT 0,revision INTEGER NOT NULL,created TEXT NOT NULL,payload TEXT NOT NULL);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_employee_one_open_clock ON employee_timecards(owner,employee) WHERE closed=0;
+CREATE TABLE IF NOT EXISTS employee_time_audit(id TEXT PRIMARY KEY,owner TEXT NOT NULL,card_id TEXT NOT NULL,revision INTEGER NOT NULL,actor TEXT NOT NULL,action TEXT NOT NULL,at TEXT NOT NULL,payload TEXT NOT NULL,UNIQUE(owner,card_id,revision));

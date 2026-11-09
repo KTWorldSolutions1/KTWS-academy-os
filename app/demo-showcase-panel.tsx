@@ -26,6 +26,7 @@ export default function DemoShowcasePanel({records,onPlay,onNavigate}:Props){
  ['School Document Center','Procedures, staff forms, versioned guides and external links','Policy text works; file uploads gated','school-knowledge'],
  ['School calendar & announcements','School closures, meetings and student-facing notices','Published notices follow campus visibility','school-notices'],
  ['Staff work calendar','Shift view, staffing by campus, weekly print and conflicts','Not a payroll time clock','shifts'],
+ ['Employee time clock & payroll','Personal punches, paid breaks, reviewed corrections and payroll CSV','Manager-approved gross estimates; no tax withholding or payments','timeclock'],
  ['Whole-class attendance & smileys','7AM–4PM instruction, breaks, daily checks and exceptions','Verified hours require actual instructor logs','courses'],
  ['Instructor 25-day lesson playbook','30 FMCSA theory subjects, licensed J. J. Keller mapping, HOS and atlas practice','Vendor-specific lessons need licensed mapping','driver-playbook'],
  ['Individual skill checkoffs','Classroom, yard and road competency coaching','Regulatory proficiency requires evidence','lesson-checkoffs'],

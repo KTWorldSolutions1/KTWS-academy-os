@@ -13,7 +13,8 @@ process.env.ACADEMY_DATA_DIR=mkdtempSync(join(tmpdir(),'academy-grad-'));
 const {handle}=await import('../dist-server/index.js');
 const send=(path,data,cookie)=>handle(new Request('https://academy.test'+path,{method:data?'POST':'GET',headers:{Origin:'https://academy.test','Content-Type':'application/json',...(cookie?{Cookie:cookie}:{})},...(data?{body:JSON.stringify(data)}:{})}));
 const read=async promise=>{const r=await promise;return {status:r.status,body:await r.json(),cookie:r.headers.get('set-cookie')?.split(';')[0]};};
-const date=new Date().toISOString().slice(0,10);
+// Use completed historical evidence across all campus time zones.
+const date=new Date(Date.now()-86400000).toISOString().slice(0,10);
 try{
  const setup=spawnSync(process.execPath,['dist-server/setup-owner.js','owner@test.example'],{env:process.env,encoding:'utf8'});
  assert.equal(setup.status,0,setup.stderr);

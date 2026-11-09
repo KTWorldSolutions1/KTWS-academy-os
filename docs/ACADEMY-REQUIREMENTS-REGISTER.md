@@ -120,3 +120,9 @@ Status meanings: **Code** = implementation found, live acceptance outstanding; *
 - Fixed custom-scenario selection and isolated radio groups between lab instances.
 - Added a recovery boundary with safe retry while retaining the signed-in account bar; no sensitive exception text is displayed and no stored records are cleared.
 - Licensed Keller mapping, general document-folder storage, and live external provider connections remain outstanding.
+
+## Employee time clock and payroll
+
+Implemented in code: authenticated individual clock-in/out, paid breaks and unpaid meals, campus-scoped manager review, original punch history, reasoned corrections and historical manual entries, separate approval of rates and overtime, self-approval prevention, and approved-only payroll CSV with grand total. Included in the presentation and operator demo using fictional payroll. Tests cover concurrent punches, stale edits, campus isolation, manual overlap/future denial, approval, corrections and export. Live signed-in acceptance remains required after deployment.
+
+Payroll exports are gross estimates, without withholding, deductions or payments. Overtime allocation requires manager workweek review; no automatic determination. Saved effective-dated rates, employee correction requests, payroll period closeout, employee signoff and owner approval queues remain proposals, not delivered features.

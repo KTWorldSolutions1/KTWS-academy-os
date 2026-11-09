@@ -1,0 +1,12 @@
+
+/* Employee timesheets: readable rows and deliberate review controls. */
+.employee-time-clock .panel{margin-bottom:20px}
+.employee-time-clock .tablewrap{overflow-x:auto;margin-top:18px}
+.employee-time-clock table{width:100%;border-collapse:collapse;text-align:left}
+.employee-time-clock th,.employee-time-clock td{padding:12px;border-bottom:1px solid rgba(148,163,184,.2);vertical-align:top}
+.employee-time-clock td small{display:block;margin-top:4px;opacity:.75}
+.employee-time-clock details{margin-top:16px}
+.employee-time-clock summary{cursor:pointer;padding:8px 0}
+.employee-time-clock button{margin:6px 8px 6px 0}
+.employee-time-clock input[type=checkbox]{width:auto;margin-right:8px}
+.employee-time-clock .footnote{line-height:1.5}

@@ -45,6 +45,11 @@ CREATE TABLE IF NOT EXISTS billing_webhook_events(
  outcome TEXT NOT NULL);
 
 `);
+sql.exec(`
+CREATE TABLE IF NOT EXISTS employee_timecards(id TEXT PRIMARY KEY,owner TEXT NOT NULL,employee TEXT NOT NULL,closed INTEGER NOT NULL DEFAULT 0,revision INTEGER NOT NULL,created TEXT NOT NULL,payload TEXT NOT NULL);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_employee_one_open_clock ON employee_timecards(owner,employee) WHERE closed=0;
+CREATE TABLE IF NOT EXISTS employee_time_audit(id TEXT PRIMARY KEY,owner TEXT NOT NULL,card_id TEXT NOT NULL,revision INTEGER NOT NULL,actor TEXT NOT NULL,action TEXT NOT NULL,at TEXT NOT NULL,payload TEXT NOT NULL,UNIQUE(owner,card_id,revision));
+`);
 class Statement{query:string;values:any[]=[];constructor(query:string){this.query=query;}bind(...values:any[]){this.values=values.map(v=>v===undefined?null:v);return this;}async all(){return {results:sql.prepare(this.query).all(...this.values)};}async first(){return sql.prepare(this.query).get(...this.values)||null;}async run(){return sql.prepare(this.query).run(...this.values);}}
 export function database(){return {prepare:(q:string)=>new Statement(q),batch:async(stmts:Statement[])=>{sql.exec('BEGIN IMMEDIATE');try{const results=[];for(const s of stmts)results.push(sql.prepare(s.query).run(...s.values));sql.exec('COMMIT');return results;}catch(e){sql.exec('ROLLBACK');throw e;}}};}
 function filePath(key:string){if(!/^[a-zA-Z0-9_-]+\/[a-f0-9-]{36}$/.test(key))throw Error('Invalid file key');return resolve(root,'files',key);}
