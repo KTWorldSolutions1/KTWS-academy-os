@@ -1,5 +1,6 @@
 'use client';
 import {useEffect,useMemo,useRef,useState} from 'react';
+import './staff-messenger.css';
 import {Bell,Check,ChevronLeft,Hash,LockKeyhole,MessageCircle,MessageSquarePlus,Search,Send,ShieldCheck,Users,X} from 'lucide-react';
 
 type Person={id:string;name:string;role:string;campusIds:string[]};
