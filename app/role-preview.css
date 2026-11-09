@@ -1,0 +1,9 @@
+.role-preview-shell .academy-topbar{flex-wrap:wrap;gap:12px;height:auto;min-height:72px;padding:12px 24px}
+.role-preview-shell .academy-topbar label{display:flex;align-items:center;gap:10px}
+.role-preview-shell select{max-width:100%}
+.role-preview-banner{border:1px solid #528ab1;margin-bottom:18px}
+.role-preview-shell .tablewrap{overflow-x:auto}
+.role-preview-shell table{width:100%;text-align:left;border-collapse:collapse}
+.role-preview-shell th,.role-preview-shell td{padding:12px;border-bottom:1px solid #476278}
+.role-preview-shell .reportactions{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+@media(max-width:700px){.role-preview-shell .academy-topbar{padding:12px}.role-preview-shell .academy-topbar label{width:100%}}

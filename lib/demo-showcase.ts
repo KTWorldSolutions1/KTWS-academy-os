@@ -26,7 +26,7 @@ const pitches:Record<string,string>={
  career:'Keep the journey going through graduation, employer connections, and measurable student outcomes.',
  payments:'Manage tuition charges, funding, verified receipts, and auditable corrections in the same student record.',
  notices:'Reach students with accurate campus notices and closures while keeping external messaging approval separate.',
- team:'Delegate tasks to the right staff member and see which operational problems remain unresolved.',
+ team:'Delegate tasks and preview all seven staff roles, from front desk and instructor to campus manager and owner, using fictional practice workflows.',
  'staff-calendar':'See who is scheduled and whether instructors can cover the school’s training workload.',
  'classroom-roster':'Track who actually attended each day and separate verified instruction from planned hours.',
  'classroom-carryforward':'Move a student to the next phase only after required evidence is complete.',

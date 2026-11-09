@@ -46,3 +46,9 @@ Preserved the newer integrated employee clock, correction requests, campus payro
 Outstanding: authenticated production acceptance by employee and manager; effective-dated rates and immutable historical payroll snapshots; payroll-provider reconciliation. The module remains a reviewed worksheet, not a payroll disbursement service.
 
 Potential next investments beyond existing modules (proposals, not completed): equipment outage recovery with rental/vendor quotes and owner purchasing decisions; capacity forecasting that simulates loss of a truck or instructor; a dedicated learning/support case handoff tying barriers and recovery plans to a staff owner; automated service-error alerts and rehearsed recovery evidence. Extend existing fleet, dispatch, support and readiness screens rather than creating competing modules.
+
+## Seven-role preview workspace — 2026-11-09
+
+The owner Preview menu opens an isolated fictional workspace for Owner, Regional admin, Campus manager, Admin assistant, Enrollment specialist, Front desk and Instructor. Navigation and starting pages follow the existing role configuration. Instructor attendance, admissions, calendar, tasks, dispatch, lesson checkoffs, daily review, insights, school knowledge and student views reuse the real presentation components with local-only state. API-backed modules use explicitly illustrative examples; they do not connect to payroll, invitations, messaging or file services. Preview exit preserves the parent workspace and real account permissions. Student avatars skip remote photo reads in this preview.
+
+Verified: seven-role menu/start-page/shortcut checks, fictional campus filtering, SSR for all seven roles, full regression suite and Cloudflare dry run. Browser QA switched every role, inspected instructor/front-desk/owner views and confirmed exit callback. This is a product demonstration, not authenticated authorization acceptance for all employee accounts.
