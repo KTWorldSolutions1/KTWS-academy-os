@@ -1,6 +1,7 @@
 'use client';
 import {useEffect,useMemo,useState} from 'react';
 import {weekStart} from '../lib/staff-scheduling';
+import {payrollCsvCell} from '../lib/payroll-csv';
 import PunchCorrections from './punch-corrections';
 
 type Punch={id:string;employee_id:string;campus_id:string;action:string;at:string;actor:string};
@@ -48,7 +49,7 @@ export default function EmployeeTimeclock({records,role}:{records:any[];role:str
  function exportCsv(){
   if(!data)return;
   const rows=[['Employee','Week','Work date','Clock in (Eastern)','Clock out (Eastern)','Worked hours','Unpaid break minutes','Approval'],...summary.rows.map(x=>[data.employee.name,week,x.date,fmt(x.in),x.out?fmt(x.out):'OPEN',hrs(x.hours),String(Math.round(x.breakMinutes)),data.approval?'Approved':'Unapproved'])];
-  const csv=rows.map(row=>row.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\r\n');
+  const csv=rows.map(row=>row.map(payrollCsvCell).join(',')).join('\r\n');
   const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
   const a=document.createElement('a');a.href=url;a.download='academy-timeclock-'+week+'.csv';a.click();URL.revokeObjectURL(url);
  }
@@ -68,12 +69,12 @@ export default function EmployeeTimeclock({records,role}:{records:any[];role:str
   </div>}
   {data.self&&<div className="reportactions">
    <button type="button" disabled={busy||data.current.state!=='out'||!!data.approval||!campus} onClick={()=>act('clock_in')}>Clock in</button>
-   <button type="button" disabled={busy||data.current.state!=='working'||!!data.approval} onClick={()=>act('break_start')}>Start break</button>
-   <button type="button" disabled={busy||data.current.state!=='break'||!!data.approval} onClick={()=>act('break_end')}>End break</button>
+   <button type="button" disabled={busy||data.current.state!=='working'||!!data.approval} onClick={()=>act('break_start')}>Start unpaid meal</button>
+   <button type="button" disabled={busy||data.current.state!=='break'||!!data.approval} onClick={()=>act('break_end')}>End unpaid meal</button>
    <button type="button" disabled={busy||data.current.state!=='working'||!!data.approval} onClick={()=>act('clock_out')}>Clock out</button>
   </div>}
   <div className="reportactions"><button type="button" onClick={exportCsv}>Export timesheet CSV</button>{manager&&<button type="button" disabled={busy||!!data.approval||data.current.state!=='out'||!summary.rows.length} onClick={()=>act('approve')}>Approve & lock week</button>}</div>
-  <p className="muted">Payroll hours reflect completed work intervals only. Open punches do not accrue in the displayed total until the next punch. Unapproved exports are clearly marked. Payroll taxes, wages, overtime premiums and payments are not processed by this module.</p>
+  <p className="muted">Use unpaid meals only when fully relieved of work. Stay clocked in for paid breaks. Payroll hours reflect completed work intervals only. Open punches do not accrue in the displayed total until the next punch. Unapproved exports are clearly marked. Payroll taxes, wages, overtime premiums and payments are not processed by this module.</p>
   <div style={{overflowX:'auto'}}><table style={{width:'100%',textAlign:'left'}}><thead><tr><th>Work date</th><th>In</th><th>Out</th><th>Unpaid break</th><th>Hours</th></tr></thead><tbody>{summary.rows.map((x,i)=><tr key={i}><td>{x.date}</td><td>{fmt(x.in)}</td><td>{x.out?fmt(x.out):'Open'}</td><td>{Math.round(x.breakMinutes)} min</td><td>{hrs(x.hours)}</td></tr>)}</tbody></table></div>
   <h3>Punch audit trail</h3><div style={{overflowX:'auto'}}><table style={{width:'100%',textAlign:'left'}}><thead><tr><th>Time</th><th>Action</th><th>Campus</th></tr></thead><tbody>{data.punches.map(p=><tr key={p.id}><td>{fmt(p.at)}</td><td>{p.action.replace('_',' ')}</td><td>{campuses.find(c=>c.id===p.campus_id)?.name||p.campus_id}</td></tr>)}</tbody></table></div>
   <PunchCorrections employeeId={data.employee.id} punches={data.punches} self={data.self} campuses={campuses.filter(c=>staff.find(x=>x.id===data.employee.id)?.campusIds?.includes(c.id)).map(c=>({id:c.id,name:c.name}))} onUpdated={()=>{void load();}}/>

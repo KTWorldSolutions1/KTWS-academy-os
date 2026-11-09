@@ -147,7 +147,7 @@ jobs:
           test "$status" = "401" || { echo "Expected unauthenticated API response 401, got $status"; exit 1; }
           # Verify default-deny on real deployed Worker routes. Use no real
           # student records, credentials, sessions or external accounts.
-          for endpoint in /api/records /api/files /api/partner/me /api/partner/portal; do
+          for endpoint in /api/records /api/files /api/partner/me /api/partner/portal /api/timeclock /api/payroll-report /api/punch-corrections; do
             status=$(curl --silent --output /dev/null --write-out '%{http_code}' "https://academy.ktworldsolutions.com$endpoint")
             test "$status" = "401" || { echo "Unauthenticated route $endpoint expected 401; got $status"; exit 1; }
           done

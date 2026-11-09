@@ -1,3 +1,4 @@
+import {payrollCsvCell as safeCsv} from '../../../lib/payroll-csv';
 import {getWorkspaceAccess} from '../../../lib/workspace-access';
 import {database} from '../../../lib/storage';
 import {weeklyCampusMinutes} from '../../../lib/payroll-intervals';
@@ -7,7 +8,7 @@ const managers=['Owner','Regional admin','Campus manager'];
 const ok=(body:unknown,status=200)=>Response.json(body,{status,headers:{'Cache-Control':'no-store'}});
 const validWeek=(s:string)=>{if(!/^\d{4}-\d{2}-\d{2}$/.test(s))return false;const d=new Date(s+'T12:00:00Z');return !Number.isNaN(d.getTime())&&d.toISOString().slice(0,10)===s&&d.getUTCDay()===1;};
 const nextWeek=(s:string)=>{const d=new Date(s+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+7);return d.toISOString().slice(0,10);};
-const safeCsv=(v:unknown)=>{const s=String(v??'');return '"'+(/^[=+@\-\t\r]/.test(s)?"'"+s:s).replace(/"/g,'""')+'"';};
+
 export async function GET(req:Request){
  try{
   const a=await getWorkspaceAccess();if(!a)return ok({error:'Sign in required'},401);
@@ -49,7 +50,7 @@ export async function GET(req:Request){
   const totalHours=Number(valid.reduce((n,r)=>n+r.hours,0).toFixed(2)),totalGross=Number(valid.reduce((n,r)=>n+r.gross,0).toFixed(2));
   const body={campus:campus.name,week,lines,totalHours,totalGross,ready:lines.every(r=>!r.problems.length),note:'Preliminary straight-time gross and nonexempt overtime preview only. Weighted-average rates require all campuses to have valid rates; campus managers cannot view other campuses confidential rates. Classification, bonuses, effective-dated rates, deductions, taxes and approved corrections require final payroll review.'};
   if(csv){
-   const rows=[['Campus','Week starting','Employee','Hourly pay','Hours worked','Straight-time gross','Provisional overtime hours','Provisional gross with overtime','Approval','Exceptions'],...lines.map(l=>[campus.name,week,l.employee,l.rate??'',l.hours,l.gross??'',l.estimatedOvertimeHours,l.estimatedGrossWithOvertime??'',l.approved?'Approved':'Pending',l.problems.join('; ')]),['TOTAL','','','',''+totalHours,''+totalGross,'','','','']];
+   const rows=[['Campus','Week starting','Employee','Hourly pay','Hours worked','Straight-time gross','Provisional overtime hours','Provisional gross with overtime','Approval','Exceptions'],...lines.map(l=>[campus.name,week,l.employee,l.rate??'',l.hours,l.gross??'',l.estimatedOvertimeHours,l.estimatedGrossWithOvertime??'',l.approved?'Approved':'Pending',l.problems.join('; ')]),['APPROVED STRAIGHT-TIME SUBTOTAL','','','',''+totalHours,''+totalGross,'','','','']];
    const data='\uFEFF'+rows.map(r=>r.map(safeCsv).join(',')).join('\r\n');
    return new Response(data,{headers:{'Content-Type':'text/csv; charset=utf-8','Content-Disposition':'attachment; filename="academy-payroll-'+week+'.csv"','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'}});
   }

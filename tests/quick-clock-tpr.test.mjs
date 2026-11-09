@@ -6,7 +6,7 @@ const workspace=file('app/workspace.tsx');
 const api=file('app/api/timeclock/route.ts');
 const tpr=file('app/api/tpr/connection/route.ts');
 const worker=file('cloudflare/worker.ts');
-for(const label of ['Clock In','Start Break','End Break','Clock Out'])assert.ok(clock.includes(label),label+' needs to be a visible employee control');
+for(const label of ['Clock In','Start Unpaid Meal','End Unpaid Meal','Clock Out'])assert.ok(clock.includes(label),label+' needs to be a visible employee control');
 for(const action of ['clock_in','break_start','break_end','clock_out'])assert.ok(clock.includes("punch('"+action+"')"),'Missing timeclock action '+action);
 assert.ok(workspace.includes('<QuickTimeClock demo={demo} onDetails={()=>go(\'timeclock\')}/>'),'Every campus screen should expose the employee clock');
 assert.ok(api.includes("u.searchParams.get('self')==='1'"),'Self-clock must not default to another employee for owners/managers');

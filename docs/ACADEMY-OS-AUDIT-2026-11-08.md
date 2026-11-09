@@ -38,3 +38,11 @@
 - No external FMCSA transmission or payroll disbursement from tests.
 - User account role is **not changed**.
 - Treat all untested authenticated workflows as **pending staging acceptance**, not already finished.
+
+## Payroll completion review — 2026-11-09
+
+Preserved the newer integrated employee clock, correction requests, campus payroll, saved pay-rate audit and owner demo. Added visible provisional overtime columns, explicit approved straight-time subtotal and draft-export labeling, and clarified that meal buttons stop paid time while paid breaks remain clocked in. Hardened both CSV exports against formula injection, including whitespace prefixes. The production smoke check now requires anonymous access to timeclock, payroll report and punch correction routes to return 401. No schema or student record changes in this follow-up.
+
+Outstanding: authenticated production acceptance by employee and manager; effective-dated rates and immutable historical payroll snapshots; payroll-provider reconciliation. The module remains a reviewed worksheet, not a payroll disbursement service.
+
+Potential next investments beyond existing modules (proposals, not completed): equipment outage recovery with rental/vendor quotes and owner purchasing decisions; capacity forecasting that simulates loss of a truck or instructor; a dedicated learning/support case handoff tying barriers and recovery plans to a staff owner; automated service-error alerts and rehearsed recovery evidence. Extend existing fleet, dispatch, support and readiness screens rather than creating competing modules.

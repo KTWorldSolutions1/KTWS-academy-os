@@ -32,11 +32,12 @@ export default function QuickTimeClock({onDetails,demo}:{onDetails:()=>void;demo
   {!demo&&data&&<><div className="formgrid"><label>Working location<select aria-label="Clock-in campus" value={campus} onChange={e=>setCampus(e.target.value)}>{data.assignedCampuses.map(c=><option value={c.id} key={c.id}>{c.name}</option>)}</select></label></div>
   <div className="reportactions" aria-label="Time clock actions">
   <button type="button" className="primary" disabled={busy||!campus||state!=='out'} onClick={()=>punch('clock_in')}>Clock In</button>
-  <button type="button" disabled={busy||state!=='working'} onClick={()=>punch('break_start')}>Start Break</button>
-  <button type="button" disabled={busy||state!=='break'} onClick={()=>punch('break_end')}>End Break</button>
+  <button type="button" disabled={busy||state!=='working'} onClick={()=>punch('break_start')}>Start Unpaid Meal</button>
+  <button type="button" disabled={busy||state!=='break'} onClick={()=>punch('break_end')}>End Unpaid Meal</button>
   <button type="button" disabled={busy||state!=='working'} onClick={()=>punch('clock_out')}>Clock Out</button>
   <button type="button" disabled={busy} onClick={refresh}>Refresh status</button>
   </div></>}
+  <p className="muted">Unpaid meals stop paid time. Stay clocked in for paid breaks; no meal is deducted automatically.</p>
   {demo&&<p className="muted">Return to saved school records to use the real employee time clock.</p>}
  </section>;
 }
