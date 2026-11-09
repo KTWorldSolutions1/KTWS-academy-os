@@ -102,7 +102,7 @@ export const DEMO_SCENES:DemoScene[]=[
   subtitle:'Assignments, schedules, access and expansion without separate spreadsheets.',
   feature:'Multi-campus operations',destination:'tasks',kicker:'SCHOOL OPERATIONS',
   stats:['OWNERS','CAMPUSES','TASKS'],
-  highlights:['Assign each task to a person and authorized location','Give staff individual sign-in accounts','Allow only owner-approved regional admins to review across campuses'],
+  highlights:['Assign each task to a person and authorized location','Preview all seven staff roles with fictional workflows, then provision individual sign-ins','Allow only owner-approved regional admins to review across campuses'],
   narration:'Every assignment has an owner and a campus. Staff see only their authorized schools, while approved regional leadership can provide help across locations.'},
  {id:'staff-calendar',step:'17',title:'Know who works when, at every campus.',
   subtitle:'Printable weekly staffing, approved shifts and real coverage conflicts.',
