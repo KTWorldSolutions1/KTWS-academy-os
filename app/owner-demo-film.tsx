@@ -60,6 +60,7 @@ export default function OwnerDemoFilm({onClose,onNavigate}:Props){
   road:'Training → Daily Training Plan → assign instructor, student and truck',
   testing:'Students → Student 360 → review theory, skills and evidence gaps',
   career:'Home → School Numbers → compare enrollment and completion trends',
+  'staff-chat':'Staff & Scheduling → Staff Messenger → open a campus channel → reply or start a private group',
   team:'Team → Tasks & Appointments → select campus and assigned employee',
   finale:'Replay the full story or open a module for hands-on practice'
  };

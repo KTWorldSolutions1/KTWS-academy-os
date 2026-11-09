@@ -42,6 +42,7 @@ export const schoolSections:SchoolSection[]=[
   {id:'tpr',label:'FMCSA / ELDT Reporting',help:'Track federally required training and verified submissions'}
  ]},
  {id:'team',label:'Staff & Scheduling',help:'Staff, work assignments, instructor licenses and shifts',pages:[
+  {id:'staff-messenger',label:'Staff Messenger',help:'Private team chat, campus channels, group messages and announcements'},
   {id:'tasks',label:'Tasks & Appointments',help:'Assign work to employees by campus'},
   {id:'safety',label:'Safety Concerns',help:'Report a concern and review campus action'},
   {id:'staff',label:'Employees',help:'Staff accounts and roles'},

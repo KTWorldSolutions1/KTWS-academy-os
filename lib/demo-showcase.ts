@@ -6,7 +6,7 @@ export type DemoMode='executive'|'complete';
 /** Eight connected outcomes rather than an exhausting 27-chapter monologue.
  * Complete review still exposes every chapter and all existing workspace modules.
  */
-export const EXECUTIVE_SCENE_IDS=['network','lead','portal','theory','road','testing','payments','finale'] as const;
+export const EXECUTIVE_SCENE_IDS=['network','lead','portal','theory','road','testing','staff-chat','payments','finale'] as const;
 export function scenesForMode(mode:DemoMode):DemoScene[]{
  return mode==='executive'?EXECUTIVE_SCENE_IDS.map(id=>DEMO_SCENES.find(s=>s.id===id)!).filter(Boolean):DEMO_SCENES;
 }
@@ -26,6 +26,7 @@ const pitches:Record<string,string>={
  career:'Keep the journey going through graduation, employer connections, and measurable student outcomes.',
  payments:'Manage tuition charges, funding, verified receipts, and auditable corrections in the same student record.',
  notices:'Reach students with accurate campus notices and closures while keeping external messaging approval separate.',
+ 'staff-chat':'School staff can coordinate with direct messages, campus channels, and private groups. Notifications and important updates stay inside Academy OS.',
  team:'Delegate tasks and preview all seven staff roles, from front desk and instructor to campus manager and owner, using fictional practice workflows.',
  'staff-calendar':'See who is scheduled and whether instructors can cover the school’s training workload.',
  'classroom-roster':'Track who actually attended each day and separate verified instruction from planned hours.',
@@ -71,6 +72,7 @@ const impact:Record<string,{today:string;academy:string;proof:string}>={
  road:{today:'Staff coordinate truck, instructor and student separately',academy:'Dispatch review checks vehicle readiness and training assignments together',proof:'Open Daily Training Plan and report an equipment hold'},
  testing:{today:'Readiness requires checking several logs and paperwork folders',academy:'Student 360 brings together validated training evidence and outstanding steps',proof:'Open Student List and inspect the training timeline'},
  payments:{today:'Incorrect receipts can distort an active student balance until reconciled',academy:'Auditable corrections restore ledger accuracy across staff and student views',proof:'Open Student Payment Center and inspect the correction workflow'},
+ 'staff-chat':{today:'Campus updates require separate texts or a third-party team messaging tool',academy:'Authorized school staff share direct, private and campus channels with unread counts and reply context',proof:'Open Staff Messenger in fictional demo mode and try a reply or create a group'},
  finale:{today:'A transition could happen without an agreed scope or owner decision record',academy:'Leadership can flag launch blockers and approve phased pilot criteria',proof:'Open the Owner Feedback & Launch Decisions board'}
 };
 export function operationalImpact(scene:DemoScene){

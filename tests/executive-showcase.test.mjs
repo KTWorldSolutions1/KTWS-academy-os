@@ -4,9 +4,9 @@ import {DEMO_SCENES} from '../lib/presentation-demo.ts';
 import {schoolSections} from '../lib/simple-navigation.ts';
 import {CAPABILITY_COUNT,CAPABILITY_SECTIONS,EXECUTIVE_SCENE_IDS,scenesForMode,spokenPitch,spokenDurationMs,timelineForMode,operationalImpact} from '../lib/demo-showcase.ts';
 const executive=scenesForMode('executive'),full=scenesForMode('complete');
-assert.equal(executive.length,8,'Show owners a concise eight-outcome presentation');
+assert.equal(executive.length,9,'Show owners a concise nine-outcome presentation including the staff messenger');
 assert.equal(full.length,DEMO_SCENES.length,'Preserve every complete-demo chapter');
-assert.equal(new Set(executive.map(x=>x.id)).size,8);
+assert.equal(new Set(executive.map(x=>x.id)).size,EXECUTIVE_SCENE_IDS.length);
 assert.deepEqual(executive.map(x=>x.id),[...EXECUTIVE_SCENE_IDS]);
 assert.equal(CAPABILITY_COUNT,schoolSections.reduce((total,x)=>total+x.pages.length,0),'Catalog shows every real navigable module');
 assert.equal(CAPABILITY_SECTIONS.length,schoolSections.length);
@@ -21,7 +21,7 @@ for(const scene of full){
 }
 for(const mode of ['executive','complete']){
  const t=timelineForMode(mode);
- assert.equal(t.scenes.length,mode==='executive'?8:DEMO_SCENES.length);
+ assert.equal(t.scenes.length,mode==='executive'?EXECUTIVE_SCENE_IDS.length:DEMO_SCENES.length);
  assert.equal(t.starts[0],0);
  assert.equal(t.durations.reduce((sum,x)=>sum+x,0),t.total);
  assert.ok(t.total>=80000&&t.total<1000000,'Tour length should not drag');
@@ -36,4 +36,4 @@ assert.ok(film.includes('<ExecutiveFeedbackBoard'),'Existing saved review works'
 assert.ok(film.includes('Open {scene.feature}'),'Every chapter opens its actual workflow');
 assert.ok(explorer.includes("onNavigate(page.id"),'Every module can open its real navigation page');
 assert.ok(explorer.includes("Module")||explorer.includes("page.status"),'Do not overstate unverified modules');
-console.log('PASS: eight short story chapters, all modules cataloged, proof-oriented outcomes, extended walkthrough and saved feedback.');
+console.log('PASS: nine short story chapters, all modules cataloged, proof-oriented outcomes, extended walkthrough and saved feedback.');
