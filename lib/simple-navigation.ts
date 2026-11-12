@@ -35,7 +35,7 @@ export const schoolSections:SchoolSection[]=[
   {id:'dispatch',label:'Daily Training Plan',help:'Assign students, instructors, trucks and training areas'},
   {id:'courses',label:'Take Attendance',help:'Daily training, driving hours and tests'},
   {id:'lesson-checkoffs',label:'Lesson Checkoffs',help:'Approved lessons and student progress'},
-  {id:'driver-playbook',label:'Daily Instructor Guide',help:'Five-week lesson plans, teaching steps and log checks'},
+  {id:'driver-playbook',label:'Instructor Schedule & Lesson Plans',help:'Open your daily lesson plan, full Class A theory coverage, practice blocks, assessments and training evidence; never show an unexplained blank canvas'},
   {id:'learning-diagnostics',label:'Knowledge Checks & Retakes',help:'Quizzes, weak topics and instructor-led practice'},
   {id:'classes',label:'Classes & Dates',help:'Start dates, schedules and class lists'},
   {id:'fleet',label:'Trucks & Equipment',help:'Training vehicles and maintenance'},
