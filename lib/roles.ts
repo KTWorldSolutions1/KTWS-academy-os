@@ -8,5 +8,5 @@ export const roleModules:Record<string,string[]>={
 };
 export function moduleAllowed(role:string,module:string){return role==='Owner'||!!roleModules[role]?.includes(module);}
 export function trainingWriter(role:string){return ['Owner','Regional admin','Campus manager','Instructor'].includes(role);}
-export function startModule(role:string){return role==='Instructor'?'courses':role==='Enrollment specialist'?'leads':role==='Front desk'?'calendar':'overview';}
+export function startModule(role:string){return role==='Instructor'?'driver-playbook':role==='Enrollment specialist'?'leads':role==='Front desk'?'calendar':'overview';}
 export function bulkExportAllowed(role:string){return ['Owner','Regional admin','Campus manager'].includes(role);}
