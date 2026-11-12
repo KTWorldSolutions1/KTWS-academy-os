@@ -1,5 +1,11 @@
 import assert from 'node:assert/strict';
-import {GREENSBORO_CLASS_A_CADENCE,qualifyingClassroomMinutes,classroomBridgeStatus} from '../lib/greensboro-class-a-cadence.ts';
+import {GREENSBORO_CLASS_A_CADENCE,qualifyingClassroomMinutes,classroomBridgeStatus,greensboroClassroomTeachingDays} from '../lib/greensboro-class-a-cadence.ts';
+const plannedDays=greensboroClassroomTeachingDays();
+assert.equal(plannedDays.length,7);
+assert.deepEqual(plannedDays.map(d=>d.hours),[8,8,8,8,8,8,2]);
+assert.equal(plannedDays.flatMap(d=>d.blocks).length,25);
+assert.equal(plannedDays[0].blocks[2].proposedTime,'12:00–14:00');
+assert.equal(plannedDays[6].blocks[0].proposedTime,'After DMV — set actual two-hour start/end');
 assert.equal(GREENSBORO_CLASS_A_CADENCE.stages.reduce((n,s)=>n+s.schoolHours,0),50);
 assert.equal(GREENSBORO_CLASS_A_CADENCE.stages.filter(s=>s.calendarWeek===2).reduce((n,s)=>n+s.schoolHours,0),10);
 assert.ok(GREENSBORO_CLASS_A_CADENCE.stages.some(s=>s.days==='Wednesday–Friday'&&s.schoolHours===0));
