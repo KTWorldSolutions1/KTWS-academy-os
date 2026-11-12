@@ -41,7 +41,7 @@ export function greensboroClassroomTeachingDays(){
   const count=day.hours/2;
   const assigned=blocks.slice(pointer,pointer+count).map((block,i)=>({
    ...block,
-   proposedTime:day.index===7?'After DMV — set actual two-hour start/end':String(7+i*2+(i>=2?1:0)).padStart(2,'0')+':00–'+String(9+i*2+(i>=4?1:0)).padStart(2,'0')+':00'
+   proposedTime:day.index===7?'After DMV — set actual two-hour start/end':String(7+i*2+(i>=2?1:0)).padStart(2,'0')+':00–'+String(9+i*2+(i>=2?1:0)).padStart(2,'0')+':00'
   }));
   pointer+=count;
   return {...day,blocks:assigned};
