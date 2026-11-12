@@ -18,7 +18,7 @@ const pitches:Record<string,string>={
  portal:'A student opens their own portal to see progress, practice knowledge questions, and track paperwork. Less guesswork for everyone.',
  portrait:'One verified student ID picture becomes their profile photo and school badge. Private image uploads still require security acceptance.',
  roster:'Prepare student rosters and spot missing requirements before class starts, with different state rules where required.',
- theory:'Give instructors a structured thirty-topic classroom plan, attendance evidence, and practical driver-readiness exercises.',
+ theory:'See the instructor’s seven-session Greensboro plan: forty classroom hours the first week, eight on the next Monday, and two documented teaching hours after Tuesday’s D M V permit testing. Then celebrate, release students for planning days, and resume yard training the following Monday. The separate E restriction removal course appears inside the instructor guide.'
  test:'Spot weak knowledge topics immediately and assign targeted review before a student falls behind.',
  yard:'Track actual backing, inspections, coaching notes, and earned proficiency, rather than trusting a verbal update.',
  road:'Assign a qualified instructor, student, and available truck together, then record driving time, observation, and equipment defects.',
