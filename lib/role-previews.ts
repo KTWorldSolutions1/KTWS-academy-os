@@ -9,7 +9,7 @@ export const ROLE_FOCUS:Record<PreviewRole,{purpose:string;pages:string[]}>={
  'Admin assistant':{purpose:'Keep student paperwork, rosters, school notices and daily records organized.',pages:['overview','document-center','rosters','school-notices','student-id-studio','staff-messenger']},
  'Enrollment specialist':{purpose:'Move inquiries through appointments, funding and enrollment follow-up.',pages:['leads','calendar','students','sponsorships','tasks','staff-messenger']},
  'Front desk':{purpose:'Handle arrivals, appointments, inquiries and assigned follow-ups.',pages:['calendar','leads','students','tasks','timeclock','staff-messenger']},
- Instructor:{purpose:'Teach the 40+8+2 classroom schedule, record attendance, review skills and close out training evidence.',pages:['driver-playbook','courses','dispatch','lesson-checkoffs','closeout','timeclock','staff-messenger']}
+ Instructor:{purpose:'Demonstrate the seven-session 40+8+2 classroom plan, Tuesday after-DMV teaching and celebration, plus E restriction removal, attendance, skill checks and training evidence.',pages:['driver-playbook','courses','dispatch','lesson-checkoffs','closeout','timeclock','staff-messenger']}
 };
 export function rolePreviewNavigation(role:string){return schoolSections.map(s=>({...s,pages:s.pages.filter(p=>moduleAllowed(role,p.id))})).filter(s=>s.pages.length);}
 export function rolePreviewStart(role:PreviewRole){return startModule(role);}
