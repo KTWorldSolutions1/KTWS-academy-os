@@ -1,5 +1,7 @@
 'use client';
 import DriverPracticeLab from './driver-practice-lab';
+import {greensboroClassroomTeachingDays} from '../lib/greensboro-class-a-cadence';
+import {E_RESTRICTION_PROGRAM} from '../lib/e-restriction-removal';
 import {useMemo,useState} from 'react';
 import {BookOpen,CheckCircle2,ClipboardCheck,FileText,ShieldAlert,Truck,Upload} from 'lucide-react';
 import type {RecordData as R} from '../lib/training';
@@ -17,6 +19,9 @@ function counts(records:R[],student:R,day:number){
  return events.filter(x=>!corrections.has(x.id)).at(-1)||null;
 }
 export default function DriverPlaybook({records,role,demo,busy,saveMany}:Props){
+ const [scheduleDay,setScheduleDay]=useState(1);
+ const teachingDays=greensboroClassroomTeachingDays();
+ const dailySchedule=teachingDays[scheduleDay-1];
  const [campusId,setCampusId]=useState(''),[studentId,setStudentId]=useState(''),[dayNumber,setDayNumber]=useState(1),
  [date,setDate]=useState(today()),[results,setResults]=useState<Record<string,string>>({}),[stepMoods,setStepMoods]=useState<Record<string,'green'|'yellow'|'red'>>({}),[notes,setNotes]=useState(''),[nextSteps,setNextSteps]=useState(''),
  [notice,setNotice]=useState(''),[error,setError]=useState(''),[logFile,setLogFile]=useState<File|null>(null);
@@ -75,6 +80,25 @@ export default function DriverPlaybook({records,role,demo,busy,saveMany}:Props){
   const win=window.open('','_blank');if(win){win.document.write(html);win.document.close();}else setError('Allow a pop-up to print or save this daily checklist.');
  }
  return <div className="daily-playbook">
+ <section className="panel" aria-label="Instructor daily teaching schedule">
+  <div className="sectionhead"><div><p className="eyebrow">INSTRUCTOR START HERE · GREENSBORO CLASS A</p><h2>Your 40 + 8 + 2 Classroom Schedule</h2><p className="muted">Week 1: five 8-hour instructional days. Week 2: Monday 8 hours; Tuesday DMV permit testing followed by a separate 2-hour instructor-led classroom session. Wednesday–Friday students are off while staff prepares the yard. The next Monday begins the field phase, subject to permit and readiness checks.</p></div><BookOpen size={27}/></div>
+  <div className="subtabs" role="group" aria-label="Choose teaching day">
+   {teachingDays.map(d=><button key={d.index} type="button" className={scheduleDay===d.index?'active':''} aria-pressed={scheduleDay===d.index} onClick={()=>setScheduleDay(d.index)}>{d.label}</button>)}
+  </div>
+  <h3>{dailySchedule.label} · {dailySchedule.hours} planned school instruction hours</h3>
+  {scheduleDay===7?<p className="notice">After morning DMV testing, students return to the classroom for two actual hours of teaching or a qualifying school assessment. Record lesson content, start/end, breaks and attendance. Celebrate after the instructional session; DMV travel/testing and celebration are not credited classroom hours.</p>:null}
+  <div className="classroom-blocks">
+   {dailySchedule.blocks.map((block,i)=><div className="classroom-block" key={i}><span className="badge">Block {i+1} · {block.hours}h · {block.proposedTime}</span><div><strong>{block.title}</strong><small>{block.method} · Source theory day {block.sourceDay}</small></div></div>)}
+  </div>
+  <p className="notice"><ShieldAlert size={16}/> The instructional blocks are planning assignments only. Actual 50 hours and every federal topic require verified training evidence. J. J. Keller licensed lesson identifiers must be reviewed and assigned before the course is formally approved.</p>
+  <details className="classroom-coverage"><summary>Week 2 student break & instructor planning</summary><p>Wednesday–Friday: review permit results, prepare and inspect training equipment, assign instructors, create yard practice groups, resolve missing paperwork and prepare the next cohort. No student training hours are created during the break.</p></details>
+ </section>
+ <details className="panel"><summary>Additional course: {E_RESTRICTION_PROGRAM.title}</summary>
+  <p className="muted">For an existing CDL holder removing the automatic-transmission restriction. This is not the full five-week initial ELDT course.</p>
+  <h4>Before driving</h4><ul>{E_RESTRICTION_PROGRAM.prerequisites.map(x=><li key={x}>{x}</li>)}</ul>
+  <h4>Individual instructor skill checks</h4><ul>{E_RESTRICTION_PROGRAM.skills.map(x=><li key={x.id}>{x.phase}: {x.name}</li>)}</ul>
+  <p className="notice">NCDMV permit, driving authorization and actual modified testing requirements must be verified individually before public-road instruction.</p>
+ </details>
  <details className="panel"><summary>Open the driver readiness practice lab</summary><DriverPracticeLab/></details>
  <section className="panel"><div className="sectionhead"><div><p className="eyebrow">LONE STAR • FIVE-WEEK INSTRUCTOR OPERATIONS</p><h2>25-Day Driver Development Playbook</h2><p className="muted">Instructor-led daily checklist for each student, with FMCSA lesson mapping, the school's licensed J. J. Keller material references, and smiley feedback for areas needing coaching. Covers all {ALL_FEDERAL_CODES.length} federally listed Class A theory, range and road subjects plus practical driver readiness.</p></div><BookOpen size={27}/></div>
  <div className="formgrid"><label>Location<select value={campus?.id||''} onChange={e=>{setCampusId(e.target.value);setStudentId('');setResults({});setStepMoods({});}}>{campuses.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></label>
