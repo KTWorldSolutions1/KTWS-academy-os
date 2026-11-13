@@ -23,8 +23,10 @@ export async function GET(req:Request){
  if(!allowedRoles.has(access.role)&&access.role!=='Admin assistant')return invalid('HR access required',403);
  const db=database();
  const rows:any=await db.prepare('SELECT * FROM employee_onboarding_cases ORDER BY updated_at DESC LIMIT 250').all();
+ const granted:any=await db.prepare('SELECT DISTINCT campus_id FROM employee_onboarding_hr_grants WHERE email=? AND revoked_at IS NULL').bind(access.user.email.toLowerCase()).all();
+ const entitled=new Set((granted.results||[]).map((r:any)=>r.campus_id));
  const cases=(rows.results||[]).filter((r:any)=>canReviewOnboarding(
-  {role:access.role,campusIds:access.campusIds,hasRestrictedHrAccess:false},r.campus_id))
+  {role:access.role,campusIds:access.campusIds,hasRestrictedHrAccess:entitled.has(r.campus_id)},r.campus_id))
  .map((r:any)=>({
   id:r.id,campusId:r.campus_id,name:r.employee_name,email:r.email,phone:r.phone,
   jobTitle:r.job_title,startDate:r.start_date,acceptedOfferAt:r.accepted_offer_at,
