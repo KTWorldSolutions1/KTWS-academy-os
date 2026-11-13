@@ -175,6 +175,7 @@ export async function POST(req:Request){
  if(b.action==='final-approve'){
   if(!canFinalizeOnboarding({role:ctx.access.role,campusIds:ctx.access.campusIds},ctx.c.campus_id))return deny('Assigned campus manager required',403);
   if(ctx.c.status!=='HR verified'||!ctx.c.reviewed_at)return deny('HR verification must be complete first',409);
+  if(String(ctx.c.reviewed_by||'').toLowerCase()===ctx.access.user.email.toLowerCase())return deny('Final manager must be different from the HR verifier',403);
   const at=new Date().toISOString();
   await ctx.db.prepare("UPDATE employee_onboarding_cases SET status='Complete',approved_by=?,approved_at=?,updated_at=? WHERE id=? AND status='HR verified'").bind(ctx.access.user.email,at,at,caseId).run();
   await audit(ctx.db,caseId,'Campus manager final approval',ctx.access.user.email);
