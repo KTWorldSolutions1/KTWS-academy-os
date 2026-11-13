@@ -1,6 +1,7 @@
 import {useEffect,useState} from 'react';
 type Doc={id:string;formName:string;group:string;version:number;verifiedAt:string|null;verificationNote:string};
 type Props={caseId:string;status:string};
+const input:React.CSSProperties={border:'1px solid #bbd0df',padding:11,borderRadius:8,font:'inherit',width:'100%',boxSizing:'border-box'};
 const forms=[
  {id:'emergency-contact',label:'Emergency contact form'},
  {id:'handbook-acknowledgement',label:'Employee handbook acknowledgment'},
@@ -14,6 +15,7 @@ const forms=[
 ];
 export default function EmployeeOnboardingDocuments({caseId,status}:Props){
  const [docs,setDocs]=useState<Doc[]>([]),[missing,setMissing]=useState<string[]>([]),[busy,setBusy]=useState(''),[error,setError]=useState(''),[message,setMessage]=useState('');
+ const [emergency,setEmergency]=useState({contactName:'',relationship:'',phone:'',alternatePhone:'',signature:'',consent:false});
  async function load(){
   const r=await fetch('/api/employee-onboarding/documents?caseId='+encodeURIComponent(caseId),{cache:'no-store'});
   const b=await r.json();if(!r.ok)throw Error(b.error||'Unable to load documents');
@@ -28,6 +30,14 @@ export default function EmployeeOnboardingDocuments({caseId,status}:Props){
    const r=await fetch('/api/employee-onboarding/documents',{method:'POST',body:data}),b=await r.json();
    if(!r.ok)throw Error(b.error||'Unable to upload');
    setMessage('Encrypted '+formName+' evidence received for HR verification.');await load();
+  }catch(e:any){setError(e.message)}finally{setBusy('')}
+ }
+ async function saveEmergency(e:React.FormEvent){
+  e.preventDefault();setBusy('emergency-contact');setError('');setMessage('');
+  try{
+   const r=await fetch('/api/employee-onboarding/documents',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'save-emergency-contact',caseId,...emergency})}),b=await r.json();
+   if(!r.ok)throw Error(b.error||'Unable to save your emergency contact');
+   setMessage('Emergency contact saved securely with your electronic acknowledgment.');await load();
   }catch(e:any){setError(e.message)}finally{setBusy('')}
  }
  async function submit(){
@@ -51,8 +61,18 @@ export default function EmployeeOnboardingDocuments({caseId,status}:Props){
     const optional=(f.id==='nc4'&&docs.some(d=>d.formName==='nc4-ez'))||(f.id==='nc4-ez'&&docs.some(d=>d.formName==='nc4'));
     return <div key={f.id} style={{border:'1px solid #d7e4ee',borderRadius:12,padding:15,display:'grid',gap:8}}>
      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:10,flexWrap:'wrap'}}><strong>{f.label}</strong><small style={{color:done?.verifiedAt?'#187c69':'#54738b'}}>{done?.verifiedAt?'HR verified':done?'Uploaded · review pending':optional?'Alternative satisfied':'Not uploaded'}</small></div>
-     {done&&<a href={'/api/employee-onboarding/documents?caseId='+encodeURIComponent(caseId)+'&documentId='+encodeURIComponent(done.id)} target="_blank" rel="noopener noreferrer">Download your submitted copy (v{done.version})</a>}
+     {done&&<a href={'/api/employee-onboarding/documents?caseId='+encodeURIComponent(caseId)+'&documentId='+encodeURIComponent(done.id)} target="_blank" rel="noopener noreferrer">Open your printable copy (v{done.version})</a>}
      {done?.verificationNote?.startsWith('Correction:')&&<p style={{color:'#943b3b'}}>{done.verificationNote}</p>}
+     {f.id==='emergency-contact'&&open&&!done?.verifiedAt&&<form onSubmit={e=>void saveEmergency(e)} style={{padding:12,background:'#f2f7fb',borderRadius:10,display:'grid',gap:8}}>
+      <strong>Complete this form directly online</strong>
+      <input aria-label="Emergency contact full name" required placeholder="Contact full name" maxLength={150} value={emergency.contactName} onChange={e=>setEmergency({...emergency,contactName:e.target.value})} style={input}/>
+      <input aria-label="Relationship" required placeholder="Relationship to employee" maxLength={80} value={emergency.relationship} onChange={e=>setEmergency({...emergency,relationship:e.target.value})} style={input}/>
+      <input aria-label="Emergency phone" required placeholder="Phone, e.g. +13365550123" value={emergency.phone} onChange={e=>setEmergency({...emergency,phone:e.target.value})} style={input}/>
+      <input aria-label="Alternative phone" placeholder="Other phone (optional)" value={emergency.alternatePhone} onChange={e=>setEmergency({...emergency,alternatePhone:e.target.value})} style={input}/>
+      <input aria-label="Your legal signature" required placeholder="Type your full legal name as your signature" value={emergency.signature} onChange={e=>setEmergency({...emergency,signature:e.target.value})} style={input}/>
+      <label style={{display:'flex',gap:8,fontSize:13}}><input type="checkbox" required checked={emergency.consent} onChange={e=>setEmergency({...emergency,consent:e.target.checked})}/> I confirm the emergency contact information is accurate and agree to sign this school form electronically.</label>
+      <button type="submit" disabled={!!busy} style={{background:'#176fa8',color:'white',border:0,borderRadius:9,padding:11,cursor:'pointer'}}>Save signed emergency contact</button>
+     </form>}
      {open&&!done?.verifiedAt&&<label style={{fontSize:13}}>Upload completed file (PDF, JPG or PNG, maximum 8 MB)
       <input type="file" accept="application/pdf,image/jpeg,image/png" disabled={!!busy} onChange={e=>{const file=e.target.files?.[0]||null;void upload(f.id,file);e.currentTarget.value='';}} style={{display:'block',marginTop:8,maxWidth:'100%'}}/>
      </label>}
