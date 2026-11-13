@@ -34,7 +34,18 @@ try{
  assert.equal((await upload(id,'federal-w4',managerCookie)).status,403);
  const required=['emergency-contact','handbook-acknowledgement','policy-acknowledgement','federal-w4','nc4','direct-deposit','i9-section-1','role-credential'];
  const uploads=[];
- for(const name of required){const r=await upload(id,name,empCookie);assert.equal(r.status,201,name+': '+JSON.stringify(r.body));uploads.push(r.body);}
+ for(const name of required){
+  const r=name==='emergency-contact'?
+    await read(send('/api/employee-onboarding/documents',{action:'save-emergency-contact',caseId:id,
+      contactName:'Example Emergency Contact',relationship:'Sibling',phone:'+13365550123',alternatePhone:'',
+      signature:'Test Onboarding Candidate',consent:true},empCookie)):
+    await upload(id,name,empCookie);
+  assert.equal(r.status,201,name+': '+JSON.stringify(r.body));
+  uploads.push(name==='emergency-contact'?{...r.body,formName:name}:r.body);
+ }
+ const printableEmergency=await send('/api/employee-onboarding/documents?caseId='+id+'&documentId='+uploads.find(x=>x.formName==='emergency-contact').id,null,empCookie);
+ assert.equal(printableEmergency.status,200);assert.match(printableEmergency.headers.get('Content-Type'),/text\/html/);
+ assert.match(await printableEmergency.text(),/Example Emergency Contact/);
  const employeeList=await read(send('/api/employee-onboarding/documents?caseId='+id,null,empCookie));
  assert.equal(employeeList.status,200);assert.deepEqual(employeeList.body.missingEmployeeForms,[]);
  const managerList=await read(send('/api/employee-onboarding/documents?caseId='+id,null,managerCookie));
