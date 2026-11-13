@@ -5,13 +5,13 @@ type Campus={id:string;name:string;status:string;};
 export default function EmployeeOnboardingCases({role}:{role:string}){
  const [cases,setCases]=useState<Case[]>([]),[campuses,setCampuses]=useState<Campus[]>([]);
  const [form,setForm]=useState({name:'',email:'',phone:'',jobTitle:'',campusId:'',startDate:'',offerAccepted:false});
- const [loading,setLoading]=useState(true),[working,setWorking]=useState(false),[message,setMessage]=useState(''),[error,setError]=useState('');
+ const [loading,setLoading]=useState(true),[working,setWorking]=useState(false),[invitationsEnabled,setInvitationsEnabled]=useState(false),[message,setMessage]=useState(''),[error,setError]=useState('');
  async function load(){
   setLoading(true);setError('');
   try{
    const [a,b]=await Promise.all([fetch('/api/employee-onboarding',{cache:'no-store'}),fetch('/api/records',{cache:'no-store'})]);
    const data=await a.json();if(!a.ok)throw Error(data.error||'Unable to load onboarding cases.');
-   setCases(data.cases||[]);
+   setCases(data.cases||[]);setInvitationsEnabled(data.invitationsEnabled===true);
    if(b.ok){const d=await b.json();setCampuses((d.records||[]).filter((x:any)=>x.kind==='campuses'&&x.status==='Active').map((x:any)=>({id:x.id,name:x.name,status:x.status}))); }
   }catch(e:any){setError(e.message)}finally{setLoading(false)}
  }
@@ -24,6 +24,15 @@ export default function EmployeeOnboardingCases({role}:{role:string}){
   setForm({name:'',email:'',phone:'',jobTitle:'',campusId:form.campusId,startDate:'',offerAccepted:false});await load();
  }catch(e:any){setError(e.message)}finally{setWorking(false)}
  }
+ async function invite(id:string){
+  setWorking(true);setMessage('');setError('');
+  try{
+   const r=await fetch('/api/employee-onboarding/invitations',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({caseId:id})});
+   const d=await r.json();if(!r.ok||!d.invited)throw Error(d.error||('Invitation delivery incomplete: email '+d.delivery?.email+', SMS '+d.delivery?.sms));
+   setMessage('Both invitation providers accepted the messages. Delivery is not equivalent to recipient receipt.');
+   await load();
+  }catch(e:any){setError(e.message)}finally{setWorking(false)}
+ }
  const mayCreate=['Owner','Regional admin','Campus manager'].includes(role);
  return <main style={{minHeight:'100vh',padding:'clamp(16px,3vw,38px)',fontFamily:'Inter,system-ui,sans-serif',background:'#eef3f8',color:'#19354b'}}>
  <div style={{maxWidth:1150,margin:'0 auto'}}>
@@ -31,7 +40,7 @@ export default function EmployeeOnboardingCases({role}:{role:string}){
  <div><small style={{color:'#3177a5',letterSpacing:2,fontWeight:700}}>LONE STAR · EMPLOYEE OPERATIONS</small><h1 style={{margin:'6px 0'}}>Employee Onboarding Center</h1><p>Accepted offers, campus ownership and accountable next steps.</p></div>
  <div style={{display:'flex',gap:8}}><button onClick={()=>location.assign('/')} style={button}><ArrowLeft size={17}/> Academy OS</button><button onClick={()=>void load()} style={button}><RefreshCcw size={17}/> Refresh</button></div>
  </header>
- <div style={{background:'#e2eff8',border:'1px solid #b6cfe0',borderRadius:12,padding:16,margin:'16px 0'}} role="note"><strong>Secure launch in stages:</strong> This screen records non-financial hiring-case details only. Email/SMS invitations, employee tax/bank/I-9 forms, digital signatures, payroll activation and confidential PDF exports are not yet enabled. Do not paste identity numbers or bank details into the fields.</div>
+ <div style={{background:'#e2eff8',border:'1px solid #b6cfe0',borderRadius:12,padding:16,margin:'16px 0'}} role="note"><strong>Secure launch in stages:</strong> This screen records non-financial hiring-case details only. Invitation delivery is only available after school security and signing acceptance. Employee tax/bank/I-9 form collection, digital signatures, payroll activation and confidential PDF exports are not yet enabled. Do not paste identity numbers or bank details into the fields.</div>
  {message&&<p role="status" style={{color:'#18715e'}}>{message}</p>}
  {error&&<p role="alert" style={{color:'#a62c36'}}>{error}</p>}
  <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(310px,1fr))',gap:16,alignItems:'start'}}>
@@ -47,7 +56,7 @@ export default function EmployeeOnboardingCases({role}:{role:string}){
  <button type="submit" disabled={working||!campuses.length} style={{...button,background:'#176fa8',color:'#fff'}}>{working?'Saving…':'Create case'}</button>
  </form></section>}
  <section style={panel}><h2 style={{display:'flex',alignItems:'center',gap:10}}><ClipboardList size={22}/> Active onboarding queue</h2>
- {loading?<p>Loading authorized hiring cases…</p>:cases.length===0?<p>No hiring cases available for your campus.</p>:<div style={{display:'grid',gap:10}}>{cases.map(c=><article key={c.id} style={{padding:14,border:'1px solid #d6e3eb',borderRadius:12}}><strong>{c.name}</strong><p style={{margin:'6px 0',fontSize:14}}>{c.jobTitle} · {campuses.find(x=>x.id===c.campusId)?.name||c.campusId}</p><p style={{margin:'4px 0',fontSize:13,color:'#567083'}}>Start {c.startDate} · {c.email}</p><span style={{fontSize:13,fontWeight:700,color:'#3177a5'}}>{c.status}</span></article>)}</div>}
+ {loading?<p>Loading authorized hiring cases…</p>:cases.length===0?<p>No hiring cases available for your campus.</p>:<div style={{display:'grid',gap:10}}>{cases.map(c=><article key={c.id} style={{padding:14,border:'1px solid #d6e3eb',borderRadius:12}}><strong>{c.name}</strong><p style={{margin:'6px 0',fontSize:14}}>{c.jobTitle} · {campuses.find(x=>x.id===c.campusId)?.name||c.campusId}</p><p style={{margin:'4px 0',fontSize:13,color:'#567083'}}>Start {c.startDate} · {c.email}</p><span style={{fontSize:13,fontWeight:700,color:'#3177a5'}}>{c.status}</span>{role==='Campus manager'&&invitationsEnabled&&c.status==='Draft'&&<div style={{marginTop:12}}><button type="button" disabled={working} style={button} onClick={()=>void invite(c.id)}>Send secure email + SMS invitation</button></div>}</article>)}</div>}
  <div style={{display:'flex',alignItems:'start',gap:10,marginTop:20,padding:12,background:'#f2f7fb',borderRadius:12,fontSize:13}}><ShieldCheck size={21}/> Manager approval and privacy isolation rules apply. Completion of this queue does not activate an employee or satisfy I-9 verification.</div>
  <button type="button" onClick={()=>location.assign('/onboarding-demo')} style={{...button,marginTop:16}}>Open interactive onboarding demonstration</button>
  </section></div></div></main>;
