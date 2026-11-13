@@ -42,6 +42,10 @@ function runVisiblePortalAction(step:OperatorStep,studentId:string):boolean{
   },450);
   return true;
  }
+ if(step.id==='student-balance'){
+  portalClick('Payments');
+  return true;
+ }
  if(step.id==='knowledge-test'){
   portalClick('Practice');
   window.setTimeout(()=>{
@@ -120,7 +124,7 @@ export default function OperatorDemo({records,role,demo,onNavigate,onSelectCampu
    const person=sampleOperatorStudent(latest.current.records);
    if(active.studentDrawer&&person)props.onStudent(person.id);
    if(active.id==='first-day')window.setTimeout(clickRealPreflight,550);
-   if((active.id==='portal-upload'||active.id==='knowledge-test')&&person){
+   if((active.id==='portal-upload'||active.id==='knowledge-test'||active.id==='student-balance')&&person){
     runVisiblePortalAction(active,person.id);
     setNote('The operator is clicking the actual student-portal controls using fictional data.');
    }else if(active.action&&!done.current.has(active.id)){
