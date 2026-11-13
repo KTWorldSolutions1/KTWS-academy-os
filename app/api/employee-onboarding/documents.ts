@@ -37,7 +37,7 @@ async function groupGrant(db:any,email:string,campus:string,group:OnboardingFile
 async function canAccessGroup(ctx:any,group:OnboardingFileGroup){
  if(ctx.employee)return true;
  const can=await groupGrant(ctx.db,ctx.access.user.email,ctx.c.campus_id,group);
- return canReadOnboardingFile({role:ctx.access.role,campusIds:ctx.access.campusIds,hasRestrictedHrAccess:can},ctx.c.campus_id,group);
+ return canReadOnboardingFile({role:ctx.access.role,campusIds:ctx.access.campusIds,hasRestrictedHrAccess:group==='personnel'?ctx.privileged:can},ctx.c.campus_id,group);
 }
 async function latest(db:any,id:string){
  const r:any=await db.prepare('SELECT * FROM employee_onboarding_documents WHERE case_id=? ORDER BY version DESC,submitted_at DESC').bind(id).all();
