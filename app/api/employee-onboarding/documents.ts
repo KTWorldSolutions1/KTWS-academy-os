@@ -73,6 +73,14 @@ export async function GET(req:Request){
   if(!doc||!await canAccessGroup(ctx,doc.group_name))return deny('Document not accessible',403);
   const file:any=await bucket().get(doc.r2_key);if(!file)return deny('Encrypted record not found',404);
   const plain=await decrypt(await file.arrayBuffer());
+  if(doc.mime==='application/json'&&doc.form_name==='emergency-contact'){
+   const data:any=JSON.parse(new TextDecoder().decode(plain));
+   const esc=(v:any)=>String(v??'').replace(/[&<>"']/g,(ch:string)=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'} as Record<string,string>)[ch]);
+   const page='<!doctype html><html lang="en"><head><meta charset="UTF-8"><title>Employee Emergency Contact</title><style>body{font:16px system-ui;color:#1e3448;max-width:760px;padding:40px;margin:auto}h1{border-bottom:2px solid #246a9a;padding-bottom:16px}dt{font-weight:700;margin-top:20px}dd{margin:5px 0 10px}footer{font-size:13px;margin-top:50px;border-top:1px solid #ccc;padding-top:16px;color:#577}</style></head><body><h1>Lone Star Truck Driving Academy</h1><h2>Employee Emergency Contact</h2><dl><dt>Employee</dt><dd>'+esc(data.employeeName)+'</dd><dt>Contact name</dt><dd>'+esc(data.contactName)+'</dd><dt>Relationship</dt><dd>'+esc(data.relationship)+'</dd><dt>Emergency phone</dt><dd>'+esc(data.phone)+'</dd><dt>Secondary phone</dt><dd>'+esc(data.alternatePhone)+'</dd><dt>Electronically acknowledged by</dt><dd>'+esc(data.signature)+'</dd><dt>Submission date</dt><dd>'+esc(data.signedAt)+'</dd></dl><footer>Employee-authored record, audit reference '+esc(doc.id)+'. Print or save as PDF. HR verification status: '+esc(doc.verified_at?'Verified':'Pending')+'.</footer></body></html>';
+   await audit(ctx.db,caseId,'Employee emergency contact opened',ctx.employee?'employee':ctx.access.user.email,{documentId:doc.id});
+   return new Response(page,{status:200,headers:{...headers,'Content-Type':'text/html; charset=utf-8','Content-Security-Policy':"default-src 'none'; style-src 'unsafe-inline'; frame-ancestors 'none'"}});
+  }
+
   await audit(ctx.db,caseId,'Confidential document downloaded',ctx.employee?'employee':ctx.access.user.email,{docId,form:doc.form_name});
   return new Response(plain,{status:200,headers:{...headers,'Content-Type':doc.mime,'Content-Disposition':'attachment; filename="'+doc.form_name+'-'+doc.version+'.'+(doc.mime==='application/pdf'?'pdf':doc.mime==='image/png'?'png':'jpg')+'"','X-Content-Type-Options':'nosniff'}});
  }
@@ -117,6 +125,29 @@ export async function POST(req:Request){
  }
  if(Number(req.headers.get('Content-Length')||0)>6000)return deny('Payload too large',413);
  let b:any;try{b=await req.json()}catch{return deny('Invalid JSON',400)}
+ if(b.action==='save-emergency-contact'){
+  const caseId=String(b.caseId||'');
+  if(!validId(caseId))return deny('Valid case required',400);
+  const ctx=await employeeOrReviewer(req,caseId);
+  if(!ctx?.employee)return deny('Only the invited employee may complete emergency contacts',403);
+  if(!['In progress','Corrections requested'].includes(ctx.c.status))return deny('Employee forms are closed for review',409);
+  const name=String(b.contactName||'').trim(),relation=String(b.relationship||'').trim(),phone=String(b.phone||'').trim(),
+   alternatePhone=String(b.alternatePhone||'').trim(),signature=String(b.signature||'').trim();
+  if(name.length<2||name.length>150||relation.length<2||relation.length>80||
+    !/^\+[1-9]\d{7,14}$/.test(phone)||alternatePhone&&!/^\+[1-9]\d{7,14}$/.test(alternatePhone)||
+    signature.toLowerCase().replace(/\s+/g,' ')!==String(ctx.c.employee_name).trim().toLowerCase().replace(/\s+/g,' ')||
+    b.consent!==true)return deny('Complete contact details, use +1 phone format and electronically acknowledge with your full legal name',400);
+  const docs=await latest(ctx.db,caseId),previous=docs.get('emergency-contact');
+  if(previous?.verified_at)return deny('Verified emergency contact must be returned for correction by HR',409);
+  const at=new Date().toISOString(),version=(previous?.version||0)+1,id=crypto.randomUUID(),key='onboarding/'+crypto.randomUUID();
+  const record={employeeName:ctx.c.employee_name,contactName:name,relationship:relation,phone,alternatePhone,signature,signedAt:at,consent:'Employee attested information is accurate'};
+  const bytes=new TextEncoder().encode(JSON.stringify(record)),encrypted=await encrypt(bytes.buffer as ArrayBuffer);
+  await bucket().put(key,encrypted,{httpMetadata:{contentType:'application/octet-stream'}});
+  try{await ctx.db.prepare('INSERT INTO employee_onboarding_documents(id,case_id,group_name,form_name,r2_key,mime,size_bytes,version,submitted_at) VALUES(?,?,?,?,?,?,?,?,?)').bind(id,caseId,'personnel','emergency-contact',key,'application/json',bytes.length,version,at).run();}
+  catch(e){await bucket().delete(key);throw e;}
+  await audit(ctx.db,caseId,'Employee emergency contact signed','employee',{documentId:id,version,signatureRecorded:true});
+  return json({saved:true,id,version},201);
+ }
  if(b.action==='grant'){
   const a=await getWorkspaceAccess();if(a?.role!=='Owner')return deny('Owner permission required',403);
   const caseId=String(b.caseId||''),email=String(b.email||'').toLowerCase().trim(),group=b.group;
