@@ -27,7 +27,7 @@ export async function GET(req:Request){
  const context=await employeeContext(req);
  if(!context)return blocked('Your invitation session has expired. Contact school HR for a new invitation.',401);
  const c=context.caseData,docs:any=await context.db.prepare('SELECT form_name,group_name,version,submitted_at,verified_at FROM employee_onboarding_documents WHERE case_id=? ORDER BY form_name,version DESC').bind(c.id).all();
- return reply({employee:{name:c.employee_name,campusId:c.campus_id,jobTitle:c.job_title,startDate:c.start_date,status:c.status},documents:docs.results,requirement:'Submit official completed forms; HR verifies employer-only I-9 separately.',complete:false});
+ return reply({employee:{id:c.id,name:c.employee_name,campusId:c.campus_id,jobTitle:c.job_title,startDate:c.start_date,status:c.status},documents:docs.results,requirement:'Submit official completed forms; HR verifies employer-only I-9 separately.',complete:false});
 }
 export async function POST(req:Request){
  if(req.headers.get('origin')!==new URL(req.url).origin)return blocked('Invalid origin',403);
