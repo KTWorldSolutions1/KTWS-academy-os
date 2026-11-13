@@ -55,6 +55,17 @@ export async function GET(req:Request){
  const url=new URL(req.url),caseId=url.searchParams.get('caseId')||'';
  if(!validId(caseId))return deny('Valid hiring case required',400);
  const ctx=await employeeOrReviewer(req,caseId);if(!ctx)return deny('Not authorized',403);
+ const printGroup=url.searchParams.get('printGroup');
+ if(printGroup){
+  if(ctx.employee||!['personnel','payroll','eligibility'].includes(printGroup)||!await canAccessGroup(ctx,printGroup as OnboardingFileGroup))return deny('Printable HR index unavailable for this role',403);
+  const docs=await latest(ctx.db,caseId);
+  const escape=(s:any)=>String(s??'').replace(/[&<>"']/g,(ch:string)=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'} as Record<string,string>)[ch]);
+  const rows=[...docs.values()].filter((d:any)=>d.group_name===printGroup).map((d:any)=>
+   '<tr><td>'+escape(d.form_name)+'</td><td>'+escape(d.version)+'</td><td>'+escape(d.submitted_at)+'</td><td>'+escape(d.verified_at||'Pending')+'</td></tr>').join('');
+  const page='<!doctype html><html lang="en"><head><meta charset="UTF-8"><title>Restricted Employee File Index</title><style>body{font:15px system-ui;padding:36px;color:#1d3143}h1{font-size:23px}table{border-collapse:collapse;width:100%}th,td{border:1px solid #9baab6;text-align:left;padding:10px}small{color:#526779}.note{margin-top:25px;border-top:1px solid #ccc;padding-top:15px}@media print{body{padding:0}}</style></head><body><h1>Lone Star Truck Driving Academy</h1><h2>'+escape(printGroup).toUpperCase()+' — employee file index</h2><p><strong>'+escape(ctx.c.employee_name)+'</strong> · '+escape(ctx.c.job_title)+' · start '+escape(ctx.c.start_date)+'</p><p>Case '+escape(caseId)+' · Status '+escape(ctx.c.status)+'</p><table><thead><tr><th>Form</th><th>Version</th><th>Submitted</th><th>HR verified</th></tr></thead><tbody>'+rows+'</tbody></table><p class="note"><small>This is a printable file index, not a substitute for original signed forms. Download each restricted original separately. Keep I-9 records separate from general personnel files.</small></p></body></html>';
+  await audit(ctx.db,caseId,'Restricted employee file index opened',ctx.access.user.email,{group:printGroup});
+  return new Response(page,{status:200,headers:{...headers,'Content-Type':'text/html; charset=utf-8','Content-Security-Policy':"default-src 'none'; style-src 'unsafe-inline'; frame-ancestors 'none'"}});
+ }
  const docId=url.searchParams.get('documentId');
  if(docId){
   if(!validId(docId))return deny('Invalid document identifier',400);
