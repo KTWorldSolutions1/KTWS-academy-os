@@ -87,6 +87,26 @@ CREATE TABLE IF NOT EXISTS academy_team_reads(
  channel_id TEXT NOT NULL,account_id TEXT NOT NULL,last_seq INTEGER NOT NULL DEFAULT 0,
  PRIMARY KEY(channel_id,account_id),FOREIGN KEY(channel_id) REFERENCES academy_team_channels(id));
 
+
+-- Employee onboarding case management is metadata only. Restricted employee forms must
+-- NOT be stored here or in general school records; keep confidential uploads gated.
+CREATE TABLE IF NOT EXISTS employee_onboarding_cases(
+ id TEXT PRIMARY KEY, campus_id TEXT NOT NULL, employee_name TEXT NOT NULL,
+ email TEXT NOT NULL, phone TEXT NOT NULL DEFAULT '', job_title TEXT NOT NULL,
+ start_date TEXT NOT NULL, accepted_offer_at TEXT NOT NULL,
+ status TEXT NOT NULL DEFAULT 'Draft' CHECK(status IN
+ ('Draft','Invited','In progress','Employee submitted','Corrections requested','HR review','HR verified','Complete','Cancelled')),
+ created_by TEXT NOT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL,
+ reviewed_by TEXT, reviewed_at TEXT, approved_by TEXT, approved_at TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_employee_onboarding_campus ON employee_onboarding_cases(campus_id,status);
+CREATE TABLE IF NOT EXISTS employee_onboarding_audit(
+ id TEXT PRIMARY KEY, case_id TEXT NOT NULL, action TEXT NOT NULL, actor TEXT NOT NULL,
+ at TEXT NOT NULL, details TEXT NOT NULL DEFAULT '{}',
+ FOREIGN KEY(case_id) REFERENCES employee_onboarding_cases(id)
+);
+CREATE INDEX IF NOT EXISTS idx_employee_onboarding_audit_case ON employee_onboarding_audit(case_id,at);
+
 `);
 class Statement{query:string;values:any[]=[];constructor(query:string){this.query=query;}bind(...values:any[]){this.values=values.map(v=>v===undefined?null:v);return this;}async all(){return {results:sql.prepare(this.query).all(...this.values)};}async first(){return sql.prepare(this.query).get(...this.values)||null;}async run(){return sql.prepare(this.query).run(...this.values);}}
 export function database(){return {prepare:(q:string)=>new Statement(q),batch:async(stmts:Statement[])=>{sql.exec('BEGIN IMMEDIATE');try{const results=[];for(const s of stmts)results.push(sql.prepare(s.query).run(...s.values));sql.exec('COMMIT');return results;}catch(e){sql.exec('ROLLBACK');throw e;}}};}
