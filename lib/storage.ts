@@ -133,6 +133,15 @@ CREATE TABLE IF NOT EXISTS employee_onboarding_documents(
 );
 CREATE INDEX IF NOT EXISTS idx_employee_documents_case ON employee_onboarding_documents(case_id,group_name);
 
+
+-- Separate HR entitlements. No staff role automatically grants payroll/I-9 access.
+CREATE TABLE IF NOT EXISTS employee_onboarding_hr_grants(
+ email TEXT NOT NULL,campus_id TEXT NOT NULL,group_name TEXT NOT NULL CHECK(group_name IN ('payroll','eligibility')),
+ approved_by TEXT NOT NULL,approved_at TEXT NOT NULL,revoked_at TEXT,
+ PRIMARY KEY(email,campus_id,group_name)
+);
+CREATE INDEX IF NOT EXISTS idx_employee_hr_grants ON employee_onboarding_hr_grants(campus_id,email,revoked_at);
+
 `);
 class Statement{query:string;values:any[]=[];constructor(query:string){this.query=query;}bind(...values:any[]){this.values=values.map(v=>v===undefined?null:v);return this;}async all(){return {results:sql.prepare(this.query).all(...this.values)};}async first(){return sql.prepare(this.query).get(...this.values)||null;}async run(){return sql.prepare(this.query).run(...this.values);}}
 export function database(){return {prepare:(q:string)=>new Statement(q),batch:async(stmts:Statement[])=>{sql.exec('BEGIN IMMEDIATE');try{const results=[];for(const s of stmts)results.push(sql.prepare(s.query).run(...s.values));sql.exec('COMMIT');return results;}catch(e){sql.exec('ROLLBACK');throw e;}}};}
