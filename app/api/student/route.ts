@@ -53,7 +53,7 @@ export async function GET(req:Request){
   ]);
   const paymentSummary=publicBillingSummary(calculateStudentLedger(chargeRows.results||[],paymentRows.results||[]));
   await markAudit(found.db,found.student.id,'Own progress portal viewed',found.user.email,{account:found.link.account,fields:'limited student progress'});
-  return reply({student:{...view,paymentSummary,studentOnlinePaymentsReady:stripeConfig().ready}});
+  return reply({student:{...view,paymentSummary,studentOnlinePaymentsReady:stripeConfig().ready&&!stripeConfig().testMode}});
  }
  const admin=await getWorkspaceAccess();
  if(!admin||admin.role!=='Owner')return error('Owner access required',403);

@@ -9,7 +9,7 @@ export async function POST(req:Request){
  if(req.headers.get('origin')!==new URL(req.url).origin)return response({error:'Invalid request origin.'},403);
  if(Number(req.headers.get('Content-Length')||0)>1024)return response({error:'Invalid request.'},413);
  const config=stripeConfig();
- if(!config.ready)return response({error:'Online student payments have not been enabled by the school.'},503);
+ if(!config.ready||config.testMode)return response({error:'Live online student payments have not been enabled by the school.'},503);
  let data:any;try{data=await req.json();}catch{return response({error:'Invalid request.'},400);}
  const chargeId=data?.chargeId;
  if(typeof chargeId!=='string'||!/^[a-zA-Z0-9_-]{1,100}$/.test(chargeId))return response({error:'Choose a tuition charge.'},400);
