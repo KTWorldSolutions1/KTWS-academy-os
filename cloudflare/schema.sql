@@ -167,3 +167,29 @@ CREATE TABLE IF NOT EXISTS employee_onboarding_audit(
  FOREIGN KEY(case_id) REFERENCES employee_onboarding_cases(id)
 );
 CREATE INDEX IF NOT EXISTS idx_employee_onboarding_audit_case ON employee_onboarding_audit(case_id,at);
+
+
+-- Invitation hashes and employee-only session hashes; neither contains a raw URL token.
+CREATE TABLE IF NOT EXISTS employee_onboarding_invites(
+ id TEXT PRIMARY KEY,case_id TEXT NOT NULL,token_hash TEXT NOT NULL UNIQUE,
+ expires_at INTEGER NOT NULL,used_at TEXT,revoked_at TEXT,created_at TEXT NOT NULL,
+ created_by TEXT NOT NULL,email_status TEXT NOT NULL DEFAULT 'Not sent',
+ sms_status TEXT NOT NULL DEFAULT 'Not sent',
+ FOREIGN KEY(case_id) REFERENCES employee_onboarding_cases(id)
+);
+CREATE INDEX IF NOT EXISTS idx_employee_invites_case ON employee_onboarding_invites(case_id,expires_at);
+CREATE TABLE IF NOT EXISTS employee_onboarding_sessions(
+ token_hash TEXT PRIMARY KEY,case_id TEXT NOT NULL,expires_at INTEGER NOT NULL,
+ FOREIGN KEY(case_id) REFERENCES employee_onboarding_cases(id)
+);
+CREATE INDEX IF NOT EXISTS idx_employee_sessions_case ON employee_onboarding_sessions(case_id);
+-- Encrypted private employee documents will be stored only in R2 when security acceptance is granted.
+CREATE TABLE IF NOT EXISTS employee_onboarding_documents(
+ id TEXT PRIMARY KEY,case_id TEXT NOT NULL,group_name TEXT NOT NULL CHECK(group_name IN ('personnel','payroll','eligibility')),
+ form_name TEXT NOT NULL,r2_key TEXT NOT NULL UNIQUE,
+ mime TEXT NOT NULL,size_bytes INTEGER NOT NULL,version INTEGER NOT NULL DEFAULT 1,
+ submitted_at TEXT NOT NULL,verified_at TEXT,verified_by TEXT,verification_note TEXT,
+ FOREIGN KEY(case_id) REFERENCES employee_onboarding_cases(id),
+ UNIQUE(case_id,form_name,version)
+);
+CREATE INDEX IF NOT EXISTS idx_employee_documents_case ON employee_onboarding_documents(case_id,group_name);

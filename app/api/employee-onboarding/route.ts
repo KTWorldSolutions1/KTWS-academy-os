@@ -1,5 +1,6 @@
 import {getWorkspaceAccess} from '../../../lib/workspace-access';
 import {database} from '../../../lib/storage';
+import {env} from '../../../lib/env';
 import {canReviewOnboarding,canFinalizeOnboarding} from '../../../lib/employee-onboarding-policy';
 
 const noStore={'Cache-Control':'no-store','X-Content-Type-Options':'nosniff'};
@@ -30,8 +31,8 @@ export async function GET(req:Request){
   status:r.status,createdAt:r.created_at,updatedAt:r.updated_at,
   reviewedAt:r.reviewed_at,approvedAt:r.approved_at
  }));
- return respond({cases,mode:'metadata-only',employeeFormsEnabled:false,
-   notice:'Employee invitations, regulated forms, uploads and activation remain gated until production acceptance.'});
+ return respond({cases,mode:'metadata-only',employeeFormsEnabled:false,invitationsEnabled:env.EMPLOYEE_ONBOARDING_ENABLED==='true'&&env.EMPLOYEE_ONBOARDING_ACCEPTANCE_APPROVED==='true'&&env.SCHOOL_FILE_UPLOADS_ENABLED==='true'&&env.EMPLOYEE_ONBOARDING_SIGNING_APPROVED==='true',
+   notice:'Employee invitations require independent production security and signature acceptance; regulated uploads and activation remain separately gated.'});
 }
 export async function POST(req:Request){
  const access=await getWorkspaceAccess();if(!access)return invalid('Sign in required',401);
