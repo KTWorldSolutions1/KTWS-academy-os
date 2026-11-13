@@ -147,3 +147,23 @@ CREATE INDEX IF NOT EXISTS idx_academy_team_messages_channel_seq ON academy_team
 CREATE TABLE IF NOT EXISTS academy_team_reads(
  channel_id TEXT NOT NULL,account_id TEXT NOT NULL,last_seq INTEGER NOT NULL DEFAULT 0,
  PRIMARY KEY(channel_id,account_id),FOREIGN KEY(channel_id) REFERENCES academy_team_channels(id));
+
+
+-- Employee onboarding case management is metadata only. Restricted employee forms must
+-- NOT be stored here or in general school records; keep confidential uploads gated.
+CREATE TABLE IF NOT EXISTS employee_onboarding_cases(
+ id TEXT PRIMARY KEY, campus_id TEXT NOT NULL, employee_name TEXT NOT NULL,
+ email TEXT NOT NULL, phone TEXT NOT NULL DEFAULT '', job_title TEXT NOT NULL,
+ start_date TEXT NOT NULL, accepted_offer_at TEXT NOT NULL,
+ status TEXT NOT NULL DEFAULT 'Draft' CHECK(status IN
+ ('Draft','Invited','In progress','Employee submitted','Corrections requested','HR review','HR verified','Complete','Cancelled')),
+ created_by TEXT NOT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL,
+ reviewed_by TEXT, reviewed_at TEXT, approved_by TEXT, approved_at TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_employee_onboarding_campus ON employee_onboarding_cases(campus_id,status);
+CREATE TABLE IF NOT EXISTS employee_onboarding_audit(
+ id TEXT PRIMARY KEY, case_id TEXT NOT NULL, action TEXT NOT NULL, actor TEXT NOT NULL,
+ at TEXT NOT NULL, details TEXT NOT NULL DEFAULT '{}',
+ FOREIGN KEY(case_id) REFERENCES employee_onboarding_cases(id)
+);
+CREATE INDEX IF NOT EXISTS idx_employee_onboarding_audit_case ON employee_onboarding_audit(case_id,at);
