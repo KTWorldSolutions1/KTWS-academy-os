@@ -50,7 +50,7 @@ try{
  }
  const hrNow=await read(send('/api/employee-onboarding',null,hrCookie));assert.ok(hrNow.body.cases.some(x=>x.id===id));
  const hrdocs=await read(send('/api/employee-onboarding/documents?caseId='+id,null,hrCookie));assert.equal(hrdocs.status,200,JSON.stringify(hrdocs.body));
- assert.equal(hrdocs.body.documents.length,required.length);
+ assert.equal(hrdocs.body.documents.length,required.length,JSON.stringify(hrdocs.body));
  const download=await send('/api/employee-onboarding/documents?caseId='+id+'&documentId='+restrictedId,null,hrCookie);
  assert.equal(download.status,200);assert.match(download.headers.get('Content-Disposition'),/attachment/);assert.match(await download.text(),/%PDF-1.4/);
  const i9=await upload(id,'i9-section-2',hrCookie);assert.equal(i9.status,201,JSON.stringify(i9.body));
