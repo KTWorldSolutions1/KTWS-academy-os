@@ -83,6 +83,8 @@ export async function POST(req:Request){
   if(!['application/pdf','image/jpeg','image/png'].includes(file.type))return deny('Only PDF, JPG or PNG evidence is accepted',400);
   const group=formGroups[formName],ctx=await employeeOrReviewer(req,caseId);if(!ctx)return deny('Not authorized',403);
   if(ctx.c.status==='Complete'||ctx.c.status==='Cancelled')return deny('This hiring case is closed',409);
+  if(ctx.employee&&!['In progress','Corrections requested'].includes(ctx.c.status))return deny('Employee document submissions are closed during employer review',409);
+  if(!ctx.employee&&(formName!=='i9-section-2'||!['Employee submitted','HR review'].includes(ctx.c.status)))return deny('Employer upload is limited to I-9 Section 2 after employee submission',403);
   if(ctx.employee&&formName==='i9-section-2')return deny('I-9 Section 2 must be completed by an authorized employer representative',403);
   if(!ctx.employee&&(!await canAccessGroup(ctx,group)||formName==='i9-section-1'))return deny('Only an authorized employee may upload this form',403);
   const bytes=new Uint8Array(await file.arrayBuffer());
