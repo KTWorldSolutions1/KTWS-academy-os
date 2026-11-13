@@ -34,6 +34,7 @@ export default function EmployeeOnboardingReview({caseId,role,status,onChange}:{
   <select value={grantGroup} onChange={e=>setGrantGroup(e.target.value as any)} style={input}><option value="payroll">Payroll and tax forms</option><option value="eligibility">I-9 and identity records</option></select>
   <div style={{display:'flex',gap:8}}><button type="submit" disabled={busy} style={button}>Grant explicit access</button><button type="button" disabled={busy} onClick={()=>void action({action:'grant',email:hrEmail,group:grantGroup,enabled:false})} style={button}>Revoke access</button></div>
  </form>}
+ <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>{(['personnel','payroll','eligibility'] as const).map(group=><a key={group} target="_blank" rel="noopener noreferrer" href={'/api/employee-onboarding/documents?caseId='+caseId+'&printGroup='+group} style={{padding:'9px 12px',background:'#f0f6fa',borderRadius:9,fontSize:13}}>Print {group==='eligibility'?'separate I-9':group} file index</a>)}</div>
  <div style={{display:'grid',gap:8}}>{docs.map(d=><article key={d.id} style={{border:'1px solid #d5e3ed',borderRadius:10,padding:12}}>
   <strong>{d.formName}</strong> <small>({d.group} · v{d.version})</small>
   <p style={{fontSize:12}}>{d.verifiedAt?'HR verified':'Pending HR verification'} {d.verificationNote}</p>
