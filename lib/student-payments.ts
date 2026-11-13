@@ -54,7 +54,7 @@ export function staffBillingChargeRows(summary:ReturnType<typeof calculateStuden
 export function publicBillingSummary(summary:ReturnType<typeof calculateStudentLedger>){
  return {totalCents:summary.total_cents,paidCents:summary.paid_cents,outstandingCents:summary.outstanding_cents,
   charges:summary.charges.map(c=>({id:c.id,description:c.description,category:c.category,dueDate:c.due_date,
-   amountCents:c.amount_cents,paidCents:c.paid_cents,outstandingCents:c.outstanding_cents,label:c.label})),
+   amountCents:c.amount_cents,paidCents:c.paid_cents,outstandingCents:c.outstanding_cents,label:c.label,paymentPending:c.pending_cents>0})),
   notice:'Balance based on school-posted payments and verified processor events. Manual remittances may require staff review. This page does not display card numbers or banking details.'};
 }
 
