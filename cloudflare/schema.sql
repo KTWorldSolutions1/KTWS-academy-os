@@ -193,3 +193,12 @@ CREATE TABLE IF NOT EXISTS employee_onboarding_documents(
  UNIQUE(case_id,form_name,version)
 );
 CREATE INDEX IF NOT EXISTS idx_employee_documents_case ON employee_onboarding_documents(case_id,group_name);
+
+
+-- Separate HR entitlements. No staff role automatically grants payroll/I-9 access.
+CREATE TABLE IF NOT EXISTS employee_onboarding_hr_grants(
+ email TEXT NOT NULL,campus_id TEXT NOT NULL,group_name TEXT NOT NULL CHECK(group_name IN ('payroll','eligibility')),
+ approved_by TEXT NOT NULL,approved_at TEXT NOT NULL,revoked_at TEXT,
+ PRIMARY KEY(email,campus_id,group_name)
+);
+CREATE INDEX IF NOT EXISTS idx_employee_hr_grants ON employee_onboarding_hr_grants(campus_id,email,revoked_at);
